@@ -265,9 +265,24 @@ async function init() {
   route();
 }
 
+// After a new deploy an open tab would keep running the old code, since moving
+// between patients never reloads the page. On each move it asks the server
+// which version is live, at most every 15 s, and reloads into the new one.
+// Everything is saved in the browser, and no AI step is cut off.
+let lastVersionCheck = 0;
+async function reloadIfNewVersion() {
+  if (!state.health || Date.now() - lastVersionCheck < 15_000) return;
+  lastVersionCheck = Date.now();
+  try {
+    const { version } = await api("/api/health");
+    if (version && state.health.version && version !== state.health.version && !Object.keys(state.running).length) location.reload();
+  } catch { /* offline for a moment: try on the next move */ }
+}
+
 function route() {
   const [view, id] = location.hash.replace(/^#\/?/, "").split("/");
   hideBanner();
+  reloadIfNewVersion();
   if (view === "visit" && id) return openView("visit", () => loadVisit(decodeURIComponent(id)));
   if (view === "new") return openView("new", resetNewVisitForm);
   return openView("patients", renderPatients);

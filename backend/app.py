@@ -1,10 +1,12 @@
 """FastAPI-app: API under /api och frontenden som statiska filer på /."""
 from __future__ import annotations
 
+import hashlib
 import hmac
 import logging
+from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
-
 from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
@@ -141,10 +143,24 @@ def get_cache(settings: Annotated[Settings, Depends(get_settings)]) -> AuditCach
     return AuditCache(settings.cache_dir)
 
 
+@lru_cache(maxsize=4)
+def frontend_version(frontend_dir: Path) -> str:
+    """Ett fingeravtryck av sidans filer. En öppen flik jämför det med sitt eget
+    och laddar om sig själv efter en ny deploy, i stället för att fortsätta med
+    gammal kod tills någon laddar om sidan."""
+    h = hashlib.sha256()
+    for path in sorted(frontend_dir.rglob("*")):
+        if path.is_file() and path.suffix in {".js", ".css", ".html"}:
+            h.update(path.relative_to(frontend_dir).as_posix().encode())
+            h.update(path.read_bytes().replace(bytes([13, 10]), bytes([10])))
+    return h.hexdigest()[:12]
+
+
 @app.get("/api/health")
 def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict:
     return {
         "status": "ok",
+        "version": frontend_version(settings.frontend_dir),
         "model": settings.model,
         "offline": settings.demo_offline,
         "replay": settings.replay,

@@ -96,3 +96,17 @@ def test_sign_in_redirects_also_carry_cache_headers(monkeypatch):
         api = c.get("/api/me")
     assert page.status_code == 303 and page.headers["cache-control"] == "no-cache"
     assert api.status_code == 401 and api.headers["cache-control"] == "no-store"
+
+
+def test_health_tells_the_page_which_version_is_live(client, tmp_path):
+    from backend.app import frontend_version
+
+    version = client.get("/api/health").json()["version"]
+    assert len(version) == 12
+    site = tmp_path / "site"
+    site.mkdir()
+    (site / "app.js").write_text("one", encoding="utf-8")
+    before = frontend_version(site)
+    (site / "app.js").write_text("two", encoding="utf-8")
+    frontend_version.cache_clear()
+    assert frontend_version(site) != before  # a new deploy gives a new version
