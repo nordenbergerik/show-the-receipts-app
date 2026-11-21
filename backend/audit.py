@@ -26,10 +26,10 @@ def _resolve_transcript(req: AuditRequest, store: DataStore) -> tuple[str, str]:
         return req.transcript_text, ""
     enc = store.get(req.encounter_id or "")
     if enc is None:
-        raise AuditError(f"Okänt encounter_id: {req.encounter_id}", 404)
+        raise AuditError(f"Unknown visit: {req.encounter_id}", 404)
     dialogue = enc.variants.get(req.variant)
     if dialogue is None:
-        raise AuditError(f"{enc.encounter_id} saknar varianten '{req.variant}'", 404)
+        raise AuditError(f"{enc.encounter_id} has no '{req.variant}' transcript", 404)
     return dialogue, enc.chief_complaint
 
 
@@ -46,7 +46,7 @@ async def run_audit(
     dialogue, chief_complaint = _resolve_transcript(req, store)
     lines = index_transcript(dialogue)
     if not lines:
-        raise AuditError("Samtalet är tomt.", 400)
+        raise AuditError("The transcript is empty.", 400)
     rendered = render_for_prompt(lines)
     note_text = req.note_text
 
@@ -58,9 +58,9 @@ async def run_audit(
         return cached
 
     if settings.demo_offline:
-        raise AuditError("Demoläget är offline och den här granskningen finns inte förberäknad.", 409)
+        raise AuditError("This demo is offline, and this review has not been precomputed.", 409)
     if not allow_live:
-        raise AuditError("Livegranskning kräver åtkomstkod.", 401)
+        raise AuditError("Live review requires an access code.", 401)
 
     # Samtalet ligger först och cachas (prompt caching), så att omgranskningar
     # av samma samtal med en ändrad anteckning återanvänder prefixet.

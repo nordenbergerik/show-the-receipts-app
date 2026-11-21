@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import hmac
+import json
 import logging
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
@@ -10,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.audit import AuditError, run_audit
 from backend.cache import AuditCache
-from backend.config import Settings, get_settings
+from backend.config import ROOT, Settings, get_settings
 from backend.data import VARIANTS, DataStore, get_store
 from backend.llm import ClaudeLLM, StructuredLLM
 from backend.schemas import AuditRequest, AuditResult, Variant
@@ -34,6 +36,13 @@ def get_cache(settings: Annotated[Settings, Depends(get_settings)]) -> AuditCach
     return AuditCache(settings.cache_dir)
 
 
+@lru_cache(maxsize=1)
+def demo_notes() -> dict[str, list[dict]]:
+    """Förberedda anteckningar per samtal (demo/notes.json)."""
+    path = ROOT / "demo" / "notes.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
 @app.get("/api/health")
 def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict:
     return {
@@ -54,6 +63,7 @@ def list_encounters(store: Annotated[DataStore, Depends(get_store)]) -> list[dic
             "chief_complaint": e.chief_complaint,
             "patient": e.patient_name,
             "variants": list(e.variants),
+            "featured": e.encounter_id in demo_notes(),
         }
         for e in store.list()
     ]
@@ -67,9 +77,9 @@ def get_encounter(
 ) -> dict:
     enc = store.get(encounter_id)
     if enc is None:
-        raise HTTPException(404, f"Okänt encounter_id: {encounter_id}")
+        raise HTTPException(404, f"Unknown visit: {encounter_id}")
     if variant not in enc.variants:
-        raise HTTPException(404, f"{encounter_id} saknar varianten '{variant}'")
+        raise HTTPException(404, f"{encounter_id} has no '{variant}' transcript")
     return {
         "encounter_id": enc.encounter_id,
         "split": enc.split,
@@ -79,7 +89,16 @@ def get_encounter(
         "variant": variant,
         "variants": {v: VARIANTS[v] for v in enc.variants},
         "transcript": [line.model_dump() for line in index_transcript(enc.variants[variant])],
-        "reference_note": enc.reference_note,
+        "notes": [
+            *demo_notes().get(enc.encounter_id, []),
+            {
+                "id": "reference",
+                "label": "Expert note (ACI-Bench)",
+                "description": "The full reference note that ships with the dataset, written and reviewed by experts.",
+                "note_text": enc.reference_note,
+            },
+            {"id": "own", "label": "Your own note", "description": "Type or paste any note to check it against this visit.", "note_text": ""},
+        ],
     }
 
 

@@ -57,18 +57,18 @@ class ClaudeLLM:
         try:
             response = await self.client.beta.messages.parse(**kwargs)
         except anthropic.AuthenticationError as exc:
-            raise LLMError("API-nyckeln saknas eller är ogiltig. Kontrollera ANTHROPIC_API_KEY i .env.", 500) from exc
+            raise LLMError("The API key is missing or invalid. Check ANTHROPIC_API_KEY in .env.", 500) from exc
         except anthropic.PermissionDeniedError as exc:
-            raise LLMError("API-nyckeln saknar behörighet för modellen.", 500) from exc
+            raise LLMError("The API key does not have access to this model.", 500) from exc
         except anthropic.RateLimitError as exc:
-            raise LLMError("För många anrop just nu. Försök igen om en stund.", 429) from exc
+            raise LLMError("Too many requests right now. Try again in a moment.", 429) from exc
         except anthropic.APITimeoutError as exc:
-            raise LLMError("Claude svarade inte i tid. Försök igen.", 504) from exc
+            raise LLMError("Claude did not respond in time. Try again.", 504) from exc
         except anthropic.APIConnectionError as exc:
-            raise LLMError("Kunde inte nå Claude-API:t. Kontrollera nätverket.", 503) from exc
+            raise LLMError("Could not reach the Claude API. Check the network connection.", 503) from exc
         except anthropic.APIStatusError as exc:
             log.warning("Claude API status %s", exc.status_code)
-            raise LLMError(f"Claude-API:t svarade med fel ({exc.status_code}).", 502) from exc
+            raise LLMError(f"The Claude API returned an error ({exc.status_code}).", 502) from exc
 
         usage = response.usage
         log.info(
@@ -82,10 +82,10 @@ class ClaudeLLM:
         )
 
         if response.stop_reason == "refusal":
-            raise LLMError("Modellen avböjde att granska den här texten.", 422)
+            raise LLMError("The model declined to review this text.", 422)
         if response.stop_reason == "max_tokens":
-            raise LLMError("Svaret blev för långt och klipptes av. Prova en kortare anteckning.", 502)
+            raise LLMError("The response was too long and was cut off. Try a shorter note.", 502)
         parsed = response.parsed_output
         if parsed is None:
-            raise LLMError("Modellen gav inget giltigt strukturerat svar.", 502)
+            raise LLMError("The model did not return a valid structured response.", 502)
         return parsed

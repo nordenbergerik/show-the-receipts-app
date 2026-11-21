@@ -29,10 +29,10 @@ SPLITS: dict[str, str] = {
 
 # Samtalsvarianter. "clean" är den transkription som finns i challenge_data.
 VARIANTS: dict[str, str] = {
-    "clean": "Transkription",
-    "asr": "Rå taligenkänning",
-    "asrcorr": "Rättad taligenkänning",
-    "humantrans": "Manuell transkription",
+    "clean": "Transcript",
+    "asr": "Raw speech-to-text",
+    "asrcorr": "Corrected speech-to-text",
+    "humantrans": "Manual transcript",
 }
 
 _SRC_FILE_RE = re.compile(r"^(?P<split>[a-z0-9]+)_(?P<dataset>aci|virtscribe)_(?P<variant>asr|asrcorr|humantrans)\.csv$")

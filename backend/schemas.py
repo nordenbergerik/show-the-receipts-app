@@ -64,7 +64,7 @@ class AuditRequest(BaseModel):
     @model_validator(mode="after")
     def _one_source(self) -> "AuditRequest":
         if bool(self.encounter_id) == bool(self.transcript_text):
-            raise ValueError("Ange antingen encounter_id eller transcript_text")
+            raise ValueError("Provide either encounter_id or transcript_text")
         return self
 
 
