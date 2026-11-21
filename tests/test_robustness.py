@@ -28,17 +28,34 @@ def response(parsed, stop="end_turn"):
     return SimpleNamespace(parsed_output=parsed, stop_reason=stop, usage=usage)
 
 
+class FakeStream:
+    def __init__(self, result):
+        self.result = result
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def get_final_message(self):
+        if isinstance(self.result, BaseException):
+            raise self.result
+        return self.result
+
+
 class FakeMessages:
+    """Som SDK:ns client.beta.messages: stream() ger en async context manager."""
+
     def __init__(self, results):
         self.results = list(results)
         self.calls = 0
+        self.kwargs = None
 
-    async def parse(self, **kwargs):
+    def stream(self, **kwargs):
         self.calls += 1
-        result = self.results.pop(0)
-        if isinstance(result, BaseException):
-            raise result
-        return result
+        self.kwargs = kwargs
+        return FakeStream(self.results.pop(0))
 
 
 def claude_with(results):
@@ -153,3 +170,54 @@ def test_runaway_output_is_capped_and_blanks_dropped():
     )
     additions, _ = check_coverage(many, lines, [])
     assert len(additions) == MAX_ADDITIONS
+
+
+# ------------------------------------------------------------- kostnad och reserv
+
+
+def test_usage_and_cost_are_recorded_per_call():
+    from backend import usage
+
+    calls = usage.start()
+    llm, messages = claude_with([SimpleNamespace(
+        parsed_output=GOOD_CLAIMS, stop_reason="end_turn", model="claude-fable-5-2",
+        usage=SimpleNamespace(input_tokens=1000, output_tokens=2000, cache_read_input_tokens=3000, cache_creation_input_tokens=0),
+    )])
+    run(llm.parse(system="s", content=[], output_format=ClaimsLLM))
+    [call] = calls
+    assert (call.task, call.input_tokens, call.output_tokens, call.cache_read_tokens) == ("ClaimsLLM", 1000, 2000, 3000)
+    # Fable 5.2: $8 in, $40 out, $0.20 cache read per million tokens
+    assert call.cost_usd == round((1000 * 8 + 2000 * 40 + 3000 * 0.2) / 1e6, 4)
+    assert messages.kwargs["model"] and messages.kwargs["output_config"]["effort"]
+    assert usage.summarize(calls).cost_usd == call.cost_usd
+
+
+def test_live_failure_falls_back_to_a_recording_only_when_one_exists(tmp_path):
+    from backend import usage
+    from backend.llm import LiveWithFallback
+    from backend.replay import ReplayLLM
+    from backend.visit import visit_check_content
+    from backend.schemas import VisitCheckLLM
+
+    lines = index_transcript("[doctor] hi , brian .\n[patient] good to see you")
+    content = visit_check_content(lines, "")
+    recorded = ReplayLLM(tmp_path)
+    down = LLMError("Could not reach the Claude API. Check the network connection.", 503)
+    llm, _ = claude_with([down, down])
+    both = LiveWithFallback(llm, recorded)
+    with pytest.raises(LLMError):  # ingen inspelning: felet syns
+        run(both.parse(system="s", content=content, output_format=VisitCheckLLM))
+    recorded.save("VisitCheckLLM", content, {"missed": [], "decision_flags": []}, source="test")
+    calls = usage.start()
+    assert run(both.parse(system="s", content=content, output_format=VisitCheckLLM)) == VisitCheckLLM(missed=[], decision_flags=[])
+    assert [c.source for c in calls] == ["recorded-fallback"]
+
+
+def test_bad_key_is_not_replaced_by_a_recording(tmp_path):
+    from backend.llm import LiveWithFallback
+    from backend.replay import ReplayLLM
+
+    llm, _ = claude_with([LLMError("The API key is invalid. Check ANTHROPIC_API_KEY.", 500)])
+    with pytest.raises(LLMError) as err:
+        run(LiveWithFallback(llm, ReplayLLM(tmp_path)).parse(system="s", content=[], output_format=ClaimsLLM))
+    assert err.value.status_code == 500

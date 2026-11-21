@@ -1,0 +1,154 @@
+{
+ "model": "claude-fable-5-2",
+ "effort": "high",
+ "case": "chest-pain",
+ "steps": [
+  {
+   "step": "  Visit check",
+   "seconds": 35.9,
+   "calls": 1,
+   "input": 4,
+   "output": 3815,
+   "cache_read": 0,
+   "cache_write": 5286,
+   "cost_usd": 0.2055,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "VisitCheckLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 35.9,
+     "input_tokens": 4,
+     "output_tokens": 3815,
+     "cost_usd": 0.2055,
+     "source": "live"
+    }
+   ]
+  },
+  {
+   "step": "  Draft note (SOAP)",
+   "seconds": 16.7,
+   "calls": 1,
+   "input": 11,
+   "output": 1649,
+   "cache_read": 0,
+   "cache_write": 4355,
+   "cost_usd": 0.1096,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DraftNoteLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 16.7,
+     "input_tokens": 11,
+     "output_tokens": 1649,
+     "cost_usd": 0.1096,
+     "source": "live"
+    }
+   ]
+  },
+  {
+   "step": "  Note check of the draft",
+   "seconds": 75.2,
+   "calls": 3,
+   "input": 2643,
+   "output": 14215,
+   "cache_read": 0,
+   "cache_write": 14699,
+   "cost_usd": 0.7367,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "CoverageLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 17.3,
+     "input_tokens": 881,
+     "output_tokens": 1562,
+     "cost_usd": 0.118,
+     "source": "live"
+    },
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 23.2,
+     "input_tokens": 881,
+     "output_tokens": 2384,
+     "cost_usd": 0.1505,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 75.2,
+     "input_tokens": 881,
+     "output_tokens": 10269,
+     "cost_usd": 0.4682,
+     "source": "live"
+    }
+   ]
+  },
+  {
+   "step": "  Note check of a note with errors",
+   "seconds": 44.5,
+   "calls": 3,
+   "input": 1173,
+   "output": 10053,
+   "cache_read": 14699,
+   "cache_write": 0,
+   "cost_usd": 0.4145,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "CoverageLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 18.1,
+     "input_tokens": 391,
+     "output_tokens": 1847,
+     "cost_usd": 0.078,
+     "source": "live"
+    },
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 20.7,
+     "input_tokens": 391,
+     "output_tokens": 2218,
+     "cost_usd": 0.0928,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 44.5,
+     "input_tokens": 391,
+     "output_tokens": 5988,
+     "cost_usd": 0.2437,
+     "source": "live"
+    }
+   ]
+  },
+  {
+   "step": "  One question",
+   "seconds": 17.0,
+   "calls": 1,
+   "input": 448,
+   "output": 1809,
+   "cache_read": 0,
+   "cache_write": 4666,
+   "cost_usd": 0.1226,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "AskLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 17.0,
+     "input_tokens": 448,
+     "output_tokens": 1809,
+     "cost_usd": 0.1226,
+     "source": "live"
+    }
+   ]
+  }
+ ],
+ "total_cost_usd": 1.5889
+}

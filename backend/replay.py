@@ -22,6 +22,7 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
+from backend import usage
 from backend.llm import LLMError
 
 T = TypeVar("T", bound=BaseModel)
@@ -53,6 +54,11 @@ class ReplayLLM:
         return self.directory / f"{replay_key(format_name, content)}.json"
 
     async def parse(self, *, system: str, content: list[dict[str, Any]], output_format: type[T]) -> T:
+        result = self.load(content, output_format)
+        usage.record(usage.CallUsage(task=output_format.__name__, model="recorded", seconds=0, source="recorded"))
+        return result
+
+    def load(self, content: list[dict[str, Any]], output_format: type[T]) -> T:
         path = self.path_for(output_format.__name__, content)
         if not path.exists():
             raise LLMError(NOT_RECORDED, 503)

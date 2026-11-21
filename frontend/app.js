@@ -15,7 +15,7 @@ const VARIANT = { clean: "Transcript", asr: "Raw speech-to-text", asrcorr: "Corr
 const VERDICT = { evidence_found: "Evidence found", some_evidence: "Some evidence", no_evidence_found: "No evidence found" };
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const OWN_PREFIX = "own-";
-const REQUEST_TIMEOUT_MS = 330_000;
+const REQUEST_TIMEOUT_MS = 700_000; // a little longer than the server's own limit (Fable on high effort can take minutes)
 
 const state = {
   health: null,
@@ -104,6 +104,22 @@ function isValidAudit(result) {
 // Every visit is a transcript the clinician uploaded (or an example case).
 function visitSource() {
   return { transcript_text: state.encounter.transcript_text, chief_complaint: state.encounter.chief_complaint || "" };
+}
+
+const MODEL_NAMES = { "claude-fable-5-2": "Fable 5.2", "claude-opus-5-5": "Opus 5.5", "claude-sonnet-5-5": "Sonnet 5.5", "claude-haiku-5-5": "Haiku 5.5" };
+
+// "Fable 5.2 · 41 s · $0.62", or a note that a recorded answer or the cache was used.
+function costText(meta) {
+  if (!meta) return "";
+  if (meta.cached) return "Same note as before: answer reused, no new cost";
+  const u = meta.usage;
+  if (!u) return "";
+  if (u.source === "recorded") return "Recorded answer · no API cost";
+  const seconds = Math.round((meta.latency_ms || 0) / 1000);
+  const models = [...new Set(u.calls.filter((c) => c.source === "live").map((c) => MODEL_NAMES[c.model] || c.model))];
+  const parts = [models.join(", "), `${seconds} s`, `$${u.cost_usd.toFixed(2)}`];
+  if (u.source === "mixed") parts.push("some answers recorded (API unavailable)");
+  return parts.filter(Boolean).join(" · ");
 }
 
 // ------------------------------------------------------------------ browser storage (no login yet)
@@ -406,6 +422,7 @@ async function loadVisit(visitId) {
   state.lines = indexTranscript(own.transcript);
   state.noteText = own.note || "";
   state.signed = own.signed || null;
+  state.draftCost = "";
   state.editingText = false;
   if (!sameVisit) {
     state.visitCheck = null;
@@ -516,6 +533,7 @@ async function runDraft() {
   setBusy("draft", "");
   try {
     const result = await post("/api/draft-note", { ...visitSource(), note_format: noteFormat() });
+    state.draftCost = costText(result.meta);
     state.noteText = result.note_text;
     saveOwnNote();
     resetAudit();
@@ -622,6 +640,7 @@ function render() {
   $("note-card").classList.toggle("is-signed", signed);
   renderSigned();
 
+  $("cost-text").textContent = !state.audit && state.draftCost && stage() === "note" ? `Draft: ${state.draftCost}` : "";
   renderJournal();
   renderStats();
   renderFlags();
@@ -751,6 +770,8 @@ function renderStats() {
       stat(flags, flags === 1 ? "decision worth a second look" : "decisions worth a second look", flags ? "is-warn" : "", () => scrollToSection("flags-section")),
     ];
     notes.push(`${pct}% of ${claims.length} statements are backed by the visit.`);
+    const auditCost = costText(state.audit.meta);
+    if (auditCost) notes.push(`Note check: ${auditCost}`);
     if (state.audit.changed) notes.push(`${state.audit.changed} ${state.audit.changed === 1 ? "statement has" : "statements have"} changed since the check. Choose Check again to verify.`);
     for (const w of state.audit.warnings || []) notes.push(w);
   } else if (state.visitCheck && stage() === "visit") {
@@ -759,6 +780,8 @@ function renderStats() {
       stat(vc.missed.filter((m) => !state.visitState[m.item_id]).length, "questions you may have missed", vc.missed.length ? "is-warn" : "is-good", null),
       stat(vc.decision_flags.filter((f) => !state.visitState[f.flag_id]).length, "decisions worth a second look", vc.decision_flags.length ? "is-warn" : "is-good", null),
     ];
+    const visitCost = costText(vc.meta);
+    if (visitCost) notes.push(`Visit check: ${visitCost}`);
   }
   box.hidden = !tiles.length;
   box.className = `stats cols-${tiles.length || 3}`;
@@ -1213,6 +1236,7 @@ function renderAsk() {
     el("div", { class: "disclaimer", role: "note" },
       el("strong", { text: "AI can be wrong. " }),
       result.disclaimer),
+    costText(result.meta) ? el("p", { class: "cost-line", text: costText(result.meta) }) : null,
   );
 }
 

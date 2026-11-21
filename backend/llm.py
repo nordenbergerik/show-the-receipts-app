@@ -1,11 +1,14 @@
-"""Tunn wrapper runt Anthropic-SDK:n: structured outputs, fallback, robusthet och
-begripliga fel.
+"""Tunn wrapper runt Anthropic-SDK:n: structured outputs med streaming, fallback,
+robusthet, kostnadsmätning och begripliga fel.
 
 Robusthet:
 - Nätverksfel, 429 och 5xx försöks om av SDK:n (max_retries).
 - Ett svar i fel format (går inte att tolka eller validera mot schemat) försöks
   om en gång; misslyckas det igen blir det ett begripligt fel (502).
 - Nekade (refusal) och avklippta (max_tokens) svar ger egna felmeddelanden.
+
+Säkerhet: nyckeln läses av SDK:n från miljön och loggas aldrig. Loggen innehåller
+bara tid, tokens och kostnad, aldrig patienttext eller anropets innehåll.
 """
 from __future__ import annotations
 
@@ -18,6 +21,7 @@ import anthropic
 import pydantic
 from pydantic import BaseModel
 
+from backend import usage
 from backend.config import Settings
 
 log = logging.getLogger("receipts.llm")
@@ -26,6 +30,8 @@ T = TypeVar("T", bound=BaseModel)
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 FORMAT_ATTEMPTS = 2
+MAX_TOKENS = 32_000  # tänkandet räknas in; streaming gör stora värden säkra
+REQUEST_TIMEOUT_S = 600.0
 
 
 class LLMError(Exception):
@@ -52,13 +58,13 @@ class ClaudeLLM:
     @property
     def client(self) -> anthropic.AsyncAnthropic:
         if self._client is None:
-            self._client = anthropic.AsyncAnthropic(timeout=180.0, max_retries=2)
+            self._client = anthropic.AsyncAnthropic(timeout=REQUEST_TIMEOUT_S, max_retries=2)
         return self._client
 
     async def parse(self, *, system: str, content: list[dict[str, Any]], output_format: type[T]) -> T:
         kwargs: dict[str, Any] = dict(
             model=self.settings.model,
-            max_tokens=16000,
+            max_tokens=MAX_TOKENS,
             system=system,
             messages=[{"role": "user", "content": content}],
             output_config={"effort": self.settings.effort},
@@ -78,11 +84,12 @@ class ClaudeLLM:
     async def _call_once(self, kwargs: dict[str, Any], output_format: type[T]) -> T:
         started = time.perf_counter()
         try:
-            response = await self.client.beta.messages.parse(**kwargs)
+            async with self.client.beta.messages.stream(**kwargs) as stream:
+                response = await stream.get_final_message()
         except (pydantic.ValidationError, json.JSONDecodeError, anthropic.APIResponseValidationError) as exc:
             raise FormatError(type(exc).__name__) from exc
         except anthropic.AuthenticationError as exc:
-            raise LLMError("The API key is invalid. Check ANTHROPIC_API_KEY in .env.", 500) from exc
+            raise LLMError("The API key is invalid. Check ANTHROPIC_API_KEY.", 500) from exc
         except TypeError as exc:
             # SDK:n kastar TypeError innan anropet skickas när ingen nyckel alls är satt.
             if "authentication" not in str(exc).lower():
@@ -96,19 +103,21 @@ class ClaudeLLM:
             raise LLMError("Claude did not respond in time. Try again.", 504) from exc
         except anthropic.APIConnectionError as exc:
             raise LLMError("Could not reach the Claude API. Check the network connection.", 503) from exc
+        except anthropic.BadRequestError as exc:
+            log.warning("Claude API 400: %s", getattr(exc, "message", "")[:200])
+            raise LLMError("The Claude API rejected the request (400).", 502) from exc
         except anthropic.APIStatusError as exc:
             log.warning("Claude API status %s", exc.status_code)
             raise LLMError(f"The Claude API returned an error ({exc.status_code}).", 502) from exc
 
-        usage = getattr(response, "usage", None)
+        seconds = time.perf_counter() - started
+        model = getattr(response, "model", None) or self.settings.model
+        call = usage.from_response(output_format.__name__, model, seconds, getattr(response, "usage", None))
+        usage.record(call)
         log.info(
-            "llm %s: %.1fs in=%s out=%s cache_read=%s stop=%s",
-            output_format.__name__,
-            time.perf_counter() - started,
-            getattr(usage, "input_tokens", None),
-            getattr(usage, "output_tokens", None),
-            getattr(usage, "cache_read_input_tokens", None),
-            getattr(response, "stop_reason", None),
+            "llm %s: %.1fs model=%s in=%s out=%s cache_read=%s cache_write=%s cost=$%.4f stop=%s",
+            output_format.__name__, seconds, model, call.input_tokens, call.output_tokens,
+            call.cache_read_tokens, call.cache_write_tokens, call.cost_usd, getattr(response, "stop_reason", None),
         )
 
         stop_reason = getattr(response, "stop_reason", None)
@@ -125,3 +134,28 @@ class ClaudeLLM:
             except pydantic.ValidationError as exc:
                 raise FormatError("schema mismatch") from exc
         return parsed
+
+
+class LiveWithFallback:
+    """Riktiga anrop, med inspelade svar som reserv när API:t inte svarar.
+
+    Gäller bara fel som ligger utanför vår kontroll (nätverk, överbelastning,
+    tidsgräns, 5xx) och bara när en inspelning finns för exakt samma förfrågan.
+    Reserven märks i kostnadsredovisningen så att den aldrig tas för ett riktigt svar.
+    """
+
+    FALLBACK_STATUSES = {429, 502, 503, 504}
+
+    def __init__(self, live: ClaudeLLM, recorded: Any) -> None:
+        self.live, self.recorded = live, recorded
+
+    async def parse(self, *, system: str, content: list[dict[str, Any]], output_format: type[T]) -> T:
+        try:
+            return await self.live.parse(system=system, content=content, output_format=output_format)
+        except LLMError as exc:
+            if exc.status_code not in self.FALLBACK_STATUSES or not self.recorded.path_for(output_format.__name__, content).exists():
+                raise
+            log.warning("llm %s: live call failed (%s), using the recorded answer", output_format.__name__, exc.status_code)
+            result = self.recorded.load(content, output_format)
+            usage.record(usage.CallUsage(task=output_format.__name__, model="recorded", seconds=0, source="recorded-fallback"))
+            return result

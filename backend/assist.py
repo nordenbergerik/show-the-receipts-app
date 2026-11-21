@@ -25,7 +25,7 @@ from backend.schemas import (
 )
 from backend.visit import VisitError, ask_content, draft_content, resolve_visit, visit_check_content
 
-STEP_TIMEOUT_S = 240
+STEP_TIMEOUT_S = 660
 
 
 def _meta(settings: Settings, started: float) -> AuditMeta:

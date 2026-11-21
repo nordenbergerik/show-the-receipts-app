@@ -18,7 +18,7 @@ from backend.visit import VisitError, audit_content, resolve_visit
 
 log = logging.getLogger("receipts.audit")
 
-AUDIT_TIMEOUT_S = 300
+AUDIT_TIMEOUT_S = 660
 
 
 class AuditError(Exception):

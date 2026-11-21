@@ -32,7 +32,8 @@ from backend.cache import AuditCache
 from backend.cases import suggested_questions
 from backend.config import Settings, get_settings
 from backend.data import VARIANTS, DataStore, get_store
-from backend.llm import ClaudeLLM, StructuredLLM
+from backend import usage
+from backend.llm import ClaudeLLM, LiveWithFallback, StructuredLLM
 from backend.replay import ReplayLLM
 from backend.schemas import (
     AskRequest,
@@ -118,7 +119,8 @@ def get_llm() -> StructuredLLM:
     global _llm
     if _llm is None:
         settings = get_settings()
-        _llm = ReplayLLM(settings.recordings_dir) if settings.replay else ClaudeLLM(settings)
+        recorded = ReplayLLM(settings.recordings_dir)
+        _llm = recorded if settings.replay else LiveWithFallback(ClaudeLLM(settings), recorded)
     return _llm
 
 
@@ -200,7 +202,11 @@ Live = Annotated[bool, Depends(allow_live)]
 async def audit(req: AuditRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live,
                 cache: Annotated[AuditCache, Depends(get_cache)]) -> AuditResult:
     try:
-        return await run_audit(req, store=store, llm=llm, cache=cache, settings=settings, allow_live=live)
+        calls = usage.start()
+        result = await run_audit(req, store=store, llm=llm, cache=cache, settings=settings, allow_live=live)
+        if not result.meta.cached:
+            result.meta.usage = usage.summarize(calls)
+        return result
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
 
@@ -208,7 +214,11 @@ async def audit(req: AuditRequest, store: Store, llm: LLM, settings: SettingsDep
 @app.post("/api/visit-check")
 async def visit_check(req: VisitCheckRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live) -> VisitCheckResult:
     try:
-        return await run_visit_check(req, store=store, llm=llm, settings=settings, allow_live=live)
+        calls = usage.start()
+        result = await run_visit_check(req, store=store, llm=llm, settings=settings, allow_live=live)
+        if not result.meta.cached:
+            result.meta.usage = usage.summarize(calls)
+        return result
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
 
@@ -216,7 +226,11 @@ async def visit_check(req: VisitCheckRequest, store: Store, llm: LLM, settings: 
 @app.post("/api/draft-note")
 async def draft_note(req: DraftNoteRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live) -> DraftNoteResult:
     try:
-        return await run_draft_note(req, store=store, llm=llm, settings=settings, allow_live=live)
+        calls = usage.start()
+        result = await run_draft_note(req, store=store, llm=llm, settings=settings, allow_live=live)
+        if not result.meta.cached:
+            result.meta.usage = usage.summarize(calls)
+        return result
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
 
@@ -234,7 +248,11 @@ def ask_suggestions(req: VisitCheckRequest, store: Store) -> dict:
 @app.post("/api/ask")
 async def ask(req: AskRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live) -> AskResult:
     try:
-        return await run_ask(req, store=store, llm=llm, settings=settings, allow_live=live)
+        calls = usage.start()
+        result = await run_ask(req, store=store, llm=llm, settings=settings, allow_live=live)
+        if not result.meta.cached:
+            result.meta.usage = usage.summarize(calls)
+        return result
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
 

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from backend.config import MAX_NOTE_CHARS, MAX_TRANSCRIPT_CHARS
 from backend.transcript import Line
+from backend.usage import StepUsage
 
 Status = Literal["supported", "inferred", "contradicted", "unsupported"]
 Priority = Literal["high", "medium", "low"]
@@ -222,6 +223,7 @@ class AuditMeta(BaseModel):
     prompt_version: str
     cached: bool
     latency_ms: int
+    usage: StepUsage | None = None
 
 
 class AuditResult(BaseModel):
