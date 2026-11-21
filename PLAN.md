@@ -4,14 +4,28 @@
 
 ---
 
+## 0. Positionering
+
+> *"Vi skriver inte journalen åt läkaren. Vi gör att läkaren kan skriva mindre och ändå lita på journalen."*
+
+Vi är ett **säkerhetslager**, och vi löser tidsproblemet **genom** säkerheten. Tiden sparas på tre ställen:
+
+1. **Läkaren kan skriva kortare.** Stödord räcker, eftersom vi kontrollerar att de stämmer och säger till om något viktigt saknas.
+2. **Tillägg med ett klick.** Förslagen har kvitto och motivering, och läkaren klickar "lägg till" eller "avvisa". Läkaren förblir författare.
+3. **Snabbare granskning av AI-text.** Ett klick på kvittot ersätter att läsa om hela samtalet. Bara det som är flaggat behöver granskas.
+
+Journalutkast (modul D) är ett **tillval** som gör oss till en helhetslösning, men det är inte det pitchen handlar om.
+
+---
+
 ## 1. Huvudanvändningsfall
 
-1. Läkaren spelar in patientsamtalet som ett röstmemo.
+1. Läkaren spelar in patientsamtalet som ett **röstmemo**, och en vanlig taligenkänning gör om det till text (se §6).
 2. Efter besöket skriver läkaren **korta anteckningar**, ofta med förkortningar (t.ex. `bröstsmärta 2d, ej utstrålning, EKG ua`).
 3. Tjänsten granskar anteckningen mot samtalet och
    - **länkar** varje påstående till det ställe i samtalet där det sades,
    - **flaggar fel**: påståenden som motsägs av samtalet eller saknar grund,
-   - **föreslår tillägg**: viktiga saker som sades men inte kom med, och *varför* de bör med,
+   - **föreslår tillägg**: viktiga saker som sades men inte kom med, och *varför* de bör med, och läkaren lägger till dem med ett klick,
    - **föreslår uppföljning**: frågor som borde ha ställts eller saker som bör kollas upp.
 
 Att anteckningen är kort är **inget fel**. Tillägg är förslag rangordnade efter klinisk vikt, inte en lista över allt som sades.
@@ -23,10 +37,10 @@ Att anteckningen är kort är **inget fel**. Tillägg är förslag rangordnade e
 | Modul | Vad | Prioritet |
 |---|---|---|
 | **A. Kvittokontroll** | Delar upp anteckningen i påståenden, bedömer varje påstående mot samtalet och länkar till källraderna | **Måste (kärnan)** |
-| **B. Tillägg** | Kliniskt viktiga uppgifter i samtalet som saknas i anteckningen, med motivering och kvitto | **Måste** |
+| **B. Tillägg** | Kliniskt viktiga uppgifter i samtalet som saknas i anteckningen, med motivering och kvitto. Läggs till med ett klick, och sedan granskas anteckningen om. | **Måste** |
 | **C. Missade frågor** | Frågor som borde ha ställts eller följts upp, utifrån huvudbesvär och samtal | Bör |
-| **D. Journalutkast** | Genererar ett utkast från samtalet och kör det genom samma revisor (vi granskar vår egen AI) | Bör |
-| **E. Röst till text** | Spela in ljud och transkribera till samtalstext | Kan (se §6) |
+| **D. Journalutkast** | Tillval för helhetslösningen: genererar ett utkast från samtalet och kör det genom samma revisor (vi granskar vår egen AI) | Kan |
+| **E. Röst till text** | I produkten en vanlig taligenkänning före granskningen. I demon används färdiga transkriptioner. | Kan (liveinspelning som bonus, se §6) |
 
 ---
 
@@ -97,18 +111,24 @@ anteckning ─────► [2] påståenden ────┘                  
 - **Vänster panel:** anteckningen. Läkaren kan klistra in eller skriva en egen. Påståendena färgas grönt (stöds), blått (slutsats), rött (motsägs) och gult (saknar grund).
 - **Höger panel:** samtalet med radnummer.
 - **Klick på ett påstående** markerar källraderna och scrollar dit. Klick på en rad visar vilka påståenden som använder den.
-- **Sidopanel:** "Förslag på tillägg" och "Följ upp", var och en med *varför* och kvitto.
-- **Lägesväxling:** "Granska min anteckning" eller "Generera utkast" (det senare granskas också).
-- **Demoknepet:** fyll i en anteckning med ett inplanterat fel och visa hur det fångas.
+- **Sidopanel:** "Förslag på tillägg" och "Följ upp", var och en med *varför* och kvitto. Varje tillägg har knapparna **Lägg till** (texten förs in i anteckningen och anteckningen granskas om) och **Avvisa**.
+- **Lägesväxling:** "Granska min anteckning" är huvudläget. "Generera utkast" är ett tillval, och utkastet granskas också.
+- **Demoknepet:** fyll i en anteckning med ett inplanterat fel och visa hur det fångas. Visa sedan tidsvinsten: att leta upp en uppgift i ett tio minuter långt samtal jämfört med ett klick på kvittot.
 
 ---
 
-## 6. Ljud: hur röstmemot passar in
+## 6. Röstmemo: produkt kontra demo
 
-Claude-API:t tar inte emot ljud, så röstmemot kräver ett **separat steg för taligenkänning** före granskningen. Vi bygger det som ett utbytbart steg (`asr.py`):
-- **Hackathon:** huvuddemon körs på ACI-Bench-transkriptionerna, som redan är text. ACI-Bench har också råa ASR-versioner, så vi kan visa att granskningen tål taligenkänningsfel.
-- **Om tid finns:** spela in i webbläsaren och transkribera lokalt med en öppen Whisper-modell, eller med AWS Transcribe via partnerkrediterna.
-- **Riktig produkt:** svensk taligenkänning (t.ex. en svensktränad Whisper) och talaridentifiering (läkare/patient). ACI-Bench är på engelska, så demon blir på engelska.
+**Produkten:** röstmemo → taligenkänning (en standardkomponent) → text → **vår granskning**. Det nya är allt som händer efter att ljudet har blivit text. Claude-API:t tar inte emot ljud, så taligenkänningen är ett separat, utbytbart steg (`asr.py`).
+
+**Demon:** vi har ingen ljuddata, så vi kör på ACI-Bench-samtalen. De är redan transkriberade dialoger mellan läkare och patient, alltså det som taligenkänningen skulle ge.
+
+**Bevis för att det fungerar med riktig taligenkänning:** `src_experiment_data` innehåller samma samtal både som **rå ASR-utdata** (med taligenkänningens fel kvar) och som manuellt rättad text. Vi kör granskningen på båda och visar att resultatet håller (se §7). Prioritet: **Bör**.
+
+**I pitchen:** *"I produkten spelar läkaren in samtalet som ett röstmemo, och en vanlig taligenkänning gör om det till text. I dag visar vi allt som händer därefter, och vi visar att det håller även när taligenkänningen gör fel."* Vi är öppna med att demon körs på transkriberad data.
+
+- **Bonus om tid finns:** liveinspelning i webbläsaren, transkriberad lokalt med en öppen Whisper-modell eller med AWS Transcribe via partnerkrediterna.
+- **Riktig produkt:** svensk taligenkänning (t.ex. en svensktränad Whisper) och talaridentifiering (läkare/patient). ACI-Bench är på engelska och samtalen är rollspelade, så demon blir på engelska.
 
 ---
 
@@ -122,7 +142,8 @@ Claude-API:t tar inte emot ljud, så röstmemot kräver ett **separat steg för 
 
    Mått: **upptäckta fel (recall)** och **falsklarm** på oförändrade anteckningar.
 2. **Korta läkaranteckningar:** vi låter LLM:en korta ned referensanteckningar till stödord med förkortningar och kontrollerar att korthet inte ger falsklarm.
-3. **Pitchsiffran:** vi kör revisorn på experternas egna anteckningar och redovisar andelen meningar utan stöd i samtalet.
+3. **Tålighet mot taligenkänningsfel:** samma anteckning granskas mot den råa ASR-versionen och mot den rättade versionen av samtalet, och vi jämför andelen påståenden som får stöd. Liten skillnad betyder att produkten fungerar med riktig taligenkänning.
+4. **Pitchsiffran:** vi kör revisorn på experternas egna anteckningar och redovisar andelen meningar utan stöd i samtalet.
 
 ---
 
@@ -158,8 +179,8 @@ show-the-receipts/
 | 09–10 | Grundstruktur, `transcript.py`, `schemas.py`, `llm.py` | Indexerat samtal och svar från Claude |
 | 10–13 | Modul A + B, `/audit`, kvittokontroll | Korrekt granskning av en anteckning, end-to-end |
 | 13:00 | **Kontraktet låses** | Frontend bygger mot exempel-JSON |
-| 13:45–16 | UI (paneler, klick-markering, färger, sidopanel), modul C | Demoflödet fungerar i webbläsaren |
-| 16–17:30 | Utvärdering med inplanterade fel, pitchsiffran, modul D, cache, eventuellt E | Siffror till pitchen och en demo som fungerar offline |
+| 13:45–16 | UI (paneler, klick-markering, färger, sidopanel, tillägg med ett klick), modul C | Demoflödet fungerar i webbläsaren |
+| 16–17:30 | Utvärdering (inplanterade fel, rå ASR mot rättad text), pitchsiffran, cache, eventuellt D och E | Siffror till pitchen och en demo som fungerar offline |
 | 17:30–18 | Inlämning, attribuering, pitchrepetition | Inlämnat |
 
 ---
