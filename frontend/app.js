@@ -35,7 +35,8 @@ const state = {
   visitState: {}, // visit-check item id -> "dismissed"
   issueCursor: -1,
   ask: { loading: false, result: null, suggestions: [] },
-  busy: "", // which AI step is running
+  running: {}, // visit id -> { step, since }: AI steps still waiting for an answer
+  pending: {}, // visit id -> { step, result }: answers that came while that visit was closed
 };
 
 const $ = (id) => document.getElementById(id);
@@ -142,6 +143,31 @@ const NOTE_FORMATS = { soap: "SOAP", plain: "Plain text" };
 const noteFormat = () => (store.read("noteFormat", "soap") in NOTE_FORMATS ? store.read("noteFormat", "soap") : "soap");
 const reviews = () => store.read("reviews", {});
 
+// Everything the AI steps produced for a visit and what the clinician did with
+// it, saved per visit, so leaving a visit and coming back does not undo a check.
+// The transcript is stored once (lines), not inside every answer.
+const workKey = (id) => `work.${id}`;
+
+function saveWork() {
+  if (!state.encounter) return;
+  const strip = (answer) => (answer ? { ...answer, transcript: undefined } : null);
+  store.write(workKey(state.encounter.encounter_id), {
+    lines: state.lines,
+    visitCheck: strip(state.visitCheck),
+    visitState: state.visitState,
+    audit: strip(state.audit),
+    additionState: state.additionState,
+    flagState: state.flagState,
+    followState: state.followState,
+    draftCost: state.draftCost || "",
+    ask: state.ask.result && !state.ask.result.error ? state.ask.result : null,
+  });
+}
+
+function removeWork(id) {
+  try { localStorage.removeItem(`receipts.${workKey(id)}`); } catch { /* storage unavailable */ }
+}
+
 function saveReviewSummary() {
   if (!state.audit) return;
   const all = reviews();
@@ -172,6 +198,11 @@ async function init() {
   setupUpload("transcript");
   setupUpload("note");
   $("audit-btn").addEventListener("click", runAudit);
+  // text typed in "Edit as text" is kept even if the visit is left before Done
+  $("note-input").addEventListener("input", () => {
+    state.noteText = $("note-input").value.replace(/\r\n?/g, "\n");
+    saveOwnNote();
+  });
   $("edit-btn").addEventListener("click", toggleTextEdit);
   $("sign-btn").addEventListener("click", openSignDialog);
   $("copy-btn").addEventListener("click", copyNote);
@@ -234,7 +265,11 @@ function initials(name) {
 function patientRow(visit) {
   const review = reviews()[visit.id];
   let status = el("span", { class: "p-status", text: visit.hasNote === false ? "No note yet" : "Not checked" });
-  if (visit.signed) {
+  if (state.running[visit.id]) {
+    status = el("span", { class: "p-status is-working" }, spinner(), WORK[state.running[visit.id].step].short);
+  } else if (state.pending[visit.id]) {
+    status = el("span", { class: "p-status is-good", text: "Result ready" });
+  } else if (visit.signed) {
     status = el("span", { class: "p-status is-good", text: "Signed" });
   } else if (review) {
     status = review.problems
@@ -271,6 +306,7 @@ function clearAll() {
     button.textContent = "Click again to clear all";
     return;
   }
+  for (const visit of ownVisits()) removeWork(visit.id);
   store.write("visits", []);
   store.write("reviews", {});
   renderPatients();
@@ -397,6 +433,7 @@ function deleteVisit() {
     return;
   }
   store.write("visits", ownVisits().filter((v) => v.id !== state.encounter.encounter_id));
+  removeWork(state.encounter.encounter_id);
   const all = reviews();
   delete all[state.encounter.encounter_id];
   store.write("reviews", all);
@@ -412,40 +449,52 @@ async function loadVisit(visitId) {
     location.hash = "#/patients";
     return;
   }
-  const sameVisit = state.encounter && state.encounter.encounter_id === visitId;
   state.encounter = {
     encounter_id: own.id,
     patient: own.patient,
     chief_complaint: own.reason,
     transcript_text: own.transcript,
   };
-  state.lines = indexTranscript(own.transcript);
+  const work = store.read(workKey(own.id), null) || {};
+  const lines = Array.isArray(work.lines) && work.lines.length ? work.lines : indexTranscript(own.transcript);
+  const withLines = (answer) => (answer ? { ...answer, transcript: lines } : null);
+  state.lines = lines;
   state.noteText = own.note || "";
   state.signed = own.signed || null;
-  state.draftCost = "";
+  state.draftCost = work.draftCost || "";
   state.editingText = false;
-  if (!sameVisit) {
-    state.visitCheck = null;
-    state.visitState = {};
-    state.ask = { loading: false, result: null, suggestions: [] };
-    $("ask-input").value = "";
-  }
+  state.selected = null;
+  state.issueCursor = -1;
+  state.visitCheck = withLines(work.visitCheck);
+  state.visitState = work.visitState || {};
+  const audit = withLines(work.audit);
+  state.audit = isValidAudit(audit) ? audit : null;
+  state.additionState = work.additionState || {};
+  state.flagState = work.flagState || {};
+  state.followState = work.followState || {};
+  if (state.audit && state.audit.note_text !== state.noteText) markAuditStale(); // the note changed after the check
+  state.ask = { loading: false, result: work.ask || null, suggestions: [] };
+  $("ask-input").value = work.ask ? work.ask.question || "" : "";
   $("patient-name").textContent = own.patient || "Unknown patient";
   $("patient-meta").textContent = [own.reason, `Recorded ${new Date(own.created || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`].filter(Boolean).join(" · ");
   $("delete-btn").dataset.confirm = "";
   $("delete-btn").textContent = "Delete visit";
-  resetAudit();
+  const waiting = state.pending[own.id];
+  delete state.pending[own.id];
+  if (waiting) applyResult(waiting.step, waiting.result); // an answer that came while the visit was closed
+  else render();
   loadSuggestions();
 }
 
 async function loadSuggestions() {
+  const ask = state.ask;
   try {
     const { questions } = await post("/api/ask/suggestions", visitSource());
-    state.ask.suggestions = questions;
+    ask.suggestions = questions;
   } catch {
-    state.ask.suggestions = [];
+    ask.suggestions = [];
   }
-  renderAsk();
+  if (ask === state.ask) renderAsk();
 }
 
 function resetAudit() {
@@ -468,11 +517,9 @@ function updateVisit(changes) {
 
 function toggleTextEdit() {
   if (state.editingText) {
-    const text = $("note-input").value.replace(/\r\n?/g, "\n");
-    if (text !== state.noteText) {
-      state.noteText = text;
-      markAuditStale();
-    }
+    state.noteText = $("note-input").value.replace(/\r\n?/g, "\n");
+    // compared with the checked text: typing has already been saved as it happened
+    if (state.audit && state.noteText !== state.audit.note_text) markAuditStale();
     state.editingText = false;
     saveOwnNote();
   } else {
@@ -486,6 +533,9 @@ function toggleTextEdit() {
 // re-located by its text, and the ones that are gone count as changed.
 function markAuditStale() {
   if (!state.audit) return;
+  // a line that was not in the checked note is new text nobody has checked
+  const before = new Set(state.audit.note_text.split("\n").map((l) => l.trim()));
+  if (state.noteText.split("\n").some((l) => l.trim() && !before.has(l.trim()))) state.audit.unchecked = true;
   state.audit.note_text = state.noteText;
   let cursor = 0;
   for (const claim of state.audit.claims) {
@@ -518,17 +568,20 @@ const WORK = {
     title: "Checking the visit",
     tasks: () => ["Looking for questions that may have been missed", "Giving the decisions a second look"],
     usual: "Usually 15–30 seconds.",
+    short: "Checking…",
   },
   draft: {
     title: "Writing the note",
     tasks: () => [noteFormat() === "plain" ? "Writing a plain-text note from the whole visit" : "Writing a SOAP note from the whole visit"],
     usual: "Usually 10–20 seconds.",
     skeleton: true,
+    short: "Writing…",
   },
   audit: {
     title: "Checking the note against the visit",
     tasks: () => ["Finding the source of every statement", "Looking for what is missing", "Giving the decisions a second look"],
     usual: "Usually 15–40 seconds.",
+    short: "Checking…",
   },
   ask: {
     title: "Searching the record",
@@ -568,7 +621,8 @@ setInterval(() => {
 // Shows the panel in the card the step belongs to. It is only rebuilt when the
 // step changes, so the animation does not restart on every render.
 function renderWork() {
-  const busy = state.busy;
+  const busy = busyHere();
+  const since = busy ? state.running[state.encounter.encounter_id].since : 0;
   const places = { "work-visit": busy === "visit-check" || busy === "draft", "work-note": busy === "audit" };
   for (const [id, show] of Object.entries(places)) {
     const box = $(id);
@@ -578,7 +632,7 @@ function renderWork() {
       box.dataset.step = "";
     } else if (box.dataset.step !== busy) {
       box.dataset.step = busy;
-      box.replaceChildren(workPanel(busy, state.busySince));
+      box.replaceChildren(workPanel(busy, since));
     }
   }
   $("note-card").classList.toggle("is-working", busy === "audit");
@@ -586,37 +640,68 @@ function renderWork() {
 
 // ------------------------------------------------------------------ AI steps
 
-function setBusy(step, text) {
-  state.busySince = Date.now();
-  state.busy = step;
-  $("status-text").textContent = text || "";
+const isOpen = (id) => !$("view-visit").hidden && state.encounter && state.encounter.encounter_id === id;
+
+// The AI step running for the open visit, if any.
+function busyHere() {
+  const running = state.encounter && state.running[state.encounter.encounter_id];
+  return running ? running.step : "";
+}
+
+// Runs an AI step for the open visit. Steps belong to their visit: if the user
+// has moved on when the answer comes, it waits and is shown when that visit is
+// opened again, instead of landing in whatever visit is open now.
+async function runStep(step, request) {
+  const id = state.encounter.encounter_id;
+  state.running[id] = { step, since: Date.now() };
+  hideBanner();
   render();
-}
-
-async function runVisitCheck() {
-  setBusy("visit-check", "");
+  let result = null;
+  let error = null;
   try {
-    state.visitCheck = await post("/api/visit-check", visitSource());
-    state.lines = state.visitCheck.transcript;
-    state.visitState = {};
-  } catch (error) {
-    showBanner(error.message);
+    result = await request();
+  } catch (caught) {
+    error = caught;
   }
-  setBusy("");
+  delete state.running[id];
+  if (isOpen(id)) {
+    if (error) {
+      showBanner(error.message);
+      render();
+    } else {
+      applyResult(step, result);
+    }
+    return;
+  }
+  if (error) showBanner(`${WORK[step].title} failed for a visit you left: ${error.message}`);
+  else state.pending[id] = { step, result };
+  if (!$("view-patients").hidden) renderPatients();
 }
 
-async function runDraft() {
-  setBusy("draft", "");
-  try {
-    const result = await post("/api/draft-note", { ...visitSource(), note_format: noteFormat() });
+function applyResult(step, result) {
+  if (step === "visit-check") {
+    state.visitCheck = result;
+    state.lines = result.transcript;
+    state.visitState = {};
+  } else if (step === "draft") {
     state.draftCost = costText(result.meta);
     state.noteText = result.note_text;
     saveOwnNote();
     resetAudit();
-  } catch (error) {
-    showBanner(error.message);
+    return;
+  } else if (step === "audit") {
+    showAudit(result);
+    return;
   }
-  setBusy("");
+  render();
+}
+
+function runVisitCheck() {
+  return runStep("visit-check", () => post("/api/visit-check", visitSource()));
+}
+
+function runDraft() {
+  return runStep("draft", () => post("/api/draft-note", { ...visitSource(), note_format: noteFormat() }));
 }
 
 function writeOwnNote() {
@@ -636,19 +721,14 @@ async function runAudit() {
     return;
   }
   saveOwnNote();
-  hideBanner();
-  setBusy("audit", "");
-  try {
-    showAudit(await post("/api/audit", { ...visitSource(), note_text: noteText }));
-  } catch (error) {
-    showBanner(error.message);
-  }
-  setBusy("");
+  const source = visitSource();
+  return runStep("audit", () => post("/api/audit", { ...source, note_text: noteText }));
 }
 
 function showAudit(result) {
   if (!isValidAudit(result)) {
     showBanner("The review came back incomplete and could not be shown. Try again.");
+    render();
     return;
   }
   state.audit = structuredClone(result);
@@ -673,16 +753,19 @@ async function runAsk(question) {
   question = (question || "").trim();
   if (question.length < 3 || state.ask.loading) return;
   $("ask-input").value = question;
-  state.ask.loading = true;
-  state.ask.since = Date.now();
-  state.ask.result = null;
+  const ask = state.ask;
+  ask.loading = true;
+  ask.since = Date.now();
+  ask.result = null;
   renderAsk();
   try {
-    state.ask.result = await post("/api/ask", { ...visitSource(), question, note_text: state.noteText.slice(0, 10_000) });
+    ask.result = await post("/api/ask", { ...visitSource(), question, note_text: state.noteText.slice(0, 10_000) });
   } catch (error) {
-    state.ask.result = { error: error.message };
+    ask.result = { error: error.message };
   }
-  state.ask.loading = false;
+  ask.loading = false;
+  if (ask !== state.ask) return; // another visit was opened meanwhile
+  saveWork();
   renderAsk();
 }
 
@@ -706,15 +789,16 @@ function render() {
   if (state.editingText && document.activeElement !== $("note-input")) $("note-input").value = state.noteText;
   $("edit-btn").textContent = state.editingText ? "Done" : "Edit as text";
   const signed = Boolean(state.signed);
-  const needsCheck = !state.audit || state.audit.changed > 0;
-  fill($("audit-btn"), state.busy === "audit" ? [spinner(), "Checking…"] : state.audit ? "Check again" : "Check note");
+  const needsCheck = !state.audit || state.audit.changed > 0 || Boolean(state.audit.unchecked);
+  const busy = busyHere();
+  fill($("audit-btn"), busy === "audit" ? [spinner(), "Checking…"] : state.audit ? "Check again" : "Check note");
   $("audit-btn").hidden = signed || !needsCheck;
-  $("audit-btn").disabled = state.busy === "audit";
+  $("audit-btn").disabled = Boolean(busy);
   $("sign-btn").hidden = signed || state.editingText;
   $("sign-btn").className = `btn ${needsCheck ? "btn-ghost" : "btn-primary"}`;
   $("edit-btn").hidden = signed;
   $("delete-btn").hidden = false;
-  for (const id of ["sign-btn", "edit-btn", "delete-btn"]) $(id).disabled = state.busy === "audit"; // not while the check runs
+  for (const id of ["sign-btn", "edit-btn", "delete-btn"]) $(id).disabled = Boolean(busy); // not while a step runs
   $("note-card").classList.toggle("is-signed", signed);
   renderSigned();
 
@@ -727,6 +811,7 @@ function render() {
   renderFollowUps();
   renderAsk();
   renderDrawer();
+  saveWork();
 }
 
 function renderStepper(current) {
@@ -770,7 +855,7 @@ function renderVisitCard() {
     );
   }
 
-  const busy = state.busy;
+  const busy = busyHere();
   const actions = [];
   if (!checked) {
     actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runVisitCheck },
@@ -816,7 +901,7 @@ function rowBody(title, body, meta, dot, open) {
 
 function feedbackRow(id, title, body, meta, dot, open) {
   const status = state.visitState[id];
-  const set = (value) => { if (value) state.visitState[id] = value; else delete state.visitState[id]; renderVisitCard(); renderStats(); };
+  const set = (value) => { if (value) state.visitState[id] = value; else delete state.visitState[id]; renderVisitCard(); renderStats(); saveWork(); };
   return el("li", { class: `row${status ? " is-done" : ""}${isSelected("missed", id) || isSelected("vflag", id) ? " is-selected" : ""}` },
     rowBody(title, body, meta, dot, open),
     rowActions(status
@@ -855,6 +940,7 @@ function renderStats() {
     const auditCost = costText(state.audit.meta);
     if (auditCost) notes.push(`Note check: ${auditCost}`);
     if (state.audit.changed) notes.push(`${state.audit.changed} ${state.audit.changed === 1 ? "statement has" : "statements have"} changed since the check. Choose Check again to verify.`);
+    else if (state.audit.unchecked) notes.push("The note has been edited since the check. Choose Check again to verify the new text.");
     for (const w of state.audit.warnings || []) notes.push(w);
   } else if (state.visitCheck && stage() === "visit") {
     const vc = state.visitCheck;
@@ -1015,6 +1101,7 @@ function onRowInput(event) {
   }
   if (state.audit) {
     state.audit.note_text = state.noteText;
+    state.audit.unchecked = true; // typed after the check: offer Check again
     for (const claim of state.audit.claims) {
       if (!claim.note_span) continue;
       if (claim.note_span.start >= end) {
@@ -1030,7 +1117,7 @@ function onRowInput(event) {
   // Keep the summary and "Check again" current while typing, without
   // re-rendering the note (that would move the cursor).
   renderStats();
-  $("audit-btn").hidden = Boolean(state.audit) && !(state.audit.changed > 0);
+  $("audit-btn").hidden = Boolean(state.audit) && !(state.audit.changed > 0) && !state.audit.unchecked;
 }
 
 function onRowKeydown(event) {
@@ -1051,6 +1138,7 @@ function onRowBlur() {
   state.dirty = false;
   saveOwnNote();
   saveReviewSummary();
+  saveWork();
   setTimeout(render, 0); // let a click on another sentence land first
 }
 
@@ -1198,6 +1286,7 @@ function openItems() {
   const missing = state.audit.suggested_additions.filter((a) => !state.additionState[a.addition_id]).length;
   if (problems) items.push(`${problems} ${problems === 1 ? "statement contradicts" : "statements contradict"} the visit or ${problems === 1 ? "has" : "have"} no support`);
   if (changed) items.push(`${changed} ${changed === 1 ? "statement has" : "statements have"} changed since the check`);
+  else if (state.audit.unchecked) items.push("The note has been edited since the check");
   if (flags) items.push(`${flags} ${flags === 1 ? "decision" : "decisions"} worth a second look not yet reviewed`);
   if (missing) items.push(`${missing} ${missing === 1 ? "detail" : "details"} from the visit not added or dismissed`);
   return { unchecked: false, items };
