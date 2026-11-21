@@ -30,6 +30,11 @@ class Settings:
     frontend_dir: Path
     replay: bool
     recordings_dir: Path
+    effort_overrides: dict[str, str]
+
+    def effort_for(self, task: str) -> str:
+        """Effort för ett AI-steg: CLAUDE_EFFORT_<STEG> om satt, annars CLAUDE_EFFORT."""
+        return self.effort_overrides.get(task, self.effort)
 
     @property
     def model_label(self) -> str:
@@ -50,7 +55,29 @@ def get_settings() -> Settings:
         frontend_dir=ROOT / "frontend",
         replay=_replay_mode(),
         recordings_dir=ROOT / "demo" / "recordings",
+        effort_overrides=_effort_overrides(),
     )
+
+
+# AI-stegen och deras namn i miljövariabler, t.ex. CLAUDE_EFFORT_CLAIMS=medium
+EFFORT_TASKS = {
+    "ClaimsLLM": "CLAIMS",
+    "CoverageLLM": "COVERAGE",
+    "DecisionsLLM": "DECISIONS",
+    "VisitCheckLLM": "VISIT_CHECK",
+    "DraftNoteLLM": "DRAFT",
+    "AskLLM": "ASK",
+}
+EFFORT_LEVELS = {"low", "medium", "high", "xhigh", "max"}
+
+
+def _effort_overrides() -> dict[str, str]:
+    out = {}
+    for task, name in EFFORT_TASKS.items():
+        value = os.getenv(f"CLAUDE_EFFORT_{name}", "").strip().lower()
+        if value in EFFORT_LEVELS:
+            out[task] = value
+    return out
 
 
 def _replay_mode() -> bool:

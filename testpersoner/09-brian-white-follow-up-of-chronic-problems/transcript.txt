@@ -1,0 +1,74 @@
+Doctor: hi , brian . how are you ?
+Patient: hi , good to see you .
+Doctor: it's good to see you too . so , i know the nurse told you a little bit about dax .
+Patient: mm-hmm .
+Doctor: i'd like to tell dax about you , okay ?
+Patient: sure .
+Doctor: so , brian is a 58 year old male with a past medical history significant for congestive heart failure and hypertension , who presents today for follow-up of his chronic problems . so , brian , it's been a little while i've seen you .
+Patient: mm-hmm .
+Doctor: whats , what's going on ?
+Patient: i , i just feel out of sorts lately . i do n't know if it's the change in the seasons or if we're just doing a lot of projects around the house and , and some , some construction on our own . i'm just feeling out of it . lack of , uh , energy . i'm just so tired and fatigued , and i feel kinda ... i feel lightheaded every once in a while .
+Doctor: okay . all right . um , how long has that been going on for ?
+Patient: uh , probably since labor day , so about five weeks or so .
+Doctor: okay . and , have you noticed any , like , symptoms of weight gain , like , like swollen legs , or , you know , your belly feels bloated and things like that ?
+Patient: i feel , i feel bloated every once in a while .
+Doctor: okay . all right . um , and , are you taking your , your medications ?
+Patient: uh , yes , i am .
+Doctor: okay . and , how about your diet ? are you watching your diet ?
+Patient: uh , it's been a little bit of a struggle . we began construction on our kitchen over labor day weekend , and it was ... hard to cook or prepare meals so we ate out a lot, and not always the best food out. it , it , it kind of reeked havoc , uh , so it's been maybe off a little bit .
+Doctor: okay . all right . and , how about , you know , other symptoms , like , have you had a fever or chills ?
+Patient: no .
+Doctor: okay , and any problems breathing ? do you feel short of breath ?
+Patient: uh , just when i'm doing doing the projects . again , not even lifting anything really heavy , it's just that if i'm ex- exerting any energy , i , i kinda feel it at that point .
+Doctor: okay . do you have any chest pain ?
+Patient: slight cramps . that seems to go away after about , maybe about an hour or so after i first feel it .
+Doctor: okay , and how about a cough ?
+Patient: a , a slight cough , and again , i'm not sure if it's just the change of seasons and i'm getting a cold .
+Doctor: mm-hmm . okay . all right . well , you know , for the most part , how , you know , before all of this-
+Patient: mm-hmm .
+Doctor: . how were you doing with your heart failure ? i know that we've kinda talked about you being able to watch your healthy food intake and that's been kind of a struggle in the past .
+Patient: i , i , i've actually been pretty good about that ever since . the , the , the last year , it's been a little chaotic , but i wanted to make sure i stayed on top of that .
+Doctor: okay . all right . are you excited for halloween ?
+Patient: uh , ca n't wait .
+Doctor: okay .
+Patient: our home renovations should be complete by then
+Doctor: all right , yeah , right .
+Patient: yeah .
+Doctor: and , so , lastly , for your high blood pressure , how are you doing with that ? have , are , did you buy the blood pressure cuff like i asked ?
+Patient: yeah , i , i did , and we do mon- , i , i monitor it regularly . my wife makes sure i stay on top of that , but it's been pretty good .
+Doctor: okay . all right . well , i know you did the review of systems sheet when you checked in , and you were endorsing this fatigue-
+Patient: mm-hmm .
+Doctor: . and a little dizziness and we just talked a lot about a lot of other symptoms .
+Patient: mm-hmm .
+Doctor: any other symptoms i might be missing ? nausea or vomiting , diarrhea ?
+Patient: no .
+Doctor: anything like that ?
+Patient: no .
+Doctor: okay . all right . well , i just want to go ahead and do a quick physical exam .
+Patient: mm-hmm .
+Doctor: hey , dragon ? show me the vital signs . so , looking at your vital signs here in the office , everything looks good . you know , your blood pressure and your heart rate and your oxygenation all look really good .
+Patient: mm-hmm .
+Doctor: so , i'm gon na just take a listen to a few things and check some things out , and i'll let you know what i find , okay ?
+Patient: perfect .
+Doctor: okay . so , on your physical examination , you know , i do appreciate some jugular venous distention to-
+Patient: mm-hmm .
+Doctor: to about eight centimeters . on your heart exam , i do appreciate a three out of six systolic ejection murmur , which we've heard in the past . and , on your lung exam , i do appreciate some fine crackles at the bases bilaterally , and your lower extremities have , you know , 1+ pitting edema . so , what does all that mean ? that means i think you're retaining a little bit of fluid .
+Patient: mm-hmm .
+Doctor: okay ? i wan na just go ahead and look at some of your results , okay ?
+Patient: sure .
+Doctor: hey , dragon ? show me the chest x-ray . so , looking here at the results of your chest x-ray , it does look like you have a little bit of fluid in your lungs there , and that can be just from , um , your heart failure , okay ? hey , dragon ? show me the echocardiogram . so , this is the echocardiogram that we did about four months ago , and this shows that the pumping function of your heart is a little bit reduced at 45 % , and it also shows that leaky valve , the mitral regurgitation that , that you have , okay ? um , so , let me just go over and talk about , a little bit , my assessment and my plan for you .
+Patient: mm-hmm .
+Doctor: okay ? so , for your first problem , your congestive heart failure , i think you're retaining fluid , and i wan na go ahead and increase your lasix to 80 mg once a day .
+Patient: mm-hmm .
+Doctor: i want you to weigh yourself every day . i want you to call me if you're gaining more weight .
+Patient: mm-hmm .
+Doctor: and , i certainly want you to call me if you have any other symptoms of shortness of breath , and i wan na go ahead and order another echocardiogram , okay ?
+Patient: sure .
+Doctor: hey , dragon ? order an echocardiogram .
+Speaker: lastly , for your high blood pressure , it looks like you're managing it well at this time , okay ? so , i wan na go ahead and continue with the lisinopril 20 mg a day . i want you to continue to record your blood pressures at home , and report them to me in the patient portal if you see they're getting elevated , okay ?
+Patient: mm-hmm .
+Doctor: does that sound like a plan ?
+Patient: that sounds fine .
+Doctor: okay . um , i'm gon na be in touch with you after we get your test results , and we'll go from there , okay ?
+Patient: sure .
+Doctor: all right . hey , dragon , finalize the note .

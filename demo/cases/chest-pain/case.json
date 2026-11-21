@@ -11,5 +11,14 @@
     "Could the chest pain be something other than cardiac?",
     "Is there any evidence of diabetic kidney disease?"
   ],
-  "draft_accepted_example": []
+  "planted_errors": {
+    "note-wrong.txt": [
+      "x3 weeks",
+      "radiating to L arm",
+      "Non-smoker",
+      "metformin 1000 mg",
+      "No murmur",
+      "Start lisinopril"
+    ]
+  }
 }

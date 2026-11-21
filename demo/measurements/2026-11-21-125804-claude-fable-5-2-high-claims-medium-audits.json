@@ -1,0 +1,109 @@
+{
+ "model": "claude-fable-5-2",
+ "effort": "high",
+ "efforts": {
+  "ClaimsLLM": "medium",
+  "CoverageLLM": "high",
+  "DecisionsLLM": "high"
+ },
+ "case": "chest-pain",
+ "steps": [
+  {
+   "step": "Note check, correct note",
+   "seconds": 30.8,
+   "calls": 3,
+   "input": 1188,
+   "output": 8375,
+   "cache_read": 14699,
+   "cache_write": 0,
+   "cost_usd": 0.3474,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 19.1,
+     "input_tokens": 396,
+     "output_tokens": 2003,
+     "cost_usd": 0.0842,
+     "source": "live"
+    },
+    {
+     "task": "CoverageLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 22.2,
+     "input_tokens": 396,
+     "output_tokens": 2339,
+     "cost_usd": 0.0977,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 30.7,
+     "input_tokens": 396,
+     "output_tokens": 4033,
+     "cost_usd": 0.1655,
+     "source": "live"
+    }
+   ],
+   "quality": {
+    "statements": 31,
+    "problems": 1,
+    "planted_found": 0,
+    "planted_total": 0,
+    "missing": 5,
+    "flags": 4
+   }
+  },
+  {
+   "step": "Note check, note with errors",
+   "seconds": 30.7,
+   "calls": 3,
+   "input": 1173,
+   "output": 9065,
+   "cache_read": 14699,
+   "cache_write": 0,
+   "cost_usd": 0.3749,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 23.1,
+     "input_tokens": 391,
+     "output_tokens": 2470,
+     "cost_usd": 0.1029,
+     "source": "live"
+    },
+    {
+     "task": "CoverageLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 23.4,
+     "input_tokens": 391,
+     "output_tokens": 2405,
+     "cost_usd": 0.1003,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-fable-5-2",
+     "seconds": 30.7,
+     "input_tokens": 391,
+     "output_tokens": 4190,
+     "cost_usd": 0.1717,
+     "source": "live"
+    }
+   ],
+   "quality": {
+    "statements": 34,
+    "problems": 7,
+    "planted_found": 5,
+    "planted_total": 6,
+    "missing": 2,
+    "flags": 4
+   }
+  }
+ ],
+ "total_cost_usd": 0.7223
+}

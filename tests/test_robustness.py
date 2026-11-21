@@ -221,3 +221,19 @@ def test_bad_key_is_not_replaced_by_a_recording(tmp_path):
     with pytest.raises(LLMError) as err:
         run(LiveWithFallback(llm, ReplayLLM(tmp_path)).parse(system="s", content=[], output_format=ClaimsLLM))
     assert err.value.status_code == 500
+
+
+def test_effort_can_be_set_per_step(monkeypatch):
+    from backend import config
+
+    monkeypatch.setenv("CLAUDE_EFFORT", "high")
+    monkeypatch.setenv("CLAUDE_EFFORT_CLAIMS", "medium")
+    monkeypatch.setenv("CLAUDE_EFFORT_DRAFT", "nonsense")
+    config.get_settings.cache_clear()
+    try:
+        s = config.get_settings()
+        assert s.effort_for("ClaimsLLM") == "medium"
+        assert s.effort_for("CoverageLLM") == "high"
+        assert s.effort_for("DraftNoteLLM") == "high"  # ogiltigt värde ignoreras
+    finally:
+        config.get_settings.cache_clear()

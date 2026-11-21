@@ -67,7 +67,7 @@ class ClaudeLLM:
             max_tokens=MAX_TOKENS,
             system=system,
             messages=[{"role": "user", "content": content}],
-            output_config={"effort": self.settings.effort},
+            output_config={"effort": self.settings.effort_for(output_format.__name__)},
             output_format=output_format,
         )
         if self.settings.use_fallbacks:
