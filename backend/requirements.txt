@@ -1,0 +1,7 @@
+fastapi>=0.115
+uvicorn>=0.30
+anthropic>=2.0
+pydantic>=2.7
+rapidfuzz>=3.9
+python-dotenv>=1.0
+pytest>=8.0
