@@ -1,0 +1,15 @@
+{"format": "CoverageLLM", "source": "agent", "response": {
+"additions": [
+{"text": "Exertional chest pain now limits walking; has been unable to keep up with exercise.", "why": "Functional limitation shows the impact and possible progression of suspected angina.", "priority": "medium", "evidence": [{"line_id": 8, "quote": "lately i just have n't been able to keep up with it because i'm having this pain"}]},
+{"text": "HCTZ counseling: may increase urination, possible cross-reaction with sulfa medications; side-effect handout given.", "why": "Documents informed counseling on a new medication and the sulfa concern.", "priority": "medium", "evidence": [{"line_id": 41, "quote": "sometimes you can have a cross reaction with some other medications like sulfa medications"}]},
+{"text": "Reports blood sugars running higher with reduced activity; drinks sodas, counseled to limit soda and sweets.", "why": "Relevant to glycemic control and the A1c recheck.", "priority": "medium", "evidence": [{"line_id": 16, "quote": "i think my blood sugars have been a little higher because i have n't been able to be active"}, {"line_id": 37, "quote": "continue to try to stay away from you know the the pop and the sweet things"}]},
+{"text": "Nitroglycerin not needed if pain resolves on stopping activity; take if pain persists at rest.", "why": "Clarifies the nitroglycerin instructions given to the patient.", "priority": "low", "evidence": [{"line_id": 31, "quote": "if you stop walking the chest pain goes away you do n't have to take the pill"}]},
+{"text": "No nausea, vomiting, diarrhea or other metformin side effects. Exam also: no crackles or rhonchi, pulses equal.", "why": "Completes medication tolerance and the dictated exam.", "priority": "low", "evidence": [{"line_id": 20, "quote": "no"}, {"line_id": 29, "quote": "your pulses are equal"}]}
+],
+"follow_up_questions": [
+{"category": "Red flags", "question": "Has the chest pain ever come on at rest, or become more frequent, longer or more severe recently?", "why": "Rest pain or a crescendo pattern defines unstable angina and would call for same-day evaluation."},
+{"category": "Red flags", "question": "During the episodes, do you get short of breath, sweaty, nauseated, lightheaded or have palpitations, and how long does each episode last?", "why": "Associated symptoms were only asked about for the present moment, not during episodes."},
+{"category": "Medication", "question": "Do you have any drug allergies, especially to sulfa drugs or aspirin, and any history of stomach bleeding?", "why": "Hydrochlorothiazide and aspirin were started without checking allergies or bleeding risk."},
+{"category": "History", "question": "Do you smoke, and when was your cholesterol last checked?", "why": "Smoking and lipids are key cardiac risk factors that were not discussed."}
+]
+}}

@@ -1,0 +1,12 @@
+{"format": "CoverageLLM", "source": "agent", "response": {
+"additions": [
+{"text": "Counseled that chest pain may reflect reduced blood flow to the heart and could lead to MI; needs prompt evaluation.", "why": "Documents the risk counseling given to a patient with suspected unstable angina managed as an outpatient.", "priority": "medium", "evidence": [{"line_id": 33, "quote": "a sign that you may be having some less blood flow to your heart"}, {"line_id": 33, "quote": "making sure it does n't lead to a heart attack"}]},
+{"text": "Pt asked whether BP could cause her chest pain; advised it may be a contributing factor.", "why": "Records the patient's concern and the counseling linking hypertension to her cardiac symptoms.", "priority": "low", "evidence": [{"line_id": 24, "quote": "do you think that could be causing me my my chest pain"}, {"line_id": 25, "quote": "it certainly could be contributing to that"}]},
+{"text": "Dietary measures for BP control discussed; HTN added to problem list today.", "why": "Completes the hypertension plan beyond medication and updates the problem list.", "priority": "low", "evidence": [{"line_id": 27, "quote": "maybe start you on some some diet control things that we can do to help with the blood pressure"}, {"line_id": 21, "quote": "but i did add it in today"}]}
+],
+"follow_up_questions": [
+{"category": "Red flags", "question": "Have the episodes become more frequent or longer, come on with less exertion, or happened at rest, and has any lasted more than 15 to 20 minutes?", "why": "A crescendo or rest pattern would mean unstable angina needing same-day evaluation rather than a cardiology visit next week."},
+{"category": "Medication", "question": "What other medicines do you take, including over-the-counter pain relievers like ibuprofen, supplements, or any erectile-dysfunction-type drugs (sildenafil, tadalafil)?", "why": "No full medication list was taken before starting aspirin, nitroglycerin and hydrochlorothiazide, and NSAIDs or PDE5 inhibitors interact with them."},
+{"category": "History", "question": "Do you smoke, and when was your cholesterol last checked?", "why": "Smoking and lipids are key cardiac risk factors that were not covered and affect the angina workup and statin decision."}
+]
+}}

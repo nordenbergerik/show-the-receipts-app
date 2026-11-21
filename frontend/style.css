@@ -595,3 +595,147 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .paste summary { cursor: pointer; font-size: 13px; color: var(--green); font-weight: 500; margin-top: 2px; }
 .paste textarea { margin-top: 8px; }
 .stats-note.is-warning { color: var(--orange); }
+
+/* ================================================================ steg, besökskort, andra blick, fråga journalen */
+
+.replay-badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--label-2);
+  white-space: nowrap;
+}
+@media (max-width: 860px) { .replay-badge { display: none; } }
+
+.visit-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.visit-head h1 { font: 600 28px/1.15 var(--font-display); letter-spacing: -0.03em; }
+
+/* stegindikator */
+.stepper { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--label-3); }
+.step + .step::before { content: ""; width: 28px; height: 1px; background: var(--separator); margin-right: 2px; }
+.step-dot {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  font-size: 11px; font-weight: 600;
+  background: var(--fill); color: var(--label-3);
+}
+.step.is-done .step-dot { background: var(--green-soft); color: var(--green); }
+.step.is-active { color: var(--label); font-weight: 500; }
+.step.is-active .step-dot { background: var(--green); color: #fff; }
+
+.stats.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stat:not(.is-clickable) { cursor: default; }
+.stat:not(.is-clickable):hover { border-color: var(--separator); }
+.stat.is-warn .stat-value { color: var(--orange); }
+
+.card-intro { display: flex; flex-direction: column; gap: 4px; }
+.card-title { font: 600 20px/1.25 var(--font-display); letter-spacing: -0.02em; }
+
+/* rader: kryssruta, etikett, text, motivering, snabbknappar */
+.row-main.column { flex-direction: column; align-items: flex-start; gap: 2px; }
+.row-main.static { cursor: default; }
+.row-tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--label-3); }
+.row-tag.is-important { color: var(--orange); }
+.row-why { font-size: 13px; color: var(--label-2); }
+.check-row { align-items: flex-start; }
+.include { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--green); flex: none; cursor: pointer; }
+.row.is-done .row-text, .row.is-done .row-why { color: var(--label-3); }
+.row-actions { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.icon-action {
+  width: 30px; height: 30px; flex: none;
+  display: inline-grid; place-items: center;
+  border: 1px solid var(--separator);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--label-2);
+  font-size: 15px; line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.icon-action.is-seen:hover { background: var(--green-soft); color: var(--green); border-color: transparent; }
+.icon-action.is-dismiss:hover { background: rgb(0 0 0 / 0.06); color: var(--label); border-color: transparent; }
+.row-footer { padding: 8px 16px; text-align: right; }
+.section-title.with-action, .followups summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.link-btn.quiet { color: var(--label-2); font-weight: 500; }
+.link-btn.quiet:hover { color: var(--label); }
+.link-btn.small { font-size: 13px; }
+
+/* anteckningen som dokument */
+.edit-hint { margin: 0 0 -6px; font-size: 12px; color: var(--label-3); }
+.jtext { outline: none; border-radius: 6px; padding: 1px 3px; margin: 0 -3px; transition: background 0.15s, box-shadow 0.15s; }
+.jtext:hover { background: rgb(0 0 0 / 0.025); }
+.jtext:focus { background: var(--green-softer); box-shadow: 0 0 0 2px rgb(52 199 89 / 0.35); }
+.claim.is-kept { background: none; box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.15); }
+
+/* rättning */
+.fix-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--label-3); }
+.consider { margin: 0; font-size: 14px; }
+.drawer-fine { margin: 0; font-size: 12px; color: var(--label-3); }
+.pill.st-important { background: var(--orange-soft); color: var(--orange); }
+.pill.st-consider { background: rgb(0 0 0 / 0.05); color: var(--label-2); }
+.line.is-cited.st-flag { background: var(--orange-soft); }
+.line.is-cited.st-edited { background: rgb(0 0 0 / 0.04); }
+
+/* exempelfall */
+.case-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.case-card {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 16px 18px;
+  text-align: left;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.case-card:hover { border-color: rgb(52 199 89 / 0.5); box-shadow: 0 8px 24px rgb(0 0 0 / 0.05); }
+.case-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--green); }
+.case-text { font-size: 14px; color: var(--label-2); }
+.case-go { font-size: 13px; font-weight: 600; color: var(--green); margin-top: 2px; }
+.optional { font-weight: 400; color: var(--label-3); margin-left: 4px; }
+@media (max-width: 640px) { .case-cards { grid-template-columns: minmax(0, 1fr); } }
+
+/* fråga journalen */
+.ask { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; border-top: 1px solid var(--separator); }
+.ask .section-title { padding-top: 16px; }
+.ask-form { display: flex; gap: 8px; }
+.ask-input {
+  flex: 1; min-width: 0;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--separator);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 15px;
+}
+.ask-input:focus { outline: none; border-color: rgb(52 199 89 / 0.6); box-shadow: 0 0 0 3px rgb(52 199 89 / 0.15); }
+.ask-form .btn { height: 42px; }
+.chip-btn {
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid var(--separator);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--label);
+  cursor: pointer;
+  text-align: left;
+}
+.chip-btn:hover { border-color: rgb(52 199 89 / 0.5); background: var(--green-softer); }
+.ask-note { margin: 0; font-size: 12px; color: var(--label-3); }
+.ask-answer { display: flex; flex-direction: column; gap: 14px; padding: 20px 22px; border: 1px solid var(--separator); border-radius: 18px; background: var(--bg); }
+.ask-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ask-question { font-weight: 500; }
+.ask-summary { margin: 0; font-size: 15px; line-height: 1.55; }
+.ask-error { margin: 0; color: var(--red); }
+.verdict { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.verdict-evidence_found { background: var(--green-soft); color: var(--green); }
+.verdict-some_evidence { background: var(--orange-soft); color: var(--orange); }
+.verdict-no_evidence_found { background: rgb(0 0 0 / 0.05); color: var(--label-2); }
+.stance { flex: none; width: 20px; height: 20px; display: inline-grid; place-items: center; border-radius: 50%; font-weight: 700; font-size: 13px; }
+.stance-supports { background: var(--green-soft); color: var(--green); }
+.stance-against { background: rgb(0 0 0 / 0.05); color: var(--label-2); }
+.plain-list { margin: 0; padding-left: 18px; color: var(--label-2); font-size: 14px; display: flex; flex-direction: column; gap: 4px; }
+.disclaimer { padding: 12px 14px; border-radius: 12px; background: var(--orange-soft); font-size: 13px; line-height: 1.5; }

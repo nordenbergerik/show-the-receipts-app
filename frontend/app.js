@@ -1,36 +1,55 @@
 "use strict";
 
-// Show the Receipts: patient list, new visit and the review view.
-// The note is the main view; the source in the visit only appears in the
-// drawer when something is clicked. All text from transcripts, notes and the
-// model is untrusted input and is rendered with textContent, never innerHTML.
+// Show the Receipts: patients, new visit and the visit view.
+//
+// A visit moves through three steps: (1) a check right after the visit, before
+// a note exists; (2) the note, drafted by AI or written by the clinician, edited
+// like a document; (3) a check of the note: receipts, what is missing and a
+// second look at decisions. The source in the visit only appears in the drawer
+// when something is clicked. All text from transcripts, notes and the model is
+// untrusted input and is rendered with textContent, never innerHTML.
 
-const STATUS = { supported: "Supported", inferred: "Inferred", contradicted: "Contradicted", unsupported: "No support", edited: "Edited" };
-const SPEAKER = { doctor: "Doctor", patient: "Patient", patient_guest: "Companion", unknown: "Unknown" };
+const STATUS = { supported: "Supported", inferred: "Inferred", contradicted: "Contradicted", unsupported: "No support", edited: "Changed" };
+const SPEAKER = { doctor: "Doctor", patient: "Patient", patient_guest: "Companion", unknown: "Unknown", note: "Note" };
 const VARIANT = { clean: "Transcript", asr: "Raw speech-to-text", asrcorr: "Corrected speech-to-text", humantrans: "Manual transcript" };
+const VERDICT = { evidence_found: "Evidence found", some_evidence: "Some evidence", no_evidence_found: "No evidence found" };
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const OWN_PREFIX = "own-";
+const REQUEST_TIMEOUT_MS = 330_000;
 
 const state = {
   health: null,
   user: null,
   encounters: [],
+  cases: [],
   encounter: null, // the open visit
+  lines: [], // the visit transcript, indexed
   variant: "clean",
   noteId: null,
   noteText: "",
-  editing: false,
+  editingText: false, // "Edit as text" mode
+  visitCheck: null,
+  included: {}, // visit-check item id -> true when it should go into the note
   audit: null,
   isSample: false,
-  selected: null, // { kind: "claim" | "addition", id }
+  selected: null, // { kind, id }
   showFullTranscript: false,
-  writingOwn: false,
   additionState: {}, // addition_id -> "added" | "dismissed"
+  flagState: {}, // flag_id -> "noted" | "dismissed"
+  followState: {}, // follow-up index -> "seen" | "dismissed"
+  visitState: {}, // visit-check item id -> "dismissed"
   issueCursor: -1,
+  ask: { loading: false, result: null, suggestions: [] },
+  busy: "", // which AI step is running
 };
 
 const $ = (id) => document.getElementById(id);
 const pad = (n, width = 2) => String(n).padStart(width, "0");
+
+// replaceChildren() prints null and undefined as text, so skipped parts are removed first.
+function fill(node, ...children) {
+  node.replaceChildren(...children.flat().filter((c) => c !== null && c !== undefined && c !== false));
+}
 
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
@@ -48,7 +67,7 @@ function el(tag, props = {}, ...children) {
   return node;
 }
 
-const REQUEST_TIMEOUT_MS = 330_000; // a little longer than the server's own limit
+// ------------------------------------------------------------------ API
 
 async function api(path, options = {}) {
   let response;
@@ -76,9 +95,18 @@ async function api(path, options = {}) {
   return body;
 }
 
-// A review from the server or a sample file must have the parts the UI uses.
+const post = (path, body) => api(path, { method: "POST", body: JSON.stringify(body) });
+
 function isValidAudit(result) {
   return Boolean(result && typeof result.note_text === "string" && Array.isArray(result.claims) && Array.isArray(result.transcript));
+}
+
+// The visit as the API wants it: from the dataset, or the user's own transcript.
+function visitSource() {
+  const enc = state.encounter;
+  return enc.own
+    ? { transcript_text: enc.transcript_text, chief_complaint: enc.chief_complaint || "" }
+    : { encounter_id: enc.encounter_id, variant: state.variant };
 }
 
 // ------------------------------------------------------------------ browser storage (no login yet)
@@ -99,10 +127,10 @@ const store = {
 const ownVisits = () => store.read("visits", []);
 const reviews = () => store.read("reviews", {});
 
-function saveReviewSummary(visitId, audit) {
+function saveReviewSummary() {
+  if (!state.audit) return;
   const all = reviews();
-  const problems = audit.claims.filter((c) => c.status === "contradicted" || c.status === "unsupported").length;
-  all[visitId] = { problems, missing: audit.suggested_additions.length, at: Date.now() };
+  all[state.encounter.encounter_id] = { problems: issues().length, missing: state.audit.suggested_additions.length, at: Date.now() };
   store.write("reviews", all);
 }
 
@@ -131,21 +159,25 @@ async function init() {
   $("variant-select").addEventListener("change", (e) => loadVisit(state.encounter.encounter_id, e.target.value));
   $("note-select").addEventListener("change", (e) => selectNote(e.target.value));
   $("audit-btn").addEventListener("click", runAudit);
-  $("edit-btn").addEventListener("click", toggleEdit);
+  $("edit-btn").addEventListener("click", toggleTextEdit);
   $("sample-btn").addEventListener("click", showSample);
   $("delete-btn").addEventListener("click", deleteVisit);
+  $("ask-form").addEventListener("submit", (e) => { e.preventDefault(); runAsk($("ask-input").value); });
   $("backdrop").addEventListener("click", () => select(null));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
   window.addEventListener("hashchange", route);
 
   try {
-    [state.health, state.encounters, state.user] = await Promise.all([api("/api/health"), api("/api/encounters"), api("/api/me")]);
+    [state.health, state.encounters, state.user, state.cases] = await Promise.all([
+      api("/api/health"), api("/api/encounters"), api("/api/me"), api("/api/cases").catch(() => []),
+    ]);
   } catch (error) {
     showBanner(`Could not reach the server: ${error.message}`);
     return;
   }
-  const initials = state.user.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-  $("user-chip").replaceChildren(el("span", { class: "avatar", text: initials }), el("span", { class: "user-name", text: state.user.name }));
+  const initialsOf = state.user.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  $("user-chip").replaceChildren(el("span", { class: "avatar", text: initialsOf }), el("span", { class: "user-name", text: state.user.name }));
+  $("replay-badge").hidden = !state.health.replay;
   route();
 }
 
@@ -176,7 +208,7 @@ function initials(name) {
 
 function patientRow(visit) {
   const review = reviews()[visit.id];
-  let status = el("span", { class: "p-status", text: "Not checked" });
+  let status = el("span", { class: "p-status", text: visit.hasNote === false ? "No note yet" : "Not checked" });
   if (review) {
     status = review.problems
       ? el("span", { class: "p-status is-bad", text: `${review.problems} ${review.problems === 1 ? "problem" : "problems"}` })
@@ -195,11 +227,12 @@ function patientRow(visit) {
 function renderPatients() {
   const query = $("patient-search").value.trim().toLowerCase();
   const matches = (v) => !query || [v.patient, v.reason, v.id].some((s) => (s || "").toLowerCase().includes(query));
-  const own = ownVisits().map((v) => ({ id: v.id, patient: v.patient, reason: v.reason })).filter(matches);
+  const own = ownVisits().map((v) => ({ id: v.id, patient: v.patient, reason: v.reason, hasNote: Boolean((v.note || "").trim()) })).filter(matches);
   const fromData = state.encounters.map((e) => ({ id: e.encounter_id, patient: e.patient, reason: e.chief_complaint, featured: e.featured })).filter(matches);
   const demo = fromData.filter((v) => v.featured);
   const rest = fromData.filter((v) => !v.featured);
 
+  renderCaseCards(!query);
   $("group-own").hidden = !own.length;
   $("list-own").replaceChildren(...own.map(patientRow));
   $("group-demo").hidden = !demo.length;
@@ -208,12 +241,48 @@ function renderPatients() {
   $("list-all").replaceChildren(...(rest.length ? rest.map(patientRow) : [el("li", { class: "empty-row", text: "No visits match your search." })]));
 }
 
+// Example cases start a visit with one click, as if the files had been uploaded.
+function renderCaseCards(show) {
+  const cards = [];
+  for (const c of state.cases) {
+    const wrong = Object.keys(c.notes).find((n) => n.includes("wrong"));
+    cards.push(caseCard("Full flow", `${c.title}: upload only the transcript, check the visit, draft the note, then check it.`,
+      () => startCase(c, null)));
+    if (wrong) {
+      cards.push(caseCard("Add-on", `${c.title}: transcript and an existing note with errors, straight to the check.`,
+        () => startCase(c, wrong)));
+    }
+  }
+  $("group-cases").hidden = !show || !cards.length;
+  $("case-cards").replaceChildren(...cards);
+}
+
+function caseCard(label, text, run) {
+  return el("button", { type: "button", class: "case-card", onclick: run },
+    el("span", { class: "case-label", text: label }),
+    el("span", { class: "case-text", text }),
+    el("span", { class: "case-go", text: "Start →" }));
+}
+
+function startCase(c, noteFile) {
+  const visit = {
+    id: `${OWN_PREFIX}${Date.now().toString(36)}`,
+    patient: c.patient || "Example patient",
+    reason: c.reason || c.title,
+    transcript: normalizeTranscript(c.transcript),
+    note: noteFile ? c.notes[noteFile] : "",
+    created: Date.now(),
+  };
+  store.write("visits", [visit, ...ownVisits()]);
+  location.hash = `#/visit/${visit.id}`;
+}
+
 // ------------------------------------------------------------------ new visit
 
 const UPLOAD_LIMITS = { transcript: 100_000, note: 10_000 };
 const UPLOAD_HINTS = {
   transcript: "A .txt file from speech-to-text. Drop it here or click to choose.",
-  note: "The clinician's note as a .txt file. Optional, you can also write it later.",
+  note: "Have a note already? Upload it to go straight to the check. Leave it out to get a draft.",
 };
 
 // "Doctor: ..." / "Patient: ..." lines become the "[doctor] ..." format the app uses.
@@ -224,6 +293,22 @@ function normalizeTranscript(text) {
     .map((line) => line.replace(/^\s*(doctor|dr\.?|physician|clinician)\s*:\s*/i, "[doctor] ").replace(/^\s*(patient|pt)\s*:\s*/i, "[patient] "))
     .join("\n")
     .trim();
+}
+
+// The same indexing as the server (backend/transcript.py), for showing the
+// transcript before any AI step has run.
+function indexTranscript(text) {
+  const lines = [];
+  for (const raw of text.split("\n")) {
+    const line = raw.trim();
+    if (!line) continue;
+    const m = /^\[([A-Za-z_]+)\]\s*(.*)$/.exec(line);
+    const known = m && ["doctor", "patient", "patient_guest"].includes(m[1].toLowerCase());
+    const speaker = known ? m[1].toLowerCase() : "unknown";
+    const body = known ? m[2].trim() : line;
+    if (body) lines.push({ line_id: lines.length + 1, speaker, text: body });
+  }
+  return lines;
 }
 
 function setupUpload(kind) {
@@ -241,14 +326,11 @@ function setupUpload(kind) {
     } catch {
       return showUploadError(kind, `${file.name} could not be read. Try saving it again as a .txt file.`);
     }
-    text = text.replace(/^﻿/, "");
-    if (text.includes("\u0000")) {
-      return showUploadError(kind, `${file.name} does not look like a text file. Upload a .txt file.`);
-    }
-    if (!text.trim()) {
-      return showUploadError(kind, `${file.name} is empty.`);
-    }
+    text = text.replace(/^﻿/, "").replace(/\r\n?/g, "\n");
+    if (text.includes("\u0000")) return showUploadError(kind, `${file.name} does not look like a text file. Upload a .txt file.`);
+    if (!text.trim()) return showUploadError(kind, `${file.name} is empty.`);
     if (kind === "transcript") text = normalizeTranscript(text);
+    else text = text.trim();
     if (text.length > UPLOAD_LIMITS[kind]) {
       return showUploadError(kind, `${file.name} is too long (max ${UPLOAD_LIMITS[kind].toLocaleString("en-US")} characters).`);
     }
@@ -300,7 +382,7 @@ function createVisit(event) {
     patient,
     reason: $("new-reason").value.trim(),
     transcript,
-    note: $("new-note").value,
+    note: $("new-note").value.replace(/\r\n?/g, "\n").trim(),
     created: Date.now(),
   };
   store.write("visits", [visit, ...ownVisits()]);
@@ -339,6 +421,7 @@ async function loadVisit(visitId, variant) {
       patient: own.patient,
       chief_complaint: own.reason,
       transcript_text: own.transcript,
+      transcript: indexTranscript(own.transcript),
       variants: {},
       notes: [{ id: "own", label: "Note", note_text: own.note || "" }],
     };
@@ -352,7 +435,14 @@ async function loadVisit(visitId, variant) {
   }
   const sameVisit = state.encounter && state.encounter.encounter_id === visitId;
   state.encounter = encounter;
+  state.lines = encounter.transcript;
   state.variant = variant;
+  if (!sameVisit) {
+    state.visitCheck = null;
+    state.included = {};
+    state.ask = { loading: false, result: null, suggestions: [] };
+    $("ask-input").value = "";
+  }
 
   $("patient-name").textContent = encounter.patient || "Unknown patient";
   $("patient-meta").textContent = [encounter.chief_complaint, encounter.own ? "Your visit" : `Visit ${encounter.encounter_id}`].filter(Boolean).join(" · ");
@@ -372,6 +462,17 @@ async function loadVisit(visitId, variant) {
     const preferred = encounter.notes.find((n) => n.sample) || encounter.notes[0];
     selectNote(preferred.id);
   }
+  loadSuggestions();
+}
+
+async function loadSuggestions() {
+  try {
+    const { questions } = await post("/api/ask/suggestions", visitSource());
+    state.ask.suggestions = questions;
+  } catch {
+    state.ask.suggestions = [];
+  }
+  renderAsk();
 }
 
 function currentNote() {
@@ -382,7 +483,7 @@ function selectNote(noteId) {
   state.noteId = noteId;
   $("note-select").value = noteId;
   state.noteText = currentNote().note_text;
-  state.editing = !state.noteText;
+  state.editingText = false;
   resetAudit();
 }
 
@@ -391,22 +492,10 @@ function resetAudit() {
   state.isSample = false;
   state.selected = null;
   state.additionState = {};
+  state.flagState = {};
+  state.followState = {};
   state.issueCursor = -1;
   render();
-}
-
-function toggleEdit() {
-  if (state.editing) {
-    state.noteText = $("note-input").value;
-    state.editing = false;
-    saveOwnNote();
-  } else {
-    state.editing = true;
-    state.audit = null;
-    state.selected = null;
-  }
-  render();
-  if (state.editing) $("note-input").focus();
 }
 
 function saveOwnNote() {
@@ -415,10 +504,102 @@ function saveOwnNote() {
   state.encounter.notes[0].note_text = state.noteText;
 }
 
-// ------------------------------------------------------------------ review
+function toggleTextEdit() {
+  if (state.editingText) {
+    const text = $("note-input").value.replace(/\r\n?/g, "\n");
+    if (text !== state.noteText) {
+      state.noteText = text;
+      markAuditStale();
+    }
+    state.editingText = false;
+    saveOwnNote();
+  } else {
+    state.editingText = true;
+  }
+  render();
+  if (state.editingText) $("note-input").focus();
+}
+
+// After a big edit the old positions no longer hold: every statement is
+// re-located by its text, and the ones that are gone count as changed.
+function markAuditStale() {
+  if (!state.audit) return;
+  state.audit.note_text = state.noteText;
+  let cursor = 0;
+  for (const claim of state.audit.claims) {
+    const idx = claim.note_quote ? state.noteText.indexOf(claim.note_quote, cursor) : -1;
+    const found = idx >= 0 ? idx : state.noteText.indexOf(claim.note_quote);
+    if (claim.note_quote && found >= 0) {
+      claim.note_span = { start: found, end: found + claim.note_quote.length };
+      cursor = claim.note_span.end;
+    } else {
+      claim.note_span = null;
+      markChanged(claim);
+    }
+  }
+}
+
+function markChanged(claim) {
+  if (claim.status === "edited") return;
+  claim.status = "edited";
+  claim.explanation = "Changed by you. Check the note again to verify it.";
+  claim.correction = "";
+  state.audit.changed = (state.audit.changed || 0) + 1;
+}
+
+// ------------------------------------------------------------------ AI steps
+
+function setBusy(step, text) {
+  state.busy = step;
+  $("status-text").textContent = text || "";
+  render();
+}
+
+async function runVisitCheck() {
+  setBusy("visit-check", "");
+  try {
+    state.visitCheck = await post("/api/visit-check", visitSource());
+    state.lines = state.visitCheck.transcript;
+    state.included = {};
+    for (const item of [...state.visitCheck.missed, ...state.visitCheck.decision_flags]) state.included[item.item_id || item.flag_id] = true;
+  } catch (error) {
+    showBanner(error.message);
+  }
+  setBusy("");
+}
+
+function includedPoints() {
+  if (!state.visitCheck) return [];
+  const missed = state.visitCheck.missed.filter((m) => state.included[m.item_id]).map((m) => m.question);
+  const flags = state.visitCheck.decision_flags.filter((f) => state.included[f.flag_id]).map((f) => f.consider || f.title);
+  return [...missed, ...flags].slice(0, 12);
+}
+
+async function runDraft() {
+  setBusy("draft", "");
+  try {
+    const result = await post("/api/draft-note", { ...visitSource(), accepted: includedPoints() });
+    state.noteText = result.note_text;
+    currentNote().note_text = result.note_text;
+    saveOwnNote();
+    resetAudit();
+  } catch (error) {
+    showBanner(error.message);
+  }
+  setBusy("");
+}
+
+function writeOwnNote() {
+  state.editingText = true;
+  render();
+  $("note-input").focus();
+}
 
 async function runAudit() {
-  if (state.editing) state.noteText = $("note-input").value;
+  if (state.editingText) {
+    state.noteText = $("note-input").value.replace(/\r\n?/g, "\n");
+    state.editingText = false;
+  }
   const noteText = state.noteText.trim();
   if (!noteText) {
     showBanner("Write or paste a note first.");
@@ -426,31 +607,22 @@ async function runAudit() {
   }
   saveOwnNote();
   hideBanner();
-  state.editing = false;
-  $("audit-btn").disabled = true;
-  $("status-text").textContent = "Checking the note against the visit…";
-  render();
-  const body = state.encounter.own
-    ? { transcript_text: state.encounter.transcript_text, note_text: noteText }
-    : { encounter_id: state.encounter.encounter_id, variant: state.variant, note_text: noteText };
+  setBusy("audit", "Checking the note against the visit…");
   try {
-    showAudit(await api("/api/audit", { method: "POST", body: JSON.stringify(body) }), false);
+    showAudit(await post("/api/audit", { ...visitSource(), note_text: noteText }), false);
   } catch (error) {
     const note = currentNote();
     const canShowSample = note && note.sample && noteText === note.note_text.trim();
     showBanner(error.message, canShowSample ? { label: "Show simulated review", run: showSample } : null);
-  } finally {
-    $("audit-btn").disabled = false;
-    $("status-text").textContent = "";
   }
+  setBusy("");
 }
 
 async function showSample() {
   const note = currentNote();
   if (!note || !note.sample) return;
   try {
-    const sample = await api(`/samples/${encodeURIComponent(note.sample)}.json`);
-    showAudit(sample, true);
+    showAudit(await api(`/samples/${encodeURIComponent(note.sample)}.json`), true);
   } catch (error) {
     showBanner(`Could not load the simulated review: ${error.message}`);
   }
@@ -464,79 +636,197 @@ function showAudit(result, isSample) {
   state.audit = structuredClone(result);
   state.audit.suggested_additions = state.audit.suggested_additions || [];
   state.audit.follow_up_questions = state.audit.follow_up_questions || [];
+  state.audit.decision_flags = state.audit.decision_flags || [];
   state.audit.claims = state.audit.claims.filter((c) => c && typeof c.claim_id === "string" && STATUS[c.status]);
+  state.audit.changed = 0;
+  state.lines = state.audit.transcript;
   state.noteText = state.audit.note_text;
   state.isSample = isSample;
-  state.editing = false;
+  state.editingText = false;
   state.selected = null;
   state.additionState = {};
+  state.flagState = {};
+  state.followState = {};
   state.issueCursor = -1;
-  saveReviewSummary(state.encounter.encounter_id, state.audit);
+  saveReviewSummary();
   render();
+}
+
+async function runAsk(question) {
+  question = (question || "").trim();
+  if (question.length < 3 || state.ask.loading) return;
+  $("ask-input").value = question;
+  state.ask.loading = true;
+  state.ask.result = null;
+  renderAsk();
+  try {
+    state.ask.result = await post("/api/ask", { ...visitSource(), question, note_text: state.noteText.slice(0, 10_000) });
+  } catch (error) {
+    state.ask.result = { error: error.message };
+  }
+  state.ask.loading = false;
+  renderAsk();
 }
 
 // ------------------------------------------------------------------ rendering the visit
 
+function stage() {
+  if (state.noteText.trim() || state.editingText) return state.audit ? "checked" : "note";
+  return "visit";
+}
+
 function render() {
-  const audited = Boolean(state.audit);
-  $("journal-body").hidden = state.editing;
-  $("note-input").hidden = !state.editing;
-  if (state.editing) $("note-input").value = state.noteText;
-  $("edit-btn").textContent = state.editing ? "Done" : "Edit";
-  $("audit-btn").hidden = audited;
+  const current = stage();
+  $("visit-card").hidden = current !== "visit";
+  $("note-card").hidden = current === "visit";
+  renderStepper(current);
+  renderVisitCard();
+
+  $("journal-body").hidden = state.editingText;
+  $("note-input").hidden = !state.editingText;
+  if (state.editingText && document.activeElement !== $("note-input")) $("note-input").value = state.noteText;
+  $("edit-btn").textContent = state.editingText ? "Done" : "Edit as text";
+  $("audit-btn").textContent = state.audit ? "Check again" : "Check note";
+  $("audit-btn").hidden = Boolean(state.audit) && !(state.audit.changed > 0);
+  $("audit-btn").disabled = state.busy === "audit";
   const note = currentNote();
-  $("sample-btn").hidden = audited || !(note && note.sample && state.noteText === note.note_text);
+  $("sample-btn").hidden = Boolean(state.audit) || !(note && note.sample && state.noteText === note.note_text);
 
   renderJournal();
   renderStats();
+  renderFlags();
   renderAdditions();
   renderFollowUps();
+  renderAsk();
   renderDrawer();
+}
+
+function renderStepper(current) {
+  const steps = [
+    { label: "Visit check", done: Boolean(state.visitCheck), active: current === "visit" },
+    { label: "Note", done: current !== "visit", active: current === "note" },
+    { label: "Note check", done: current === "checked", active: current === "checked" },
+  ];
+  $("stepper").replaceChildren(...steps.map((s, i) =>
+    el("li", { class: `step${s.done ? " is-done" : ""}${s.active ? " is-active" : ""}`, "aria-current": s.active ? "step" : null },
+      el("span", { class: "step-dot", text: s.done ? "✓" : String(i + 1), "aria-hidden": "true" }),
+      el("span", { class: "step-label", text: s.label }))));
+}
+
+// Step 1: before any note exists.
+function renderVisitCard() {
+  if (stage() !== "visit") return;
+  const turns = state.lines.length;
+  const checked = Boolean(state.visitCheck);
+  $("visit-card-title").textContent = checked ? "Before you write the note" : "The visit is recorded";
+  $("visit-card-text").textContent = checked
+    ? "A colleague's quick look at the visit. Untick anything you do not want to keep in mind for the note."
+    : `${turns} speaker turns from the visit. Check the visit for anything you may have missed, then draft the note.`;
+
+  const box = $("visit-check");
+  box.hidden = !checked;
+  if (checked) {
+    const vc = state.visitCheck;
+    fill(box,
+      vc.missed.length ? el("div", {}, el("h3", { class: "subhead", text: "Not asked or checked" }),
+        el("ul", { class: "rows" }, vc.missed.map((m) => checkRow(m.item_id, m.question, m.why, m.category, () => select({ kind: "missed", id: m.item_id }))))) : null,
+      vc.decision_flags.length ? el("div", {}, el("h3", { class: "subhead", text: "Second look at decisions" }),
+        el("ul", { class: "rows" }, vc.decision_flags.map((f) => checkRow(f.flag_id, f.title, f.concern, f.severity === "important" ? "Important" : f.category,
+          () => select({ kind: "vflag", id: f.flag_id }), f.severity)))) : null,
+      !vc.missed.length && !vc.decision_flags.length ? el("p", { class: "all-clear", text: "Nothing stood out. You can go ahead and write the note." }) : null,
+    );
+  }
+
+  const busy = state.busy;
+  const actions = [];
+  if (!checked) {
+    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runVisitCheck, text: busy === "visit-check" ? "Checking the visit…" : "Check the visit" }));
+    actions.push(el("button", { type: "button", class: "btn btn-ghost", disabled: Boolean(busy), onclick: runDraft, text: busy === "draft" ? "Writing…" : "Skip and draft the note" }));
+  } else {
+    const n = includedPoints().length;
+    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runDraft,
+      text: busy === "draft" ? "Writing the note…" : n ? `Draft the note with ${n} ${n === 1 ? "point" : "points"} to follow up` : "Draft the note" }));
+  }
+  actions.push(el("button", { type: "button", class: "btn btn-quiet", disabled: Boolean(busy), onclick: writeOwnNote, text: "Write it myself" }));
+  actions.push(el("button", { type: "button", class: "btn btn-quiet", onclick: () => select({ kind: "transcript", id: "all" }), text: "Show transcript" }));
+  $("visit-actions").replaceChildren(...actions);
+}
+
+function checkRow(id, title, why, tag, open, severity) {
+  const checkbox = el("input", { type: "checkbox", class: "include", id: `inc-${id}`, "aria-label": `Keep in mind for the note: ${title}` });
+  checkbox.checked = Boolean(state.included[id]);
+  checkbox.addEventListener("change", () => { state.included[id] = checkbox.checked; renderVisitCard(); });
+  const dismissed = state.visitState[id] === "dismissed";
+  return el("li", { class: `row check-row${dismissed ? " is-done" : ""}${isSelected("missed", id) || isSelected("vflag", id) ? " is-selected" : ""}` },
+    checkbox,
+    el("button", { type: "button", class: "row-main column", onclick: open },
+      el("span", { class: `row-tag${severity === "important" ? " is-important" : ""}`, text: tag }),
+      el("span", { class: "row-text", text: title }),
+      el("span", { class: "row-why", text: why })),
+    rowActions(dismissed
+      ? { doneLabel: "Dismissed", undo: () => { delete state.visitState[id]; state.included[id] = true; renderVisitCard(); } }
+      : { dismiss: () => { state.visitState[id] = "dismissed"; state.included[id] = false; renderVisitCard(); } }));
 }
 
 function issues() {
   if (!state.audit) return [];
   return state.audit.claims
-    .filter((c) => c.status === "contradicted" || c.status === "unsupported")
+    .filter((c) => (c.status === "contradicted" || c.status === "unsupported") && !c.kept)
     .sort((a, b) => (a.note_span ? a.note_span.start : 1e9) - (b.note_span ? b.note_span.start : 1e9));
 }
 
-function sampleNote(model) {
-  if (model.startsWith("simulated")) {
-    return "Simulated review: a Claude agent answered the exact request the app sends to the API, and the result went through the same receipt checks.";
-  }
-  return "Example review, written by hand to show the interface. Not generated by Claude.";
+function openFlags(list) {
+  return (list || []).filter((f) => state.flagState[f.flag_id] !== "dismissed");
 }
 
 function renderStats() {
   const box = $("stats");
-  if (!state.audit) {
-    box.hidden = true;
-    return;
+  let tiles = [];
+  const notes = [];
+  if (state.audit) {
+    const claims = state.audit.claims;
+    const problems = issues();
+    const backed = claims.filter((c) => c.status === "supported" || c.status === "inferred").length;
+    const pct = claims.length ? Math.round((100 * backed) / claims.length) : 0;
+    const missing = state.audit.suggested_additions.filter((a) => !state.additionState[a.addition_id]).length;
+    const flags = openFlags(state.audit.decision_flags).length;
+    tiles = [
+      stat(problems.length, problems.length === 1 ? "problem in the note" : "problems in the note", problems.length ? "is-bad" : "is-good", nextIssue),
+      stat(missing, missing === 1 ? "thing missing" : "things missing", "", () => scrollToSection("additions-section")),
+      stat(flags, flags === 1 ? "decision to look at" : "decisions to look at", flags ? "is-warn" : "", () => scrollToSection("flags-section")),
+    ];
+    notes.push(`${pct}% of ${claims.length} statements are backed by the visit.`);
+    if (state.isSample) notes.push(sampleNote(state.audit.meta.model));
+    if (state.audit.changed) notes.push(`${state.audit.changed} ${state.audit.changed === 1 ? "statement has" : "statements have"} changed since the check. Choose Check again to verify.`);
+    for (const w of state.audit.warnings || []) notes.push(w);
+  } else if (state.visitCheck && stage() === "visit") {
+    const vc = state.visitCheck;
+    tiles = [
+      stat(vc.missed.length, vc.missed.length === 1 ? "question not asked" : "questions not asked", vc.missed.length ? "is-warn" : "is-good", null),
+      stat(vc.decision_flags.length, vc.decision_flags.length === 1 ? "decision to look at" : "decisions to look at", vc.decision_flags.length ? "is-warn" : "is-good", null),
+    ];
   }
-  const claims = state.audit.claims;
-  const problems = issues();
-  const contradicted = problems.filter((c) => c.status === "contradicted").length;
-  const backed = claims.filter((c) => c.status === "supported" || c.status === "inferred").length;
-  const pct = claims.length ? Math.round((100 * backed) / claims.length) : 0;
-  const missing = state.audit.suggested_additions.filter((a) => !state.additionState[a.addition_id]).length;
+  box.hidden = !tiles.length;
+  box.className = `stats cols-${tiles.length || 3}`;
+  box.replaceChildren(...tiles, ...notes.map((n) => el("p", { class: "stats-note", text: n })));
+}
 
-  const stat = (value, label, cls, onclick, title) =>
-    el("button", { type: "button", class: `stat ${cls}`, onclick, title },
-      el("span", { class: "stat-value", text: value }),
-      el("span", { class: "stat-label", text: label }));
+function stat(value, label, cls, onclick) {
+  return el(onclick ? "button" : "div", { type: onclick ? "button" : null, class: `stat ${cls}${onclick ? " is-clickable" : ""}`, onclick },
+    el("span", { class: "stat-value", text: value }),
+    el("span", { class: "stat-label", text: label }));
+}
 
-  box.replaceChildren(
-    stat(problems.length, problems.length === 1 ? "problem in the note" : "problems in the note",
-      problems.length ? "is-bad" : "is-good", nextIssue,
-      `${contradicted} contradicted by the visit, ${problems.length - contradicted} with no support`),
-    stat(missing, missing === 1 ? "thing missing" : "things missing", "", () =>
-      $("additions-section").scrollIntoView({ behavior: REDUCED_MOTION ? "auto" : "smooth", block: "start" })),
-    stat(`${pct}%`, "backed by the visit", "is-good", null, `${backed} of ${claims.length} statements have a receipt`),
-    state.isSample ? el("p", { class: "stats-note", text: sampleNote(state.audit.meta.model) }) : null,
-    ...(state.audit.warnings || []).map((w) => el("p", { class: "stats-note is-warning", text: w })),
-  );
-  box.hidden = false;
+function scrollToSection(id) {
+  const node = $(id);
+  if (node && !node.hidden) node.scrollIntoView({ behavior: REDUCED_MOTION ? "auto" : "smooth", block: "start" });
+}
+
+function sampleNote(model) {
+  if ((model || "").startsWith("simulated")) {
+    return "Simulated review: a Claude agent answered the exact request the app sends to the API, and the result went through the same receipt checks.";
+  }
+  return "Example review, written by hand to show the interface. Not generated by Claude.";
 }
 
 function nextIssue() {
@@ -549,7 +839,7 @@ function nextIssue() {
   if (node) node.scrollIntoView({ block: "center", behavior: REDUCED_MOTION ? "auto" : "smooth" });
 }
 
-// ---------------------------------------------- the note, as a structured record
+// ---------------------------------------------- the note, as an editable document
 
 const HEADING_RE = /^[A-Z][A-Z0-9 &/()\-]{2,40}$/;
 const LABEL_RE = /^\s*([A-Za-z][A-Za-z0-9 &/\-]{0,28}):\s*/;
@@ -621,26 +911,95 @@ function sentenceRanges(text, start, end) {
 }
 
 function renderJournal() {
+  if (state.editingText || stage() === "visit") return;
   const text = state.noteText;
   const sections = parseNote(text);
   const claims = state.audit ? state.audit.claims.filter((c) => c.note_span).sort((a, b) => a.note_span.start - b.note_span.start) : [];
   const body = $("journal-body");
   if (!sections.length) {
-    body.replaceChildren(el("p", { class: "status-text", text: "No note yet. Choose Edit to write one." }));
+    body.replaceChildren(el("p", { class: "status-text", text: "The note is empty. Choose Edit as text to write it." }));
     return;
   }
   body.replaceChildren(
+    el("p", { class: "edit-hint", text: "Click any sentence to edit it." }),
     ...sections.map((section) =>
       el("section", { class: "jsection" },
         el("h2", { class: "jlabel", text: section.label }),
         el("div", { class: "jrows" },
           section.rows.map((row) => {
-            const p = el("p", { class: "jrow" });
-            if (row.sublabel) p.append(el("span", { class: "sublabel", text: `${row.sublabel}: ` }));
-            appendWithClaims(p, text, row.start, row.end, claims);
-            return p;
+            const editable = el("span", {
+              class: "jtext",
+              contenteditable: "true",
+              spellcheck: "false",
+              "data-start": row.start,
+              "data-end": row.end,
+              oninput: onRowInput,
+              onkeydown: onRowKeydown,
+              onpaste: onRowPaste,
+              onblur: onRowBlur,
+            });
+            appendWithClaims(editable, text, row.start, row.end, claims);
+            return el("p", { class: "jrow" }, row.sublabel ? el("span", { class: "sublabel", text: `${row.sublabel}: ` }) : null, editable);
           })))),
   );
+}
+
+// Editing a sentence in place: the note text is updated as you type; the
+// positions of statements after it shift; statements in the sentence that no
+// longer read the same are marked as changed.
+function onRowInput(event) {
+  const node = event.currentTarget;
+  const start = Number(node.dataset.start);
+  const end = Number(node.dataset.end);
+  const newText = node.textContent.replace(/\n/g, " ");
+  const delta = newText.length - (end - start);
+  state.noteText = state.noteText.slice(0, start) + newText + state.noteText.slice(end);
+  node.dataset.end = String(start + newText.length);
+  for (const other of document.querySelectorAll(".jtext")) {
+    if (other !== node && Number(other.dataset.start) >= end) {
+      other.dataset.start = String(Number(other.dataset.start) + delta);
+      other.dataset.end = String(Number(other.dataset.end) + delta);
+    }
+  }
+  if (state.audit) {
+    state.audit.note_text = state.noteText;
+    for (const claim of state.audit.claims) {
+      if (!claim.note_span) continue;
+      if (claim.note_span.start >= end) {
+        claim.note_span = { start: claim.note_span.start + delta, end: claim.note_span.end + delta };
+      } else if (claim.note_span.end > start && claim.note_span.start < end) {
+        const idx = newText.indexOf(claim.note_quote);
+        if (idx >= 0) claim.note_span = { start: start + idx, end: start + idx + claim.note_quote.length };
+        else { claim.note_span = null; markChanged(claim); }
+      }
+    }
+  }
+  state.dirty = true;
+  // Keep the summary and "Check again" current while typing, without
+  // re-rendering the note (that would move the cursor).
+  renderStats();
+  $("audit-btn").hidden = Boolean(state.audit) && !(state.audit.changed > 0);
+}
+
+function onRowKeydown(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    event.currentTarget.blur();
+  }
+}
+
+function onRowPaste(event) {
+  event.preventDefault();
+  const text = (event.clipboardData.getData("text/plain") || "").replace(/\s*\n\s*/g, " ");
+  document.execCommand("insertText", false, text);
+}
+
+function onRowBlur() {
+  if (!state.dirty) return;
+  state.dirty = false;
+  saveOwnNote();
+  saveReviewSummary();
+  setTimeout(render, 0); // let a click on another sentence land first
 }
 
 function appendWithClaims(parent, text, start, end, claims) {
@@ -650,25 +1009,60 @@ function appendWithClaims(parent, text, start, end, claims) {
     const e = Math.min(claim.note_span.end, end);
     if (e <= s || s < pos) continue;
     if (s > pos) parent.append(text.slice(pos, s));
-    const open = () => select({ kind: "claim", id: claim.claim_id });
     const classes = ["claim", `st-${claim.status}`];
     if (claim.added || claim.fixed === "corrected") classes.push("is-added");
+    if (claim.kept) classes.push("is-kept");
     if (isSelected("claim", claim.claim_id)) classes.push("is-selected");
     parent.append(el("span", {
       class: classes.join(" "),
       "data-claim": claim.claim_id,
-      tabindex: "0",
-      role: "button",
-      "aria-label": `${STATUS[claim.status]}: ${text.slice(s, e)}`,
-      onclick: open,
-      onkeydown: (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(); } },
+      title: claim.status === "contradicted" || claim.status === "unsupported" ? `${STATUS[claim.status]}: click to see why` : null,
+      onclick: () => select({ kind: "claim", id: claim.claim_id }),
     }, text.slice(s, e)));
     pos = e;
   }
   if (pos < end) parent.append(text.slice(pos, end));
 }
 
-// ------------------------------------------------------------------ additions and follow-ups
+// ------------------------------------------------------------------ second look, additions, follow-ups
+
+// Every AI point can be acknowledged or dismissed with one click, right on its row.
+function rowActions({ seen, dismiss, undo, doneLabel }) {
+  if (doneLabel) {
+    return el("span", { class: "row-actions" },
+      el("span", { class: "row-done", text: doneLabel }),
+      undo ? el("button", { type: "button", class: "icon-action", title: "Undo", "aria-label": "Undo", text: "\u21ba", onclick: undo }) : null);
+  }
+  return el("span", { class: "row-actions" },
+    seen ? el("button", { type: "button", class: "icon-action is-seen", title: "Seen", "aria-label": "Mark as seen", text: "\u2713", onclick: seen }) : null,
+    dismiss ? el("button", { type: "button", class: "icon-action is-dismiss", title: "Dismiss", "aria-label": "Dismiss", text: "\u00d7", onclick: dismiss }) : null);
+}
+
+function sectionTitle(id, text, onAll) {
+  fill($(id), el("span", { text }), onAll ? el("button", { type: "button", class: "link-btn quiet small", text: "Mark all as seen", onclick: onAll }) : null);
+}
+
+function flagRow(flag, kind) {
+  const status = state.flagState[flag.flag_id];
+  return el("li", { class: `row${status ? " is-done" : ""}${isSelected(kind, flag.flag_id) ? " is-selected" : ""}` },
+    el("button", { type: "button", class: "row-main column", onclick: () => select({ kind, id: flag.flag_id }) },
+      el("span", { class: `row-tag${flag.severity === "important" ? " is-important" : ""}`, text: flag.severity === "important" ? `Important · ${flag.category}` : flag.category }),
+      el("span", { class: "row-text", text: flag.title }),
+      el("span", { class: "row-why", text: flag.concern })),
+    kind === "flag"
+      ? rowActions(status
+        ? { doneLabel: status === "noted" ? "Seen" : "Dismissed", undo: () => { delete state.flagState[flag.flag_id]; render(); } }
+        : { seen: () => { state.flagState[flag.flag_id] = "noted"; render(); }, dismiss: () => { state.flagState[flag.flag_id] = "dismissed"; render(); } })
+      : el("span", { class: "p-chevron", "aria-hidden": "true", text: "›" }));
+}
+
+function renderFlags() {
+  const flags = state.audit ? state.audit.decision_flags : [];
+  $("flags-section").hidden = !flags.length;
+  const open = flags.filter((f) => !state.flagState[f.flag_id]);
+  sectionTitle("flags-title", "Second look", open.length > 1 ? () => { for (const f of open) state.flagState[f.flag_id] = "noted"; render(); } : null);
+  $("flags").replaceChildren(...flags.map((f) => flagRow(f, "flag")));
+}
 
 function renderAdditions() {
   const additions = state.audit ? state.audit.suggested_additions : [];
@@ -676,16 +1070,15 @@ function renderAdditions() {
   $("additions").replaceChildren(
     ...additions.map((a) => {
       const status = state.additionState[a.addition_id];
-      const classes = ["row"];
-      if (status) classes.push("is-done");
-      if (isSelected("addition", a.addition_id)) classes.push("is-selected");
-      return el("li", { class: classes.join(" ") },
+      return el("li", { class: `row${status ? " is-done" : ""}${isSelected("addition", a.addition_id) ? " is-selected" : ""}` },
         el("button", { type: "button", class: "row-main", onclick: () => select({ kind: "addition", id: a.addition_id }) },
           el("span", { class: `prio prio-${a.priority}`, title: `${a.priority} priority` }),
           el("span", { class: "row-text", text: a.text })),
         status === "added" ? el("span", { class: "row-done", text: "Added" })
-          : status === "dismissed" ? el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Undo", onclick: () => setAdditionState(a.addition_id, undefined) })
-          : el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add", onclick: () => addAddition(a) }));
+          : status === "dismissed" ? rowActions({ doneLabel: "Dismissed", undo: () => { delete state.additionState[a.addition_id]; render(); } })
+          : el("span", { class: "row-actions" },
+            el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add", onclick: () => addAddition(a) }),
+            el("button", { type: "button", class: "icon-action is-dismiss", title: "Dismiss", "aria-label": "Dismiss", text: "\u00d7", onclick: () => { state.additionState[a.addition_id] = "dismissed"; render(); } })));
     }),
   );
 }
@@ -693,16 +1086,20 @@ function renderAdditions() {
 function renderFollowUps() {
   const items = state.audit ? state.audit.follow_up_questions : [];
   $("followups-section").hidden = !items.length;
-  $("followups-title").textContent = `Questions to follow up (${items.length})`;
-  $("followups").replaceChildren(
-    ...items.map((f) => el("li", { class: "followup" }, el("span", { text: f.question }), el("span", { class: "followup-why", text: f.why }))),
+  const open = items.filter((_, i) => !state.followState[i]);
+  $("followups-title").textContent = open.length ? `Questions to follow up (${open.length})` : "Questions to follow up (all seen)";
+  fill($("followups"),
+    ...items.map((f, i) => {
+      const status = state.followState[i];
+      return el("li", { class: `row${status ? " is-done" : ""}` },
+        el("span", { class: "row-main column static" }, el("span", { class: "row-text", text: f.question }), el("span", { class: "row-why", text: f.why })),
+        rowActions(status
+          ? { doneLabel: status === "seen" ? "Seen" : "Dismissed", undo: () => { delete state.followState[i]; render(); } }
+          : { seen: () => { state.followState[i] = "seen"; render(); }, dismiss: () => { state.followState[i] = "dismissed"; render(); } }));
+    }),
+    open.length > 1 ? el("li", { class: "row-footer" }, el("button", { type: "button", class: "link-btn quiet small", text: "Mark all as seen",
+      onclick: () => { items.forEach((_, i) => { if (!state.followState[i]) state.followState[i] = "seen"; }); render(); } })) : null,
   );
-}
-
-function setAdditionState(id, value) {
-  if (value) state.additionState[id] = value;
-  else delete state.additionState[id];
-  render();
 }
 
 // A suggestion already has verified receipts, so it goes straight into the
@@ -731,57 +1128,210 @@ function addAddition(addition) {
   render();
 }
 
-// ------------------------------------------------------------------ selection and the source drawer
+function addFlagToNote(flag) {
+  const line = `To follow up: ${flag.consider || flag.title}`;
+  const separator = state.noteText === "" || state.noteText.endsWith("\n") ? "" : "\n";
+  state.noteText = `${state.noteText}${separator}${line}`;
+  if (state.audit) state.audit.note_text = state.noteText;
+  state.flagState[flag.flag_id] = "noted";
+  state.selected = null;
+  saveOwnNote();
+  render();
+}
+
+// ------------------------------------------------------------------ ask the record
+
+function renderAsk() {
+  const section = $("ask-section");
+  section.hidden = !state.encounter;
+  if (!state.encounter) return;
+  $("ask-btn").disabled = state.ask.loading;
+  $("ask-btn").textContent = state.ask.loading ? "Searching…" : "Ask";
+  $("ask-chips").replaceChildren(...state.ask.suggestions.map((q) =>
+    el("button", { type: "button", class: "chip-btn", text: q, disabled: state.ask.loading, onclick: () => runAsk(q) })));
+
+  const box = $("ask-answer");
+  const result = state.ask.result;
+  box.hidden = !result;
+  if (!result) return;
+  if (result.error) {
+    box.replaceChildren(el("p", { class: "ask-error", text: result.error }));
+    return;
+  }
+  const supports = result.findings.filter((f) => f.stance === "supports");
+  const against = result.findings.filter((f) => f.stance === "against");
+  const findingList = (title, list) => list.length ? el("div", {},
+    el("h3", { class: "subhead", text: title }),
+    el("ul", { class: "rows" }, list.map((f) => el("li", { class: `row${isSelected("finding", f.finding_id) ? " is-selected" : ""}` },
+      el("button", { type: "button", class: "row-main", onclick: () => select({ kind: "finding", id: f.finding_id }) },
+        el("span", { class: `stance stance-${f.stance}`, "aria-hidden": "true", text: f.stance === "supports" ? "+" : "−" }),
+        el("span", { class: "row-text", text: f.text })),
+      el("span", { class: "p-chevron", "aria-hidden": "true", text: "›" }))))) : null;
+
+  fill(box,
+    el("div", { class: "ask-head" },
+      el("span", { class: `verdict verdict-${result.verdict}`, text: VERDICT[result.verdict] }),
+      el("span", { class: "ask-question", text: result.question })),
+    el("p", { class: "ask-summary", text: result.summary }),
+    findingList("Points in favour", supports),
+    findingList("Points against", against),
+    result.where_to_look.length ? el("div", {}, el("h3", { class: "subhead", text: "Check yourself" }),
+      el("ul", { class: "plain-list" }, result.where_to_look.map((w) => el("li", { text: w })))) : null,
+    ...(result.warnings || []).map((w) => el("p", { class: "stats-note is-warning", text: w })),
+    el("div", { class: "disclaimer", role: "note" },
+      el("strong", { text: "AI can be wrong. " }),
+      result.disclaimer),
+  );
+}
+
+// ------------------------------------------------------------------ selection and the drawer
 
 function isSelected(kind, id) {
   return Boolean(state.selected && state.selected.kind === kind && state.selected.id === id);
 }
 
 function selectedItem() {
-  if (!state.selected || !state.audit) return null;
-  if (state.selected.kind === "claim") return state.audit.claims.find((c) => c.claim_id === state.selected.id) || null;
-  return state.audit.suggested_additions.find((a) => a.addition_id === state.selected.id) || null;
+  const s = state.selected;
+  if (!s) return null;
+  if (s.kind === "transcript") return { evidence: [] };
+  if (s.kind === "claim") return state.audit && state.audit.claims.find((c) => c.claim_id === s.id);
+  if (s.kind === "addition") return state.audit && state.audit.suggested_additions.find((a) => a.addition_id === s.id);
+  if (s.kind === "flag") return state.audit && state.audit.decision_flags.find((f) => f.flag_id === s.id);
+  if (s.kind === "missed") return state.visitCheck && state.visitCheck.missed.find((m) => m.item_id === s.id);
+  if (s.kind === "vflag") return state.visitCheck && state.visitCheck.decision_flags.find((f) => f.flag_id === s.id);
+  if (s.kind === "finding") return state.ask.result && state.ask.result.findings && state.ask.result.findings.find((f) => f.finding_id === s.id);
+  return null;
+}
+
+function linesFor(kind) {
+  if (kind === "finding" && state.ask.result && state.ask.result.record) return state.ask.result.record;
+  return state.lines;
 }
 
 function select(selection) {
+  if (document.activeElement && document.activeElement.classList && document.activeElement.classList.contains("jtext")) {
+    // keep typing undisturbed: open the drawer without re-rendering the note
+    state.selected = selection;
+    state.showFullTranscript = selection && selection.kind === "transcript";
+    renderDrawer();
+    return;
+  }
   state.selected = selection;
-  state.showFullTranscript = false;
-  state.writingOwn = false;
+  state.showFullTranscript = Boolean(selection && selection.kind === "transcript");
   if (!$("view-visit").hidden) render();
 }
 
-// ------------------------------------------------------------------ fixing a statement in the note
+function renderDrawer() {
+  const item = selectedItem();
+  const open = Boolean(item);
+  $("drawer").hidden = !open;
+  $("page").classList.toggle("has-drawer", open);
+  $("backdrop").hidden = !(open && window.matchMedia("(max-width: 1099px)").matches);
+  if (!open) return;
 
-function renderFixActions(claim) {
-  const box = el("div", { class: "fix" });
-  if (state.writingOwn) {
-    const input = el("textarea", { id: "own-fix", class: "fix-input", rows: "2", "aria-label": "Your wording" });
-    input.value = claim.note_quote;
-    box.append(
-      input,
-      el("div", { class: "drawer-actions" },
-        el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Save", onclick: () => applyFix(claim, input.value.trim(), "edited") }),
-        el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Cancel", onclick: () => { state.writingOwn = false; renderDrawer(); } })),
-    );
-    setTimeout(() => input.focus(), 0);
-    return box;
+  const kind = state.selected.kind;
+  const lines = linesFor(kind);
+  const tone = kind === "claim" ? item.status : kind === "flag" || kind === "vflag" ? "flag" : "supported";
+  const close = el("button", { type: "button", class: "icon-btn", "aria-label": "Close", text: "×", onclick: () => select(null) });
+  const parts = [];
+
+  if (kind === "transcript") {
+    parts.push(el("div", { class: "drawer-head" }, el("span", { class: "pill neutral", text: "Transcript" }), close));
+    parts.push(renderTranscriptList(lines, [], "supported", false));
+    $("drawer-content").replaceChildren(el("div", { class: "drawer-content" }, parts));
+    return;
   }
-  const actions = el("div", { class: "drawer-actions" });
-  if (claim.correction) {
-    actions.append(el("button", { type: "button", class: "btn btn-primary btn-sm fix-change", onclick: () => applyFix(claim, claim.correction, "corrected") },
-      "Change to ", el("span", { class: "fix-text", text: `“${claim.correction}”` })));
+
+  const pill = {
+    claim: () => el("span", { class: `pill st-${item.status}`, text: STATUS[item.status] }),
+    addition: () => el("span", { class: "pill neutral", text: "Missing from the note" }),
+    flag: () => el("span", { class: `pill ${item.severity === "important" ? "st-important" : "st-consider"}`, text: `Second look · ${item.category}` }),
+    vflag: () => el("span", { class: `pill ${item.severity === "important" ? "st-important" : "st-consider"}`, text: `Second look · ${item.category}` }),
+    missed: () => el("span", { class: "pill st-consider", text: `Not asked · ${item.category}` }),
+    finding: () => el("span", { class: `pill ${item.stance === "supports" ? "st-supported" : "st-consider"}`, text: item.stance === "supports" ? "Point in favour" : "Point against" }),
+  }[kind]();
+  parts.push(el("div", { class: "drawer-head" }, pill, close));
+
+  if (kind === "claim") {
+    parts.push(el("p", { class: "drawer-title", text: item.added ? item.text : item.note_quote }));
+    parts.push(el("p", { class: "drawer-text", text: item.receipt_failed ? "The cited evidence could not be found in the visit." : item.explanation }));
+    if ((item.status === "contradicted" || item.status === "unsupported") && item.note_span) {
+      if (item.kept) {
+        parts.push(el("p", { class: "drawer-fine" }, "You chose to keep this as written. ",
+          el("button", { type: "button", class: "link-btn quiet small", text: "Undo", onclick: () => { item.kept = false; saveReviewSummary(); render(); } })));
+      } else {
+        parts.push(renderFixBox(item));
+      }
+    }
+  } else if (kind === "addition") {
+    parts.push(el("p", { class: "drawer-title", text: item.text }), el("p", { class: "drawer-text", text: item.why }));
+    if (!state.additionState[item.addition_id]) {
+      parts.push(el("div", { class: "drawer-actions" },
+        el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add to note", onclick: () => addAddition(item) }),
+        el("button", { type: "button", class: "link-btn quiet", text: "Dismiss", onclick: () => { state.additionState[item.addition_id] = "dismissed"; select(null); } })));
+    }
+  } else if (kind === "flag" || kind === "vflag") {
+    parts.push(el("p", { class: "drawer-title", text: item.title }), el("p", { class: "drawer-text", text: item.concern }));
+    if (item.consider) parts.push(el("p", { class: "consider" }, el("strong", { text: "Consider: " }), item.consider));
+    parts.push(el("p", { class: "drawer-fine", text: "A prompt to think again, not a verdict. You know the patient; you decide." }));
+    if (kind === "flag" && !state.flagState[item.flag_id]) {
+      parts.push(el("div", { class: "drawer-actions" },
+        el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add to follow-up", onclick: () => addFlagToNote(item) }),
+        el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Noted", onclick: () => { state.flagState[item.flag_id] = "noted"; select(null); } }),
+        el("button", { type: "button", class: "link-btn quiet", text: "Dismiss", onclick: () => { state.flagState[item.flag_id] = "dismissed"; select(null); } })));
+    }
+  } else if (kind === "missed") {
+    parts.push(el("p", { class: "drawer-title", text: item.question }), el("p", { class: "drawer-text", text: item.why }));
+  } else if (kind === "finding") {
+    parts.push(el("p", { class: "drawer-title", text: item.text }));
   }
-  // With a rewrite that keeps the supported part, "Change to" is the main
-  // action and removing is secondary; with no rewrite, removing is the main one.
-  actions.append(el("button", {
+
+  parts.push(el("p", { class: "drawer-section", text: kind === "finding" ? "In the record" : "In the visit" }));
+  if (item.evidence.length) parts.push(renderExcerpt(lines, item.evidence, tone));
+  else parts.push(el("p", { class: "drawer-text", text: kind === "claim" ? "Nothing in the visit supports this." : "This is about something the visit did not cover." }));
+
+  if (state.showFullTranscript) parts.push(el("div", { class: "full-transcript" }, renderTranscriptList(lines, item.evidence, tone, false)));
+  parts.push(el("button", {
     type: "button",
-    class: `btn ${claim.correction ? "btn-ghost" : "btn-primary"} btn-sm`,
-    text: claim.correction ? "Remove instead" : "Remove from note",
-    onclick: () => applyFix(claim, "", "removed"),
+    class: "link-btn",
+    text: state.showFullTranscript ? "Hide full transcript" : "Show full transcript",
+    onclick: () => { state.showFullTranscript = !state.showFullTranscript; renderDrawer(); },
   }));
-  actions.append(el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Write my own", onclick: () => { state.writingOwn = true; renderDrawer(); } }));
-  box.append(actions);
-  return box;
+
+  $("drawer-content").replaceChildren(el("div", { class: "drawer-content" }, parts));
+  if (state.showFullTranscript) {
+    const box = document.querySelector(".full-transcript");
+    const first = box && box.querySelector(".is-cited");
+    if (first) box.scrollTop = first.offsetTop - 40;
+  }
+}
+
+// ------------------------------------------------------------------ fixing a statement
+
+// A replacement box already filled in with the suggested correction: edit it
+// directly and choose Replace, or remove the statement.
+function renderFixBox(claim) {
+  const suggestion = claim.correction || "";
+  const input = el("textarea", { class: "fix-input", rows: "2", id: "fix-input", "aria-label": "Replacement text",
+    placeholder: "Nothing in the visit supports this. Remove it, or write what was actually said." });
+  input.value = suggestion;
+  const replace = el("button", { type: "button", class: `btn ${suggestion ? "btn-primary" : "btn-ghost"} btn-sm`, text: "Replace",
+    onclick: () => {
+      const text = input.value.trim();
+      if (text) applyFix(claim, text, text === suggestion ? "corrected" : "edited");
+    } });
+  const remove = el("button", { type: "button", class: suggestion ? "link-btn quiet" : "btn btn-primary btn-sm", text: "Remove from note",
+    onclick: () => applyFix(claim, "", "removed") });
+  const sync = () => { replace.disabled = !input.value.trim(); };
+  input.addEventListener("input", sync);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); replace.click(); } });
+  sync();
+  return el("div", { class: "fix" },
+    el("label", { class: "fix-label", for: "fix-input", text: suggestion ? "Suggested wording" : "Replace with" }),
+    input,
+    el("div", { class: "drawer-actions" }, ...(suggestion ? [replace, remove] : [remove, replace]),
+      el("button", { type: "button", class: "link-btn quiet", text: "Keep as written",
+        onclick: () => { claim.kept = true; saveReviewSummary(); select(null); } })));
 }
 
 // Replaces (or removes) the statement's text in the note and shifts the
@@ -814,65 +1364,18 @@ function applyFix(claim, newText, kind) {
     } else {
       claim.status = "edited";
       claim.explanation = "Changed by you. Check the note again to verify it.";
+      audit.changed = (audit.changed || 0) + 1;
     }
     claim.correction = "";
   }
   state.noteText = audit.note_text;
-  state.writingOwn = false;
   state.issueCursor = -1;
   saveOwnNote();
-  saveReviewSummary(state.encounter.encounter_id, audit);
+  saveReviewSummary();
   render();
 }
 
-function renderDrawer() {
-  const item = selectedItem();
-  const open = Boolean(item);
-  $("drawer").hidden = !open;
-  $("page").classList.toggle("has-drawer", open);
-  $("backdrop").hidden = !(open && window.matchMedia("(max-width: 1099px)").matches);
-  if (!open) return;
-
-  const isClaim = state.selected.kind === "claim";
-  const status = isClaim ? item.status : "supported";
-  const parts = [
-    el("div", { class: "drawer-head" },
-      isClaim ? el("span", { class: `pill st-${item.status}`, text: STATUS[item.status] }) : el("span", { class: "pill neutral", text: "Missing from the note" }),
-      el("button", { type: "button", class: "icon-btn", "aria-label": "Close", text: "×", onclick: () => select(null) })),
-    el("p", { class: "drawer-title", text: isClaim ? (item.added ? item.text : item.note_quote) : item.text }),
-  ];
-  const why = isClaim ? (item.receipt_failed ? "The cited evidence could not be found in the visit." : item.explanation) : item.why;
-  if (why) parts.push(el("p", { class: "drawer-text", text: why }));
-  if (isClaim && (item.status === "contradicted" || item.status === "unsupported") && item.note_span) {
-    parts.push(renderFixActions(item));
-  }
-
-  parts.push(el("p", { class: "drawer-section", text: "In the visit" }));
-  if (item.evidence.length) parts.push(renderExcerpt(item.evidence, status));
-  else parts.push(el("p", { class: "drawer-text", text: "Nothing in the visit supports this." }));
-
-  if (!isClaim && !state.additionState[item.addition_id]) {
-    parts.push(el("div", { class: "drawer-actions" },
-      el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add to note", onclick: () => addAddition(item) }),
-      el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Dismiss", onclick: () => { state.additionState[item.addition_id] = "dismissed"; select(null); } })));
-  }
-
-  // The toggle sits below the full transcript once it is open.
-  if (state.showFullTranscript) parts.push(renderFullTranscript(item.evidence, status));
-  parts.push(el("button", {
-    type: "button",
-    class: "link-btn",
-    text: state.showFullTranscript ? "Hide full transcript" : "Show full transcript",
-    onclick: () => { state.showFullTranscript = !state.showFullTranscript; renderDrawer(); },
-  }));
-
-  $("drawer-content").replaceChildren(el("div", { class: "drawer-content" }, parts));
-  if (state.showFullTranscript) {
-    const box = document.querySelector(".full-transcript");
-    const first = box && box.querySelector(".is-cited");
-    if (first) box.scrollTop = first.offsetTop - 40;
-  }
-}
+// ------------------------------------------------------------------ transcript excerpts
 
 function quotesByLine(evidence) {
   const map = new Map();
@@ -883,19 +1386,18 @@ function quotesByLine(evidence) {
   return map;
 }
 
-function lineItem(line, quotes, status, width, compact = false) {
+function lineItem(line, quotes, tone, width, compact = false) {
   let content;
   if (quotes) content = markQuotes(line.text, quotes, compact ? 90 : Infinity);
   else content = compact && line.text.length > 140 ? `${line.text.slice(0, 130).trimEnd()} …` : line.text;
-  return el("li", { class: quotes ? `line is-cited st-${status}` : "line" },
+  return el("li", { class: quotes ? `line is-cited st-${tone}` : "line" },
     el("span", { class: "ln", text: pad(line.line_id, width) }),
     el("span", { class: `spk spk-${line.speaker}`, text: SPEAKER[line.speaker] || line.speaker }),
     el("p", { class: "txt" }, content));
 }
 
 // The cited lines with one line of context on each side.
-function renderExcerpt(evidence, status) {
-  const lines = state.audit.transcript;
+function renderExcerpt(lines, evidence, tone) {
   const width = Math.max(2, String(lines.length).length);
   const quotes = quotesByLine(evidence);
   const show = new Set();
@@ -904,17 +1406,15 @@ function renderExcerpt(evidence, status) {
   const items = [];
   ids.forEach((id, i) => {
     if (i > 0 && id !== ids[i - 1] + 1) items.push(el("li", { class: "gap", text: "···", "aria-hidden": "true" }));
-    items.push(lineItem(lines[id - 1], quotes.get(id), status, width, true));
+    items.push(lineItem(lines[id - 1], quotes.get(id), tone, width, true));
   });
   return el("ol", { class: "excerpt" }, items);
 }
 
-function renderFullTranscript(evidence, status) {
-  const lines = state.audit.transcript;
+function renderTranscriptList(lines, evidence, tone) {
   const width = Math.max(2, String(lines.length).length);
   const quotes = quotesByLine(evidence);
-  return el("div", { class: "full-transcript" },
-    el("ol", { class: "excerpt" }, lines.map((line) => lineItem(line, quotes.get(line.line_id), status, width))));
+  return el("ol", { class: "excerpt" }, lines.map((line) => lineItem(line, quotes.get(line.line_id), tone, width)));
 }
 
 // Highlights the quotes inside a line, word by word, so that "hi, brian"

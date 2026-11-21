@@ -1,0 +1,99 @@
+{
+  "format": "VisitCheckLLM",
+  "source": "agent",
+  "response": {
+    "missed": [
+      {
+        "category": "Red flags",
+        "question": "Have you had any chest pain at rest or at night, and is it coming on more often, lasting longer or with less walking than before?",
+        "why": "Rest pain or a crescendo pattern defines unstable angina and decides whether she needs same-day evaluation rather than an outpatient workup.",
+        "evidence": [
+          {"line_id": 8, "quote": "lately i just have n't been able to keep up with it because i'm having this pain"},
+          {"line_id": 2, "quote": "every time i start walking i'm just having this kind of pressure and chest pain in my chest"}
+        ]
+      },
+      {
+        "category": "Red flags",
+        "question": "During the episodes, do you get short of breath, sweaty, nauseated, lightheaded, palpitations or have you ever fainted?",
+        "why": "Associated symptoms were only asked about for the present moment, and in a diabetic woman they may be the main sign of ischemia.",
+        "evidence": [
+          {"line_id": 13, "quote": "no shortness of breath no sweats or clamminess or anything like that right now"}
+        ]
+      },
+      {
+        "category": "Risk factors",
+        "question": "Do you smoke, when were your cholesterol levels last checked, and who in your family had heart disease and at what age?",
+        "why": "Smoking, lipids and premature family history change her cardiovascular risk and whether a statin is started now.",
+        "evidence": [
+          {"line_id": 29, "quote": "your family history of of heart disease in the past as well"},
+          {"line_id": 1, "quote": "she has a past medical history of diabetes and high blood pressure"}
+        ]
+      },
+      {
+        "category": "Medication",
+        "question": "Do you have any allergies, especially to sulfa drugs or aspirin, and any history of stomach ulcers or bleeding?",
+        "why": "She was started on aspirin and hydrochlorothiazide, and sulfa cross-reactivity was mentioned without asking about allergies.",
+        "evidence": [
+          {"line_id": 41, "quote": "sometimes you can have a cross reaction with some other medications like sulfa medications"},
+          {"line_id": 29, "quote": "i'm gon na go ahead and start you on some aspirin daily"}
+        ]
+      },
+      {
+        "category": "History",
+        "question": "Do you get short of breath lying flat or wake up breathless at night, and have you gained weight? Has the murmur ever been evaluated with an echo?",
+        "why": "New ankle edema with a systolic ejection murmur and exertional chest pain raises heart failure or aortic stenosis, which changes the workup.",
+        "evidence": [
+          {"line_id": 29, "quote": "your heart exam you do have a two over six systolic ejection murmur"},
+          {"line_id": 29, "quote": "one plus nonpitting edema or swelling in the in your in your ankle area here"}
+        ]
+      }
+    ],
+    "decision_flags": [
+      {
+        "category": "Diagnosis",
+        "severity": "important",
+        "title": "Suspected unstable angina managed as outpatient?",
+        "concern": "The working diagnosis is unstable angina, yet the plan is a cardiology visit next week with a stress test; unstable angina usually calls for same-day evaluation, and stress testing is generally avoided until it is ruled out. If the pattern is truly stable exertional angina, the label and urgency differ.",
+        "consider": "You might clarify whether the pain is stable or crescendo/at rest and, if unstable angina remains the suspicion, consider same-day ED or urgent cardiology evaluation with troponin.",
+        "evidence": [
+          {"line_id": 29, "quote": "my suspicion is you have something called unstable angina"},
+          {"line_id": 29, "quote": "but we will try to get you into cardiology the next week and get you set up for some sort of a stress test to look at your heart"},
+          {"line_id": 8, "quote": "lately i just have n't been able to keep up with it because i'm having this pain"}
+        ]
+      },
+      {
+        "category": "Medication",
+        "severity": "important",
+        "title": "Inconsistent nitroglycerin and emergency instructions",
+        "concern": "The patient first heard to go to the hospital after one or two pills, then up to three pills five minutes apart, which may delay calling 911 during an acute event.",
+        "consider": "Consider giving one clear written instruction, for example calling 911 if pain is not improved or is worse 5 minutes after the first sublingual dose.",
+        "evidence": [
+          {"line_id": 29, "quote": "if it does n't go away after one or two pills i want you to go to the hospital"},
+          {"line_id": 33, "quote": "so you can take it up to three pills every five minutes"}
+        ]
+      },
+      {
+        "category": "Medication",
+        "severity": "consider",
+        "title": "Hydrochlorothiazide without BP reading or baseline labs",
+        "concern": "HCTZ was started while hypertension is not yet confirmed, with no blood pressure value or kidney function and electrolytes mentioned; in a diabetic patient a thiazide can raise glucose and lower potassium, and the edema has not been worked up.",
+        "consider": "You might document today's BP, check a BMP and urine albumin, and consider whether an ACE inhibitor or ARB would suit her diabetes better.",
+        "evidence": [
+          {"line_id": 23, "quote": "we have n't really diagnosed you with that yet"},
+          {"line_id": 39, "quote": "i'm gon na go ahead and start you on some hydrochlorothiazide"},
+          {"line_id": 39, "quote": "plus it'll also help with you some of the swelling you have in your in your feet"}
+        ]
+      },
+      {
+        "category": "Medication",
+        "severity": "consider",
+        "title": "Statin and lipid panel not addressed",
+        "concern": "A 53-year-old with diabetes and suspected coronary disease would usually be on a statin, but lipids and statin therapy were not discussed.",
+        "consider": "Consider ordering a lipid panel and starting statin therapy alongside the aspirin.",
+        "evidence": [
+          {"line_id": 29, "quote": "but i am worried that you may have some sort of a blockage going on"}
+        ]
+      }
+    ]
+  }
+}

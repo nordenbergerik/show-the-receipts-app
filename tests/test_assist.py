@@ -148,3 +148,14 @@ def test_damaged_recording_gives_clear_error(tmp_path):
 def test_record_lines_number_the_note_after_the_transcript():
     record = record_lines(LINES, "Line A\n\nLine B")
     assert [(l.line_id, l.speaker) for l in record[-2:]] == [(5, "note"), (6, "note")]
+
+
+def test_suggested_questions_for_example_case(client):
+    from pathlib import Path
+    transcript = (Path(__file__).resolve().parent.parent / "demo" / "cases" / "chest-pain" / "transcript.txt").read_text(encoding="utf-8")
+    transcript = "\n".join(
+        line.replace("Doctor: ", "[doctor] ", 1).replace("Patient: ", "[patient] ", 1) for line in transcript.splitlines()
+    )
+    r = client.post("/api/ask/suggestions", json={"transcript_text": transcript})
+    assert r.status_code == 200 and len(r.json()["questions"]) == 3
+    assert client.post("/api/ask/suggestions", json={"transcript_text": TRANSCRIPT}).json() == {"questions": []}

@@ -1,0 +1,15 @@
+{
+  "title": "Chest pain on exertion",
+  "patient": "Elizabeth Moore",
+  "reason": "Chest pain on exertion",
+  "notes": [
+    "note-correct.txt",
+    "note-wrong.txt"
+  ],
+  "questions": [
+    "Is there any evidence of heart failure?",
+    "Could the chest pain be something other than cardiac?",
+    "Is there any evidence of diabetic kidney disease?"
+  ],
+  "draft_accepted_example": []
+}

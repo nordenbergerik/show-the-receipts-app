@@ -12,6 +12,7 @@ from backend.assist import run_ask, run_draft_note, run_visit_check
 from backend.audit import AuditError, run_audit
 from backend.auth import User, get_current_user
 from backend.cache import AuditCache
+from backend.cases import example_cases, suggested_questions
 from backend.config import Settings, get_settings
 from backend.data import VARIANTS, DataStore, get_store
 from backend.llm import ClaudeLLM, StructuredLLM
@@ -29,6 +30,7 @@ from backend.schemas import (
     VisitCheckResult,
 )
 from backend.transcript import index_transcript
+from backend.visit import VisitError, resolve_visit
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -155,6 +157,22 @@ async def draft_note(req: DraftNoteRequest, store: Store, llm: LLM, settings: Se
         return await run_draft_note(req, store=store, llm=llm, settings=settings, allow_live=live)
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
+
+
+@app.get("/api/cases")
+def list_cases() -> list[dict]:
+    """Exempelfallen i demo/cases/, så att de kan startas med ett klick i appen."""
+    return example_cases()
+
+
+@app.post("/api/ask/suggestions")
+def ask_suggestions(req: VisitCheckRequest, store: Store) -> dict:
+    """Föreslagna frågor till journalen (för exempelfallen finns inspelade svar)."""
+    try:
+        lines, _ = resolve_visit(req, store)
+    except VisitError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+    return {"questions": suggested_questions(lines)}
 
 
 @app.post("/api/ask")

@@ -14,16 +14,35 @@ Byggt för Hacking Healthcare Hackathon (Track 1). Planer: [PLAN.md](PLAN.md) ·
 
 ---
 
+## Vad appen gör
+
+| Steg | Vad AI:n gör |
+|---|---|
+| **Visit check**, direkt efter samtalet | Frågor som inte ställdes och en andra blick på besluten. Läkaren kryssar i det hen vill ta med. |
+| **Note** | Ett journalutkast från samtalet, eller läkarens egen anteckning. Redigeras direkt i dokumentet. |
+| **Note check** | Kvitto på varje mening, fel som går att rätta med ett klick, det som saknas, och en andra blick på besluten. |
+| **Ask about this patient** | Söker belägg i journalen för en misstanke, med kvitton och en tydlig varning om att AI kan ha fel. |
+
+Varje AI-punkt kan kvitteras (✓) eller avfärdas (×) med ett klick.
+
+## Demo
+
+Öppna http://localhost:8000/app/ och välj ett exempel under **Try an example**, eller ladda upp filerna i [demo/cases/chest-pain/](demo/cases/chest-pain/) under **New visit**:
+
+- **Hela flödet:** ladda upp bara `transcript.txt` och kör Visit check → Draft → Check note.
+- **Tillägget:** ladda upp `transcript.txt` och `note-wrong.txt` (eller `note-correct.txt`) och gå direkt till Check note.
+
+Utan API-nyckel svarar appen med **inspelade AI-svar** på exakt de förfrågningar den skickar (märkt *Demo mode* uppe till höger). Svaren togs fram av Claude-agenter med samma promptar och scheman, och går genom samma kvittokontroll som riktiga svar. Med `ANTHROPIC_API_KEY` i `.env` används Claude-API:t i stället. Inspelningarna görs med `python -m demo.record` (se filen).
+
 ## Status
 
 | Del | Status |
 |---|---|
-| Datalager och radindexering | Klart och testat |
-| Granskning (LLM-anrop, kvittokontroll, cache, `/api/audit`) | Klart och testat med falsk LLM, inte kört mot Claude-API:t än (nyckel saknas) |
-| Landningssida (`/`), patientlista, ny besök och granskningsvy (`/app/`) | Klart |
-| Simulerade granskningar (Claude-agent i API:ts ställe) | Klart för tre anteckningar på D2N077 |
-| Inloggning | Platshållare (`backend/auth.py`), demoläkare tills vidare |
-| Driftsättning (Render) | Planerat |
+| Datalager, kvittokontroll, granskning, andra blick, besökskontroll, utkast, frågor till journalen | Klart och testat (falsk LLM och inspelade svar) |
+| Landningssida, patientlista, uppladdning, stegflöde, redigerbar journal | Klart |
+| Inloggning | Platshållare (`backend/auth.py`) |
+| Riktiga API-anrop | Inte testat än (nyckel saknas) |
+| Driftsättning (Render) | Pågår |
 
 ## Kom igång
 

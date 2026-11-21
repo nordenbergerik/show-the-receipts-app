@@ -25,6 +25,7 @@
       </nav>
     </div>
     <div class="topbar-right">
+      <span id="replay-badge" class="replay-badge" hidden title="No API key is configured, so the app answers with AI responses recorded in advance for the example files.">Demo mode · recorded AI answers</span>
       <a class="btn btn-primary btn-sm" href="#/new">New visit</a>
       <span id="user-chip" class="user-chip" title="Sign-in is not enabled in this demo"></span>
     </div>
@@ -42,6 +43,10 @@
       <h1>Patients</h1>
       <input id="patient-search" class="search" type="search" placeholder="Search by name, reason or visit" aria-label="Search patients">
     </div>
+    <section id="group-cases" class="group" hidden>
+      <h2 class="section-title">Try an example</h2>
+      <div id="case-cards" class="case-cards"></div>
+    </section>
     <section id="group-own" class="group" hidden>
       <h2 class="section-title">Your visits</h2>
       <ul id="list-own" class="rows patient-list"></ul>
@@ -62,7 +67,7 @@
     <form id="new-form" class="form" novalidate>
       <div class="form-row">
         <label class="form-field" for="new-patient"><span>Patient</span><input id="new-patient" required maxlength="80" placeholder="First and last name"></label>
-        <label class="form-field" for="new-reason"><span>Reason for visit</span><input id="new-reason" maxlength="120" placeholder="e.g. Right wrist injury"></label>
+        <label class="form-field" for="new-reason"><span>Reason for visit</span><input id="new-reason" maxlength="120" placeholder="e.g. Chest pain"></label>
       </div>
       <div class="form-field">
         <span>Transcript of the visit</span>
@@ -80,13 +85,13 @@
         </details>
       </div>
       <div class="form-field">
-        <span>Note</span>
+        <span>Note <small class="optional">optional</small></span>
         <label class="dropzone" id="drop-note" for="file-note">
           <input id="file-note" type="file" accept=".txt,.md,text/plain">
           <span class="drop-icon" aria-hidden="true">↑</span>
           <span class="drop-main">
             <span class="drop-title">Upload note</span>
-            <span class="drop-hint" id="hint-note">The clinician's note as a .txt file. Optional, you can also write it later.</span>
+            <span class="drop-hint" id="hint-note">Have a note already? Upload it to go straight to the check. Leave it out to get a draft.</span>
           </span>
         </label>
         <details class="paste">
@@ -108,32 +113,49 @@
     <div id="page" class="page">
       <div class="journal-col">
         <a class="back-link" href="#/patients">‹ Patients</a>
-        <section id="stats" class="stats" aria-label="Review summary" hidden></section>
 
-        <article class="journal" aria-labelledby="patient-name">
-          <header class="journal-head">
-            <div>
-              <h1 id="patient-name"></h1>
-              <p id="patient-meta" class="journal-meta"></p>
-            </div>
-            <div class="journal-controls">
-              <select id="note-select" aria-label="Note"></select>
-              <select id="variant-select" aria-label="Transcript source"></select>
-            </div>
-          </header>
+        <header class="visit-head">
+          <div>
+            <h1 id="patient-name"></h1>
+            <p id="patient-meta" class="journal-meta"></p>
+          </div>
+          <div class="journal-controls">
+            <select id="note-select" aria-label="Note"></select>
+            <select id="variant-select" aria-label="Transcript source"></select>
+          </div>
+        </header>
 
+        <ol id="stepper" class="stepper" aria-label="Progress"></ol>
+        <section id="stats" class="stats" aria-label="Summary" hidden></section>
+
+        <!-- Step 1: right after the visit, before a note exists -->
+        <article id="visit-card" class="journal" hidden>
+          <div class="card-intro">
+            <h2 class="card-title" id="visit-card-title">The visit is recorded</h2>
+            <p class="journal-meta" id="visit-card-text"></p>
+          </div>
+          <div id="visit-check" class="stack" hidden></div>
+          <footer class="journal-actions" id="visit-actions"></footer>
+        </article>
+
+        <!-- Steps 2 and 3: the note -->
+        <article id="note-card" class="journal" aria-label="Note" hidden>
           <div id="journal-body" class="journal-body"></div>
           <textarea id="note-input" class="note-input" spellcheck="false" aria-label="Note text" hidden
                     placeholder="Type or paste a note. Shorthand is fine."></textarea>
-
           <footer class="journal-actions">
-            <button id="audit-btn" class="btn btn-primary" type="button">Check against the visit</button>
-            <button id="edit-btn" class="btn btn-ghost" type="button">Edit</button>
+            <button id="audit-btn" class="btn btn-primary" type="button">Check note</button>
+            <button id="edit-btn" class="btn btn-ghost" type="button">Edit as text</button>
             <button id="sample-btn" class="btn btn-ghost" type="button" hidden>Show simulated review</button>
             <button id="delete-btn" class="btn btn-quiet" type="button" hidden>Delete visit</button>
             <span id="status-text" class="status-text" role="status"></span>
           </footer>
         </article>
+
+        <section id="flags-section" class="section" hidden>
+          <h2 class="section-title with-action" id="flags-title">Second look</h2>
+          <ul id="flags" class="rows"></ul>
+        </section>
 
         <section id="additions-section" class="section" hidden>
           <h2 class="section-title">Missing from the note</h2>
@@ -144,9 +166,22 @@
           <summary class="section-title" id="followups-title">Questions to follow up</summary>
           <ul id="followups" class="rows"></ul>
         </details>
+
+        <!-- Ask the record -->
+        <section id="ask-section" class="ask" hidden>
+          <h2 class="section-title">Ask about this patient</h2>
+          <form id="ask-form" class="ask-form">
+            <input id="ask-input" class="ask-input" maxlength="300" autocomplete="off"
+                   placeholder="e.g. Is there any evidence of heart failure?" aria-label="Question about this patient">
+            <button class="btn btn-primary" type="submit" id="ask-btn">Ask</button>
+          </form>
+          <div id="ask-chips" class="chips"></div>
+          <p class="ask-note">AI search over this patient's record. It can miss things, so use it to narrow your search, not to rule anything out.</p>
+          <div id="ask-answer" class="ask-answer" hidden></div>
+        </section>
       </div>
 
-      <aside id="drawer" class="drawer" aria-label="Source in the visit" hidden>
+      <aside id="drawer" class="drawer" aria-label="Details" hidden>
         <div id="drawer-content"></div>
       </aside>
     </div>
