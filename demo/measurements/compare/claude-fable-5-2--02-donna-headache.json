@@ -1,0 +1,206 @@
+{
+ "model": "claude-fable-5-2",
+ "effort": "high",
+ "person": "02-donna-headache",
+ "draft": {
+  "seconds": 11.4,
+  "cost_usd": 0.0727,
+  "output_tokens": 1071,
+  "note_text": "Subjective: 37F with hx of HTN and DM presents with headache. Gets occasional headaches but they have been getting worse lately. Home BP checked about once a week and higher than usual for the past 3 weeks: 160/87, most recent 175/92. On lisinopril 20 mg daily; admits missed doses, mainly on weekends when busy. Headache 7/10 at onset, pounding; Tylenol brings it down to 4-5/10 for a while, then it recurs through the day. No prior headaches like this. Hx of migraine about once every 1-2 years, takes nothing for it. Denies congestion, cough, runny nose; feels this is different from her seasonal allergies. Home blood sugar around 120, sometimes down to 100. No increased urination. Walks for exercise.\nObjective: BP at last visit 124/82 per chart review. Exam: no frontal sinus tenderness, no maxillary sinus tenderness, no lymphadenopathy (pt reported slight tenderness on tapping forehead, less over cheekbones, and slight tenderness on neck palpation).\nAssessment: 1. Headache. 2. HTN, elevated home readings with missed lisinopril doses. 3. DM, blood sugar running a little high per clinician.\nPlan: Continue Tylenol for headache. Increase lisinopril from 20 mg to 40 mg once daily for HTN and headaches. Continue home BP checks. Blood work ordered including HbA1c. Diabetic education provided for review. OK to continue walking; exercise encouraged. Follow up in clinic with this clinician or Dr. Ruth after labs are done to recheck BP control."
+ },
+ "check": {
+  "seconds": 40.6,
+  "cost_usd": 0.5008,
+  "output_tokens": 9449,
+  "claims": [
+   {
+    "note_quote": "Headache.",
+    "text": "The chief complaint is headache.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports history of hypertension and diabetes.",
+    "text": "The patient has a history of hypertension and diabetes.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "She has migraines rarely every 1 to 2 years.",
+    "text": "She has migraines rarely, about once every one to two years.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports she walks for exercise.",
+    "text": "The patient walks for exercise.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports history of seasonal allergies.",
+    "text": "The patient has a history of seasonal allergies.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports taking lisinopril 20 mg once a day",
+    "text": "The patient takes lisinopril 20 mg once a day.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "and Tylenol.",
+    "text": "The patient takes Tylenol.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Denies congestion or runny nose.",
+    "text": "The patient denies congestion or runny nose.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Denies cough.",
+    "text": "The patient denies cough.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Denies polyuria.",
+    "text": "The patient denies urinating more than usual.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Reports headaches.",
+    "text": "The patient reports headaches.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "No frontal or maxillary sinus tenderness.",
+    "text": "There is no frontal or maxillary sinus tenderness.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Neck is supple without lymphadenopathy.",
+    "text": "The neck is supple.",
+    "status": "unsupported",
+    "correction": "Neck without lymphadenopathy."
+   },
+   {
+    "note_quote": "without lymphadenopathy",
+    "text": "There is no cervical lymphadenopathy.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Palpation: No enlarged lymph nodes.",
+    "text": "No enlarged lymph nodes on palpation.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Hypertension with headaches.",
+    "text": "The assessment is hypertension with headaches.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient presents today with complaints of increasing headaches",
+    "text": "The patient presents with worsening headaches.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "elevated blood pressure readings at home.",
+    "text": "The patient has had elevated blood pressure readings at home.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "We discussed it is safe for her to exercise and she has been encouraged to continue her walking program.",
+    "text": "Exercise was discussed as safe and she was encouraged to continue walking.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient will continue to take Tylenol for pain management.",
+    "text": "The patient will continue Tylenol for pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Her lisinopril was increased to 40 mg once a day.",
+    "text": "Lisinopril was increased to 40 mg once a day.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Routine blood work was ordered for further evaluation.",
+    "text": "Routine blood work was ordered.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "She will also continue monitoring her blood pressure at home.",
+    "text": "She will continue monitoring her blood pressure at home.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient has been experiencing slightly elevated glucose levels with her home monitoring.",
+    "text": "The patient's home glucose readings have been slightly elevated.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "She was provided with diabetic education which she will review.",
+    "text": "She was given diabetic education to review.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Hemoglobin A1c was ordered.",
+    "text": "A hemoglobin A1c was ordered.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The patient understands and agrees with the recommended medical treatment plan.",
+    "text": "The patient understands and agrees with the treatment plan.",
+    "status": "inferred",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient will return for follow-up to see myself or Dr. Ruth to review her lab work and further treatment plan to get her blood pressure under control.",
+    "text": "The patient will follow up with the doctor or Dr. Ruth after her labs to review results and get her blood pressure under control.",
+    "status": "supported",
+    "correction": ""
+   }
+  ],
+  "additions": [
+   "Patient admits she sometimes forgets to take lisinopril, especially on weekends when she is busiest; adherence is good during the week.",
+   "Home blood pressure, checked about once a week, has been higher than usual over the past 3 weeks, with readings of 160/87 and most recently 175/92; blood pressure at last visit was 124/82.",
+   "Headaches are pounding, rated 7/10 at onset, improve to 4-5/10 with Tylenol but recur through the day; patient states they are unlike her prior migraines.",
+   "Home blood glucose has been running around 120, occasionally down to 100.",
+   "Patient reported slight tenderness on tapping the forehead and mild tenderness on palpation of the neck."
+  ],
+  "follow_ups": [
+   "Neurologic and hypertensive warning signs",
+   "Pregnancy status and contraception",
+   "Blood pressure and vitals today",
+   "Other drugs raising blood pressure"
+  ],
+  "flags": [
+   "Headache attributed to hypertension without red-flag screen?",
+   "Double lisinopril despite missed doses?",
+   "No timeframe for follow-up visit",
+   "Are home glucose readings actually elevated?"
+  ],
+  "warnings": []
+ }
+}

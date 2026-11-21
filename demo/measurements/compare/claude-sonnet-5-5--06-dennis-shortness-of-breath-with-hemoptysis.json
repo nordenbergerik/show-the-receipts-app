@@ -1,0 +1,242 @@
+{
+ "model": "claude-sonnet-5-5",
+ "effort": "high",
+ "person": "06-dennis-shortness-of-breath-with-hemoptysis",
+ "draft": {
+  "seconds": 6.8,
+  "cost_usd": 0.016,
+  "output_tokens": 716,
+  "note_text": "Subjective:\n57M with hx DM, HTN, asthma c/o SOB x ~2 weeks. Wakes up SOB; SOB recurs on return home; SOB with exertion. Hemoptysis x ~3 weeks, pt reports 3-4 cups/day, only with cough. No hematemesis, no other bleeding, no gum bleeding or bruising. No fevers. No leg or calf swelling; chronic knee pain for a long time without swelling. Recent travel not reported. No ED visit; could not get an office appointment. DM: on metformin 500 mg BID, Dexcom shows post-meal spikes >200 and fasting ~150 x ~1 month. Last A1c ~7.7 (pt had diet/exercise counselling). HTN: on Norvasc, but skipping some days as home BP runs low, sometimes low 90s.\n\nObjective:\nSpO2 94% in clinic. BP 120/70 in clinic. No JVD, no carotid bruits. Lungs: rales and rhonchi, R>L, no wheeze, diminished breath sounds on R. Heart: 2/6 systolic ejection murmur, known and unchanged, otherwise RRR. Abdomen soft. Extremities: 1+ nonpitting edema bilateral ankles, no calf tenderness, Homan sign negative.\n\nAssessment:\n1. SOB with hemoptysis: possible lung infection/pneumonia; concerned about PE/blood clot or other more serious cause.\n2. DM, running high.\n3. HTN, with low home BPs on Norvasc.\n\nPlan:\n1. Refer to ED today (doctor to call ahead) for CXR, CT chest and blood work. Treatment depends on findings. Pt states he can bike there, no questions.\n2. Order repeat A1c today. Plan to increase metformin from 500 mg BID to 750 mg BID. Discuss further once acute illness resolved. F/u in ~3 weeks for DM plan.\n3. Hold Norvasc for now. Reassess BP once workup done and pt returns."
+ },
+ "check": {
+  "seconds": 22.3,
+  "cost_usd": 0.1061,
+  "output_tokens": 6961,
+  "claims": [
+   {
+    "note_quote": "Shortness of breath with hemoptysis.",
+    "text": "The chief complaint is shortness of breath with hemoptysis.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports history of diabetes, hypertension, and asthma.",
+    "text": "The patient has a history of diabetes, hypertension, and asthma.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "He also has a long history of knee pain.",
+    "text": "The patient has a long history of knee pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports taking metformin and Norvasc.",
+    "text": "The patient takes metformin and Norvasc.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Constitutional: Denies fever.",
+    "text": "The patient denies fever.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "HENT: Denies bleeding gums.",
+    "text": "The patient denies bleeding gums.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Respiratory: Reports shortness of breath, hemoptysis.",
+    "text": "The patient reports shortness of breath and hemoptysis.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Reports knee pain.",
+    "text": "The patient reports knee pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Denies lower extremity edema.",
+    "text": "The patient denies lower extremity edema.",
+    "status": "contradicted",
+    "correction": "Denies knee swelling."
+   },
+   {
+    "note_quote": "Hematologic/Lymphatic: Denies bruising.",
+    "text": "The patient denies bruising.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Pulse oxygenation: 94 percent.",
+    "text": "Pulse oxygenation is 94 percent.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Blood pressure: 120/70 mm Hg.",
+    "text": "Blood pressure is 120/70 mm Hg.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Neck is supple.",
+    "text": "The neck is supple.",
+    "status": "unsupported",
+    "correction": ""
+   },
+   {
+    "note_quote": "No JVD. No carotid bruits.",
+    "text": "No jugular venous distension and no carotid bruits.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Some rales and rhonchi, more on the right. No wheezing right now. There is some diminished breath sounds in the right as well.",
+    "text": "Rales and rhonchi more on the right, no wheezing, diminished breath sounds on the right.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Regular rate.",
+    "text": "Heart rate is regular.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "2/6 systolic ejection murmur, unchanged from before.",
+    "text": "There is a 2/6 systolic ejection murmur, unchanged from before.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Examination of Abdomen: Soft.",
+    "text": "The abdomen is soft.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "1+ nonpitting edema on bilateral lower extremities.",
+    "text": "There is 1+ nonpitting edema in both lower extremities.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "No calf tenderness. Negative Homan's sign.",
+    "text": "No calf tenderness and negative Homan's sign.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Hematology/Lymphatic/Immunology\n\n- Examination: No bruising.",
+    "text": "No bruising on exam.",
+    "status": "unsupported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The patient has been coughing up blood.",
+    "text": "The patient has been coughing up blood.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "We discussed the importance of further testing as his symptoms could be as simple as a pneumonia or something more serious.",
+    "text": "Discussed further testing because symptoms could be pneumonia or something more serious.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I have ordered a chest x-ray, CT scan, and blood work to be done in the ER.",
+    "text": "Chest x-ray, CT scan and blood work ordered to be done in the emergency department.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I have instructed the patient to go into the ER immediately after this appointment and I will call ahead.",
+    "text": "Patient instructed to go to the ER right after the appointment; doctor will call ahead.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The patient's blood sugar has not been well controlled.",
+    "text": "The patient's blood sugar has not been well controlled.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I have ordered an updated A1c today.",
+    "text": "An updated hemoglobin A1c was ordered today.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "He will increase his metformin to 750 mg twice daily.",
+    "text": "Metformin will be increased to 750 mg twice daily.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "His blood pressure has been running low for approximately 3 weeks.",
+    "text": "His blood pressure has been running low for about 3 weeks.",
+    "status": "unsupported",
+    "correction": "His blood pressure has been running somewhat low at times, sometimes in the lower 90s."
+   },
+   {
+    "note_quote": "I believe this could be caused by his shortness of breath.",
+    "text": "The low blood pressure could be caused by his shortness of breath.",
+    "status": "unsupported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I would like to get a better understanding of the cause of his shortness of breath prior to pursuing further treatment for his hypertension.",
+    "text": "The doctor wants to understand the cause of shortness of breath before further hypertension treatment.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "At this time, he will discontinue the use of Norvasc.",
+    "text": "He will stop Norvasc for now.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The patient understands and agrees with the recommended medical treatment plan.",
+    "text": "The patient understands and agrees with the plan.",
+    "status": "inferred",
+    "correction": ""
+   },
+   {
+    "note_quote": "We will have him follow up in about 3 weeks to just discuss his diabetes and further treatment recommendations.",
+    "text": "Follow-up in about 3 weeks to discuss diabetes and treatment.",
+    "status": "supported",
+    "correction": ""
+   }
+  ],
+  "additions": [
+   "Hemoptysis of about 3 weeks' duration, approximately 3-4 cups of blood per day, occurring only with coughing; no hematemesis or bleeding elsewhere.",
+   "Shortness of breath for about 2 weeks, waking him from sleep and recurring on exertion, with persistent dyspnea after returning home.",
+   "Concern for pulmonary embolism or other serious cause of hemoptysis; the patient is being sent to the ED for chest x-ray, CT chest and labs. The patient plans to bike to the ED.",
+   "Home glucose monitored with Dexcom: postprandial readings well over 200 and fasting readings around 150 for about a month. Last A1c was about 7.7.",
+   "The patient had been taking Norvasc only on some days because home blood pressure ran low, sometimes in the lower 90s."
+  ],
+  "follow_ups": [
+   "Hemodynamic stability and bleeding severity",
+   "Constitutional and malignancy risk",
+   "Anticoagulant or antiplatelet use",
+   "Transport safety to ED"
+  ],
+  "flags": [
+   "Is biking to the ED safe?",
+   "Increase metformin before contrast CT and acute illness?",
+   "Is a cardiac cause being overlooked?",
+   "Hold Norvasc: was other medication use reviewed?"
+  ],
+  "warnings": []
+ }
+}

@@ -1,0 +1,272 @@
+{
+ "model": "claude-fable-5-2",
+ "effort": "high",
+ "person": "06-dennis-shortness-of-breath-with-hemoptysis",
+ "draft": {
+  "seconds": 15.4,
+  "cost_usd": 0.0936,
+  "output_tokens": 1456,
+  "note_text": "Subjective: 57M with hx DM, HTN, asthma presenting with SOB x couple of weeks. Wakes up with SOB; SOB on exertion. Cough with hemoptysis x approx 3 weeks, pt reports 3-4 cups/day, only when coughing. Denies hematemesis, bleeding elsewhere, bruising or gum bleeding. No fevers. Denies leg swelling; chronic knee pain, longstanding, no swelling. Recent travel asked, not answered. No ED or hospital visits for this; could not get an earlier office appointment. DM: on metformin 500 mg BID, wears Dexcom; glucose up and down x approx 1 month, postprandial >200, fasting AM approx 150. Last HbA1c approx 7.7. HTN: on Norvasc but skips some days because home BP runs low, sometimes in the lower 90s.\nObjective: SpO2 94%. BP 120/70. No JVD, no neck swelling, no carotid bruits. Lungs: rales and rhonchi, more on R; diminished breath sounds R; no wheezing. Heart: RRR, 2/6 systolic ejection murmur, unchanged from prior. Abdomen soft. Extremities: 1+ nonpitting edema bilateral ankles, no calf tenderness, negative Homan sign.\nAssessment: 1. SOB with hemoptysis: lung findings suggest infection or other lung process, possibly pneumonia; concern for blood clot or something more serious. 2. DM: glucose running high. 3. HTN: BP running low at home on Norvasc.\nPlan: 1. Refer to ED now for CXR, CT chest and blood work; clinician will call ED. Pt able to get to ED on his own. Treatment depending on findings. 2. Order HbA1c today. Will probably increase metformin from 500 mg BID to 750 mg BID. Return in approx 3 weeks to discuss diabetes and treatment plan once acute illness resolved. 3. Hold Norvasc for now; reassess BP once workup done and SOB under better control."
+ },
+ "check": {
+  "seconds": 51.6,
+  "cost_usd": 0.6119,
+  "output_tokens": 11655,
+  "claims": [
+   {
+    "note_quote": "Shortness of breath with hemoptysis.",
+    "text": "The chief complaint is shortness of breath with coughing up blood.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports history of diabetes, hypertension, and asthma.",
+    "text": "The patient has a history of diabetes, hypertension and asthma.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "He also has a long history of knee pain.",
+    "text": "The patient has long-standing knee pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Patient reports taking metformin and Norvasc.",
+    "text": "The patient takes metformin and Norvasc.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Constitutional: Denies fever.",
+    "text": "The patient denies fever.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "HENT: Denies bleeding gums.",
+    "text": "The patient denies bleeding gums.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Respiratory: Reports shortness of breath, hemoptysis.",
+    "text": "The patient reports shortness of breath and coughing up blood.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Musculoskeletal: Reports knee pain.",
+    "text": "The patient reports knee pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Denies lower extremity edema.",
+    "text": "The patient denies leg swelling.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Hematologic/Lymphatic: Denies bruising.",
+    "text": "The patient denies bruising.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Pulse oxygenation: 94 percent.",
+    "text": "Oxygen saturation is 94 percent.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Blood pressure: 120/70 mm Hg.",
+    "text": "Blood pressure is 120/70 mm Hg.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Neck is supple.",
+    "text": "The neck is supple.",
+    "status": "unsupported",
+    "correction": "No swelling in the neck."
+   },
+   {
+    "note_quote": "No JVD.",
+    "text": "There is no jugular venous distension.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "No carotid bruits.",
+    "text": "There are no carotid bruits.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Some rales and rhonchi, more on the right.",
+    "text": "The lungs have rales and rhonchi, more on the right side.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "No wheezing right now.",
+    "text": "There is no wheezing at present.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "There is some diminished breath sounds in the right as well.",
+    "text": "Breath sounds are diminished on the right side.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Regular rate.",
+    "text": "The heart has a regular rate.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "2/6 systolic ejection murmur, unchanged from before.",
+    "text": "There is a 2/6 systolic ejection murmur, unchanged from before.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Examination of Abdomen: Soft.",
+    "text": "The abdomen is soft.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "1+ nonpitting edema on bilateral lower extremities.",
+    "text": "There is 1+ nonpitting edema in both lower extremities.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "No calf tenderness.",
+    "text": "There is no calf tenderness.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Negative Homan's sign.",
+    "text": "Homan's sign is negative.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "- Examination: No bruising.",
+    "text": "No bruising was found on examination.",
+    "status": "unsupported",
+    "correction": ""
+   },
+   {
+    "note_quote": "1. Shortness of breath.",
+    "text": "The first assessment problem is shortness of breath.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Medical Reasoning: The patient has been coughing up blood.",
+    "text": "The patient has been coughing up blood.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "We discussed the importance of further testing as his symptoms could be as simple as a pneumonia or something more serious.",
+    "text": "The patient was told the symptoms could be pneumonia or something more serious, so further testing is needed.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I have ordered a chest x-ray, CT scan, and blood work to be done in the ER.",
+    "text": "A chest x-ray, CT scan and blood work are to be done in the emergency department.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I have instructed the patient to go into the ER immediately after this appointment and I will call ahead.",
+    "text": "The patient was told to go to the emergency department right after the visit, and the doctor will call ahead.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Medical Reasoning: The patient's blood sugar has not been well controlled.",
+    "text": "The patient's blood sugar has not been well controlled.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I have ordered an updated A1c today.",
+    "text": "A repeat hemoglobin A1c was ordered today.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "He will increase his metformin to 750 mg twice daily.",
+    "text": "Metformin will be increased to 750 mg twice daily.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "His blood pressure has been running low for approximately 3 weeks.",
+    "text": "The blood pressure has been running low for about 3 weeks.",
+    "status": "unsupported",
+    "correction": "His blood pressure has been running low at home, sometimes in the lower 90s."
+   },
+   {
+    "note_quote": "I believe this could be caused by his shortness of breath.",
+    "text": "The doctor believes the low blood pressure could be caused by the shortness of breath.",
+    "status": "unsupported",
+    "correction": ""
+   },
+   {
+    "note_quote": "I would like to get a better understanding of the cause of his shortness of breath prior to pursuing further treatment for his hypertension.",
+    "text": "The doctor wants to find the cause of the shortness of breath before further treatment of the hypertension.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "At this time, he will discontinue the use of Norvasc.",
+    "text": "The patient will stop taking Norvasc for now.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The patient understands and agrees with the recommended medical treatment plan.",
+    "text": "The patient understands and agrees with the plan.",
+    "status": "inferred",
+    "correction": ""
+   },
+   {
+    "note_quote": "We will have him follow up in about 3 weeks to just discuss his diabetes and further treatment recommendations.",
+    "text": "The patient will follow up in about 3 weeks to discuss his diabetes and its treatment plan.",
+    "status": "supported",
+    "correction": ""
+   }
+  ],
+  "additions": [
+   "Hemoptysis for approximately 3 weeks, patient-estimated at 3 to 4 cups per day, occurring only with coughing; denies hematemesis or bleeding elsewhere.",
+   "Medical Reasoning: Concern for a blood clot (pulmonary embolism) prompting CT of the chest; lung findings also suggest a possible infection.",
+   "Home blood pressure sometimes in the lower 90s; patient has been skipping Norvasc on some days because of low readings.",
+   "Shortness of breath for about 2 weeks, present on waking and with exertion.",
+   "Dexcom readings over about the past month: postprandial spikes well over 200, morning values around 150; last hemoglobin A1c approximately 7.7; current metformin 500 mg twice daily."
+  ],
+  "follow_ups": [
+   "PE risk factors and chest pain",
+   "Smoking, weight loss, TB exposure",
+   "Blood thinners and NSAID use",
+   "Stability and safe ED transport"
+  ],
+  "flags": [
+   "Self-transport to ED with large-volume hemoptysis?",
+   "Increase metformin during acute illness?",
+   "Infection, or malignancy or tuberculosis?",
+   "Three-week follow-up only for diabetes?"
+  ],
+  "warnings": []
+ }
+}

@@ -1,0 +1,199 @@
+{
+ "model": "claude-fable-5-2",
+ "effort": "high",
+ "person": "04-bryan-brooks-low-back-pain",
+ "draft": {
+  "seconds": 9.9,
+  "cost_usd": 0.0619,
+  "output_tokens": 849,
+  "note_text": "Subjective: Male pt with low back pain since yesterday. Was raking leaves and felt fine; about 2 hrs later back started tightening up, with pins and needles in right foot. One similar episode about 3 yrs ago, resolved after a day. Tried ice and 2 Advil without relief. Hot shower helped; feels a little better sitting. Normally does no physical activity. Partner present: reports pain looks worse when he stands back up from bending than on bending over; is worried because his pain tolerance is high; requests MRI now. Has not taken meloxicam before.\nObjective: Low back: some pain on flexion, no pain on extension per pt. Pain to palpation around L5. Dorsiflexion normal. Pulses equal in all extremities. Tingling reported in right leg. Low back x-ray today: normal.\nAssessment: Probable low back sprain.\nPlan: Rest. Meloxicam prescribed. PT referral for stretches and exercises. Pt to message if not improving. Partner's request for immediate MRI discussed; agreed to give it 2 weeks, then call back and MRI will be arranged if still not improving."
+ },
+ "check": {
+  "seconds": 34.8,
+  "cost_usd": 0.4688,
+  "output_tokens": 8877,
+  "claims": [
+   {
+    "note_quote": "Low back pain.",
+    "text": "The chief complaint is low back pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Bryan Brooks is a pleasant 39-year-old male",
+    "text": "The patient is Bryan Brooks, a 39-year-old male.",
+    "status": "unsupported",
+    "correction": "Bryan is a male"
+   },
+   {
+    "note_quote": "presents to the clinic today for the evaluation of low back pain",
+    "text": "The patient presents to the clinic for evaluation of low back pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "He is accompanied today by his partner.",
+    "text": "The patient is accompanied by his partner.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Approximately 2 hours after he finished raking leaves yesterday, the patient began to feel a tightening sensation in his low back",
+    "text": "About two hours after raking leaves yesterday, his low back began tightening.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "tingling in his right foot",
+    "text": "He developed tingling in his right foot.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "he recalls a similar episode approximately 3 years ago in which his symptoms resolved after 1 day",
+    "text": "He had a similar episode about three years ago that resolved after one day.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Ice and Advil provided no relief",
+    "text": "Ice and Advil did not relieve the pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "his pain is less severe when he is in a seated position",
+    "text": "The pain is less severe when sitting.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "taking a hot shower helped alleviate his pain",
+    "text": "A hot shower helped the pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The patient's partner reports that his pain seems to worsen when he stands up.",
+    "text": "The partner reports the pain is worse when he stands up.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Musculoskeletal: Reports low back pain.",
+    "text": "Review of systems: the patient reports low back pain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Neurological: Reports tingling in the right foot.",
+    "text": "Review of systems: the patient reports tingling in the right foot.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "NEURO: Normal strength and sensation.",
+    "text": "Neurological exam showed normal strength and normal sensation.",
+    "status": "unsupported",
+    "correction": "NEURO: Dorsiflexion strength normal."
+   },
+   {
+    "note_quote": "No pain on extension.",
+    "text": "There is no pain on lumbar extension.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Some pain with flexion.",
+    "text": "There is some pain with lumbar flexion.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Pain with palpation around L5.",
+    "text": "There is pain on palpation around L5.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Dorsiflexion is normal.",
+    "text": "Dorsiflexion is normal.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Pulses are equal in all extremities.",
+    "text": "Pulses are equal in all extremities.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "X-rays obtained and reviewed in office today were normal.",
+    "text": "Low back X-rays taken in the office today were normal.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "Low back sprain.",
+    "text": "The assessment is a low back sprain.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The examination findings and x-ray results were discussed with the patient and his partner today.",
+    "text": "Exam findings and X-ray results were discussed with the patient and his partner.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "rest",
+    "text": "Rest is recommended.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "meloxicam",
+    "text": "Meloxicam is prescribed.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "formal physical therapy",
+    "text": "Physical therapy is prescribed.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "If he fails to improve, we can consider obtaining an MRI for further evaluation.",
+    "text": "If he does not improve, an MRI may be considered.",
+    "status": "supported",
+    "correction": ""
+   },
+   {
+    "note_quote": "The patient will follow up in 2 weeks.",
+    "text": "The patient will follow up in two weeks.",
+    "status": "inferred",
+    "correction": ""
+   }
+  ],
+  "additions": [
+   "The patient's partner expressed significant concern and requested an MRI now; after discussion, it was agreed to trial conservative treatment for 2 weeks, and the patient will call back for an MRI if he is still not improving.",
+   "The patient reports that he does not normally engage in any physical activity.",
+   "The patient has not taken meloxicam before.",
+   "The patient's partner notes that he has a high pain tolerance and would not normally complain, and that this episode is really painful.",
+   "On examination, the patient localized the tingling sensation to his right leg."
+  ],
+  "follow_ups": [
+   "Cauda equina symptoms",
+   "Radicular signs and neuro exam",
+   "NSAID safety and allergies",
+   "Systemic and history red flags"
+  ],
+  "flags": [
+   "Sprain or lumbar radiculopathy?",
+   "Red-flag screening and return precautions",
+   "Meloxicam safety check and NSAID overlap"
+  ],
+  "warnings": []
+ }
+}
