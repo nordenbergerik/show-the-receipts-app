@@ -9,7 +9,8 @@ endpoints som webbläsaren använder och sparar
 - endpoint-svaren i demo/cases/<fall>/stages.json, som /api/demo-visits gör om
   till inbyggda demobesök i olika steg.
 
-  .venv/Scripts/python -m demo.record_live cough-kyle
+  .venv/Scripts/python -m demo.record_live cough-kyle            # allt på nytt
+  .venv/Scripts/python -m demo.record_live cough-kyle --only-new # bara det som saknas
 
 Kostar riktiga pengar (ungefär 0,3–0,5 USD per fall med Sonnet). Skriver aldrig
 ut nyckeln.
@@ -39,10 +40,13 @@ from demo.record import CASES, REPLAY, normalize_transcript, note_text  # noqa: 
 class Recording:
     """Riktiga anrop som också sparas som inspelningar."""
 
-    def __init__(self, live: ClaudeLLM) -> None:
-        self.live = live
+    def __init__(self, live: ClaudeLLM, only_new: bool = False) -> None:
+        self.live, self.only_new = live, only_new
 
     async def parse(self, *, system: str, content: list[dict[str, Any]], output_format: type) -> Any:
+        if self.only_new and REPLAY.path_for(output_format.__name__, content).exists():
+            print(f"  kept {output_format.__name__} (already recorded)")
+            return REPLAY.load(content, output_format)
         result = await self.live.parse(system=system, content=content, output_format=output_format)
         path = REPLAY.save(output_format.__name__, content, result.model_dump(mode="json"), source="live")
         print(f"  recorded {output_format.__name__} -> {path.name}")
@@ -56,7 +60,7 @@ def post(client: TestClient, url: str, body: dict) -> dict:
     return res.json()
 
 
-def main(case: str) -> int:
+def main(case: str, only_new: bool = False) -> int:
     settings = get_settings()
     if not (os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN")):
         print("No API key in the environment or .env.")
@@ -66,7 +70,7 @@ def main(case: str) -> int:
     transcript = normalize_transcript((folder / "transcript.txt").read_text(encoding="utf-8"))
     source = {"transcript_text": transcript, "chief_complaint": config.get("reason", "")}
     tmp = tempfile.TemporaryDirectory()
-    app.dependency_overrides[get_llm] = lambda: Recording(ClaudeLLM(settings))
+    app.dependency_overrides[get_llm] = lambda: Recording(ClaudeLLM(settings), only_new)
     app.dependency_overrides[get_cache] = lambda: AuditCache(Path(tmp.name))
     client = TestClient(app)
 
@@ -94,4 +98,5 @@ def main(case: str) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "cough-kyle"))
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    sys.exit(main(args[0] if args else "cough-kyle", only_new="--only-new" in sys.argv))

@@ -1,0 +1,93 @@
+{
+ "format": "CoverageLLM",
+ "source": "live",
+ "response": {
+  "additions": [
+   {
+    "text": "CT chest: solitary 2 cm smooth nodule in the lateral aspect of the RIGHT upper lobe (note currently states left), no emphysema.",
+    "why": "Laterality error affects the surgical site and must be correct in the record.",
+    "priority": "high",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "solitary two centimeter nodule in the lateral aspect of the right upper lobe"
+     }
+    ]
+   },
+   {
+    "text": "FH: No family history of lung cancer; mother had breast cancer and is doing well.",
+    "why": "The note wrongly lists lung cancer in the mother, which misstates the patient's risk profile.",
+    "priority": "high",
+    "evidence": [
+     {
+      "line_id": 24,
+      "quote": "no lung cancer my mom did have breast cancer but she is doing well now"
+     }
+    ]
+   },
+   {
+    "text": "SH: Former smoker, quit about 7 years ago (note states 2 years).",
+    "why": "Time since quitting is a key risk factor for nodule malignancy and informs the decision to resect.",
+    "priority": "medium",
+    "evidence": [
+     {
+      "line_id": 18,
+      "quote": "i stopped smoking probably about seven years ago"
+     }
+    ]
+   },
+   {
+    "text": "Cough on and off for about 3 months, worse after a day of loading hay, diagnosed as bronchitis by PCP, now resolved (note states 2 weeks).",
+    "why": "Correct duration and context of the cough are relevant to the nodule work-up and exposure history.",
+    "priority": "medium",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "off and on i've had it for about three months"
+     },
+     {
+      "line_id": 2,
+      "quote": "which they diagnosed as bronchitis"
+     }
+    ]
+   },
+   {
+    "text": "RA: methotrexate 7.5 mg weekly (note states 15 mg), no recent flares, hand joints mainly affected.",
+    "why": "An incorrect immunosuppressant dose is a medication safety issue, especially before surgery.",
+    "priority": "high",
+    "evidence": [
+     {
+      "line_id": 16,
+      "quote": "i think it's seven and a half milligrams every week"
+     }
+    ]
+   }
+  ],
+  "follow_up_questions": [
+   {
+    "category": "Red flags",
+    "title": "Constitutional and hemoptysis symptoms",
+    "question": "Have you had any coughing up of blood, unexplained weight loss, night sweats, or loss of appetite?",
+    "why": "These red flags for malignancy or infection were not asked and affect the urgency and work-up of the nodule."
+   },
+   {
+    "category": "Medication",
+    "title": "Perioperative methotrexate plan",
+    "question": "Do you know the exact methotrexate dose, and have you had any other immunosuppressants or recent lung problems from it? We should coordinate holding methotrexate around surgery with your rheumatologist.",
+    "why": "Methotrexate can cause lung toxicity and affects infection risk and wound healing around VATS."
+   },
+   {
+    "category": "History",
+    "title": "Smoking pack-years and exposures",
+    "question": "How much did you smoke and for how many years? Any occupational exposures (hay or mold dust, asbestos), TB exposure, or travel to areas with endemic fungi?",
+    "why": "Pack-years and exposures refine malignancy risk and the differential for an inflammatory or infectious nodule."
+   },
+   {
+    "category": "History",
+    "title": "Prior imaging for comparison",
+    "question": "Have you had any earlier chest imaging we can compare with the nodule to see if it has changed?",
+    "why": "Nodule stability or growth changes the pretest probability and management."
+   }
+  ]
+ }
+}

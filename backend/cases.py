@@ -100,6 +100,7 @@ def demo_visits() -> list[dict]:
                   {**base, "visitCheck": visit_check, "audit": _without_transcript(stages["audit_draft"]), "ask": ask},
                   _review(stages["audit_draft"])),
         ]
+        labels = config.get("note_labels", {})
         for i, name in enumerate(config.get("notes", []), start=5):
-            out.append(visit(i, "The doctor's own note", _read(folder / name), None))
+            out.append(visit(i, labels.get(name, "The doctor's own note"), _read(folder / name), None))
     return out

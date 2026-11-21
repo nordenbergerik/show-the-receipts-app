@@ -332,28 +332,8 @@
    "model": "claude-sonnet-5-5",
    "prompt_version": "47ac08dc9233",
    "cached": false,
-   "latency_ms": 13788,
-   "usage": {
-    "calls": [
-     {
-      "task": "VisitCheckLLM",
-      "model": "claude-sonnet-5-5",
-      "seconds": 13.8,
-      "input_tokens": 4,
-      "output_tokens": 1919,
-      "cache_read_tokens": 0,
-      "cache_write_tokens": 4312,
-      "cost_usd": 0.03,
-      "source": "live"
-     }
-    ],
-    "input_tokens": 4,
-    "output_tokens": 1919,
-    "cache_read_tokens": 0,
-    "cache_write_tokens": 4312,
-    "cost_usd": 0.03,
-    "source": "live"
-   }
+   "latency_ms": 3,
+   "usage": null
   }
  },
  "draft": {
@@ -362,28 +342,8 @@
    "model": "claude-sonnet-5-5",
    "prompt_version": "47ac08dc9233",
    "cached": false,
-   "latency_ms": 5933,
-   "usage": {
-    "calls": [
-     {
-      "task": "DraftNoteLLM",
-      "model": "claude-sonnet-5-5",
-      "seconds": 5.9,
-      "input_tokens": 11,
-      "output_tokens": 771,
-      "cache_read_tokens": 0,
-      "cache_write_tokens": 3381,
-      "cost_usd": 0.0162,
-      "source": "live"
-     }
-    ],
-    "input_tokens": 11,
-    "output_tokens": 771,
-    "cache_read_tokens": 0,
-    "cache_write_tokens": 3381,
-    "cost_usd": 0.0162,
-    "source": "live"
-   }
+   "latency_ms": 1,
+   "usage": null
   }
  },
  "audit_draft": {
@@ -1330,50 +1290,8 @@
    "model": "claude-sonnet-5-5",
    "prompt_version": "47ac08dc9233",
    "cached": false,
-   "latency_ms": 23500,
-   "usage": {
-    "calls": [
-     {
-      "task": "CoverageLLM",
-      "model": "claude-sonnet-5-5",
-      "seconds": 4.6,
-      "input_tokens": 769,
-      "output_tokens": 565,
-      "cache_read_tokens": 0,
-      "cache_write_tokens": 3876,
-      "cost_usd": 0.0169,
-      "source": "live"
-     },
-     {
-      "task": "DecisionsLLM",
-      "model": "claude-sonnet-5-5",
-      "seconds": 6.3,
-      "input_tokens": 769,
-      "output_tokens": 906,
-      "cache_read_tokens": 0,
-      "cache_write_tokens": 3831,
-      "cost_usd": 0.0202,
-      "source": "live"
-     },
-     {
-      "task": "ClaimsLLM",
-      "model": "claude-sonnet-5-5",
-      "seconds": 23.5,
-      "input_tokens": 769,
-      "output_tokens": 4915,
-      "cache_read_tokens": 0,
-      "cache_write_tokens": 4070,
-      "cost_usd": 0.0609,
-      "source": "live"
-     }
-    ],
-    "input_tokens": 2307,
-    "output_tokens": 6386,
-    "cache_read_tokens": 0,
-    "cache_write_tokens": 11777,
-    "cost_usd": 0.098,
-    "source": "live"
-   }
+   "latency_ms": 12,
+   "usage": null
   }
  },
  "audits": {
@@ -2519,48 +2437,758 @@
     "model": "claude-sonnet-5-5",
     "prompt_version": "47ac08dc9233",
     "cached": false,
-    "latency_ms": 24849,
+    "latency_ms": 16,
+    "usage": null
+   }
+  },
+  "note-with-errors.txt": {
+   "encounter_id": null,
+   "variant": null,
+   "transcript": [
+    {
+     "line_id": 1,
+     "speaker": "doctor",
+     "text": "hey kyle it's nice to see you today can you tell me a little bit about what brought you in"
+    },
+    {
+     "line_id": 2,
+     "speaker": "patient",
+     "text": "yeah i went to see my pcp for a cough which they diagnosed as bronchitis but then they did that chest x-ray to make sure i did n't have pneumonia and they found this lung nodule i went for a cat scan that confirmed it and they referred me here to you i'm really nervous document"
+    },
+    {
+     "line_id": 3,
+     "speaker": "doctor",
+     "text": "okay well first of all i'm i'm sorry that you're nervous and what we're gon na do is we're gon na partner together okay and i'm gon na be right by your side the whole time to hopefully make you a little less nervous and and recognize the fact that we're you're gon na have a big support team around you okay"
+    },
+    {
+     "line_id": 4,
+     "speaker": "patient",
+     "text": "okay"
+    },
+    {
+     "line_id": 5,
+     "speaker": "doctor",
+     "text": "so let's talk a little bit about how long you've had that cough before you went to see your doctor"
+    },
+    {
+     "line_id": 6,
+     "speaker": "patient",
+     "text": "i you know off and on i've had it for about three months i first noticed it when i was loading some pay i have horses and i i bought you know four hundred bills a day and when i spent a day loading it and then it's i just started coughing a lot more i think around that time and after that i i i just got a cold so that's what sent me to my pcp now i i i do exercise i i do a lot of biking and i typically do n't get sick and my cough has gone away"
+    },
+    {
+     "line_id": 7,
+     "speaker": "doctor",
+     "text": "okay that's good to hear you mentioned exercise and biking i love to bike myself i've got a track seventy one hundred hybrid have you been on the the new trails they opened it was the old the old rail the old rail road right away they've opened that up it's like sixty miles of trails"
+    },
+    {
+     "line_id": 8,
+     "speaker": "patient",
+     "text": "i love that that road i just i i do n't like riding on the road so i prefer to do those rails the trails type"
+    },
+    {
+     "line_id": 9,
+     "speaker": "doctor",
+     "text": "yeah"
+    },
+    {
+     "line_id": 10,
+     "speaker": "patient",
+     "text": "and it's just so phenomenal i do that a lot"
+    },
+    {
+     "line_id": 11,
+     "speaker": "doctor",
+     "text": "yeah i love riding over there way we will we will get you all fixed up we will have to go for a bike ride"
+    },
+    {
+     "line_id": 12,
+     "speaker": "patient",
+     "text": "absolutely i'd love it"
+    },
+    {
+     "line_id": 13,
+     "speaker": "doctor",
+     "text": "that'd be great so i see here on your medical history that you also have a history of rheumatoid arthritis is that under control at this time and and and what do you do to to take care of your ra"
+    },
+    {
+     "line_id": 14,
+     "speaker": "patient",
+     "text": "yeah it's it's it's fair you know arthritis never really goes away but i take methotrexate"
+    },
+    {
+     "line_id": 15,
+     "speaker": "doctor",
+     "text": "okay"
+    },
+    {
+     "line_id": 16,
+     "speaker": "patient",
+     "text": "i think it's seven and a half milligrams every week and as long as i'm keeping active my joints feel okay and if i do have any problems it's it's mostly with my hands but i have n't had any recent flares so i'm okay right now"
+    },
+    {
+     "line_id": 17,
+     "speaker": "doctor",
+     "text": "okay that's good i also see here that you marked down that you were a previous smoker and and when when did you when did you stop smoking"
+    },
+    {
+     "line_id": 18,
+     "speaker": "patient",
+     "text": "i stopped smoking probably about seven years ago"
+    },
+    {
+     "line_id": 19,
+     "speaker": "doctor",
+     "text": "okay"
+    },
+    {
+     "line_id": 20,
+     "speaker": "patient",
+     "text": "and i was young and should have stopped the way before that my kids were on me all the time but you know i i got a new start and finally was able to stop and i felt better after stopping"
+    },
+    {
+     "line_id": 21,
+     "speaker": "doctor",
+     "text": "okay that's good and i'm glad to hear that you were able to to to stop and and stay tobacco free that that's great to hear do you have any pain or any shortness of breath or anything like that"
+    },
+    {
+     "line_id": 22,
+     "speaker": "patient",
+     "text": "no not at all"
+    },
+    {
+     "line_id": 23,
+     "speaker": "doctor",
+     "text": "okay and i would like to talk about your familial history here for just a second do you have any family history of lung cancer or any other type of malignancies"
+    },
+    {
+     "line_id": 24,
+     "speaker": "patient",
+     "text": "no lung cancer my mom did have breast cancer but she is doing well now"
+    },
+    {
+     "line_id": 25,
+     "speaker": "doctor",
+     "text": "okay alright and then things like lung infections or pneumonia do you have any previous history of that"
+    },
+    {
+     "line_id": 26,
+     "speaker": "patient",
+     "text": "no no not not anything that i'm aware of"
+    },
+    {
+     "line_id": 27,
+     "speaker": "doctor",
+     "text": "okay if it's okay with you i'm gon na do a quick physical exam your vital signs look good today blood pressure of one twenty four over seventy six heart rate of seventy respiration rate of sixteen o2 sat on room air of ninety eight percent and you are afebrile so you do n't have a fever today i'm gon na take a quick listen to your lungs here your lungs are clear and equal bilateral when i listen to them or when i auscultate your lungs now listening to your heart regular rate and rhythm no clicks rubs or murmurs and i do n't appreciate any extra beats doing a quick extremity exam your skin is pink warm and dry i do n't appreciate any edema to your lower extremities it looks like you do have a little bit of swelling to to your knuckles there on your third digit on each hand which can be normal for somebody who has ra however pulses are intact in all extremities and capillary refill is brisk so a quick review of your results now you had a chest ct before you came in to see me and the results of that chest ct do show a solitary two centimeter nodule in the lateral aspect of the right upper lobe now it appears the nodule is smooth in appearance and no evidence of any type of emphysematous disease is present which is good now for my assessment and plan for you so you do have an incidentally found right upper lobe lung nodule i'm going to order some pft which is pulmonary function test i just wan na get a check and and a baseline for your lung function i'm also going to schedule a pet ct this is gon na help to determine if that nodule is metabolically active meaning if it lights up it it can suggest that it's cancer or inflammatory i'm going to go ahead and suggest that we do remove this during or via video assisted thoracoscopy which means it's just gon na be three small incisions made on the side of your right chest i'm gon na go in with a camera and a scope and we'll remove that along with a very small portion of your lung you're gon na be under general anesthesia and it'll take about an hour and a half or so post procedure you're gon na be admitted and you will have a chest tube in until the following day and i'm gon na go ahead and take that out then at bedside most likely you're gon na be in the hospital for one night and go home the next day it could be a benign nodule but because your smoking history i really do think it's gon na be best that you have that removed now for your secondary concern of your rheumatoid arthritis i want you to continue to follow up with your rheumatologist and continue your medication therapy as has been previously outlined for you now do you have any questions comments or concerns before before we get the paperwork signed to start the the treatment process"
+    },
+    {
+     "line_id": 28,
+     "speaker": "patient",
+     "text": "no i do n't think so i think i'll be okay i'm scared"
+    },
+    {
+     "line_id": 29,
+     "speaker": "doctor",
+     "text": "i i know you're scared but we'll be right here with you the whole way"
+    },
+    {
+     "line_id": 30,
+     "speaker": "patient",
+     "text": "okay"
+    },
+    {
+     "line_id": 31,
+     "speaker": "doctor",
+     "text": "alright we'll get some paperwork and i'll see you again in a few minutes"
+    },
+    {
+     "line_id": 32,
+     "speaker": "patient",
+     "text": "okay thank you"
+    }
+   ],
+   "note_text": "Pt referred by PCP for incidental lung nodule on CXR, confirmed on CT. Cough off and on x 2 weeks, now resolved. No pain, no SOB.\nPMH: RA, stable, on methotrexate 15 mg weekly.\nSH: Former smoker, quit 2 years ago. Bikes regularly.\nFH: Mother with lung cancer.\nVitals: BP 124/76, HR 70, RR 16, SpO2 98% RA, afebrile.\nExam: Lungs clear bilaterally. RRR, no murmurs. Mild swelling 3rd knuckles bilat, c/w RA. No edema.\nCT chest: solitary 2 cm smooth nodule, left upper lobe. No emphysema.\nA/P: 1. Lung nodule: PFTs, PET-CT, plan VATS resection. 2. RA: continue methotrexate, f/u rheumatology.",
+   "claims": [
+    {
+     "claim_id": "C1",
+     "text": "Patient was referred by the PCP for an incidental lung nodule found on chest x-ray.",
+     "note_quote": "Pt referred by PCP for incidental lung nodule on CXR",
+     "note_span": {
+      "start": 0,
+      "end": 52
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 2,
+       "quote": "they did that chest x-ray to make sure i did n't have pneumonia and they found this lung nodule"
+      },
+      {
+       "line_id": 2,
+       "quote": "they referred me here to you"
+      }
+     ],
+     "explanation": "Patient describes the nodule found on CXR and the referral.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C2",
+     "text": "The nodule was confirmed on CT.",
+     "note_quote": "confirmed on CT",
+     "note_span": {
+      "start": 54,
+      "end": 69
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 2,
+       "quote": "i went for a cat scan that confirmed it"
+      }
+     ],
+     "explanation": "Patient states CT confirmed it.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C3",
+     "text": "Cough has been off and on for 2 weeks.",
+     "note_quote": "Cough off and on x 2 weeks",
+     "note_span": {
+      "start": 71,
+      "end": 97
+     },
+     "status": "contradicted",
+     "evidence": [
+      {
+       "line_id": 6,
+       "quote": "off and on i've had it for about three months"
+      }
+     ],
+     "explanation": "Duration was about three months, not 2 weeks.",
+     "correction": "Cough off and on x 3 months",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C4",
+     "text": "The cough has resolved.",
+     "note_quote": "now resolved",
+     "note_span": {
+      "start": 99,
+      "end": 111
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 6,
+       "quote": "my cough has gone away"
+      }
+     ],
+     "explanation": "Patient says cough has gone away.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C5",
+     "text": "The patient has no pain and no shortness of breath.",
+     "note_quote": "No pain, no SOB.",
+     "note_span": {
+      "start": 113,
+      "end": 129
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 21,
+       "quote": "do you have any pain or any shortness of breath"
+      },
+      {
+       "line_id": 22,
+       "quote": "no not at all"
+      }
+     ],
+     "explanation": "Patient denied both.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C6",
+     "text": "Rheumatoid arthritis is stable.",
+     "note_quote": "RA, stable",
+     "note_span": {
+      "start": 135,
+      "end": 145
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 16,
+       "quote": "i have n't had any recent flares so i'm okay right now"
+      }
+     ],
+     "explanation": "No recent flares, joints okay.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C7",
+     "text": "Patient takes methotrexate 15 mg weekly.",
+     "note_quote": "on methotrexate 15 mg weekly",
+     "note_span": {
+      "start": 147,
+      "end": 175
+     },
+     "status": "contradicted",
+     "evidence": [
+      {
+       "line_id": 16,
+       "quote": "i think it's seven and a half milligrams every week"
+      }
+     ],
+     "explanation": "Dose stated was 7.5 mg weekly.",
+     "correction": "on methotrexate 7.5 mg weekly",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C8",
+     "text": "Patient is a former smoker.",
+     "note_quote": "Former smoker",
+     "note_span": {
+      "start": 181,
+      "end": 194
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 17,
+       "quote": "you were a previous smoker"
+      },
+      {
+       "line_id": 18,
+       "quote": "i stopped smoking probably about seven years ago"
+      }
+     ],
+     "explanation": "Confirmed by patient.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C9",
+     "text": "Patient quit smoking 2 years ago.",
+     "note_quote": "quit 2 years ago",
+     "note_span": {
+      "start": 196,
+      "end": 212
+     },
+     "status": "contradicted",
+     "evidence": [
+      {
+       "line_id": 18,
+       "quote": "i stopped smoking probably about seven years ago"
+      }
+     ],
+     "explanation": "Quit about seven years ago.",
+     "correction": "quit 7 years ago",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C10",
+     "text": "Patient bikes regularly.",
+     "note_quote": "Bikes regularly.",
+     "note_span": {
+      "start": 214,
+      "end": 230
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 6,
+       "quote": "i do a lot of biking"
+      }
+     ],
+     "explanation": "Patient reports a lot of biking.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C11",
+     "text": "Mother had lung cancer.",
+     "note_quote": "FH: Mother with lung cancer.",
+     "note_span": {
+      "start": 231,
+      "end": 259
+     },
+     "status": "contradicted",
+     "evidence": [
+      {
+       "line_id": 24,
+       "quote": "no lung cancer my mom did have breast cancer but she is doing well now"
+      }
+     ],
+     "explanation": "Mother had breast cancer, not lung cancer.",
+     "correction": "FH: Mother with breast cancer.",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C12",
+     "text": "Vitals: BP 124/76, HR 70, RR 16, SpO2 98% on room air, afebrile.",
+     "note_quote": "BP 124/76, HR 70, RR 16, SpO2 98% RA, afebrile.",
+     "note_span": {
+      "start": 268,
+      "end": 315
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "blood pressure of one twenty four over seventy six heart rate of seventy respiration rate of sixteen o2 sat on room air of ninety eight percent and you are afebrile"
+      }
+     ],
+     "explanation": "Matches dictated vitals.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C13",
+     "text": "Lungs are clear bilaterally.",
+     "note_quote": "Lungs clear bilaterally.",
+     "note_span": {
+      "start": 322,
+      "end": 346
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "your lungs are clear and equal bilateral"
+      }
+     ],
+     "explanation": "Dictated exam.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C14",
+     "text": "Regular rate and rhythm, no murmurs.",
+     "note_quote": "RRR, no murmurs.",
+     "note_span": {
+      "start": 347,
+      "end": 363
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "regular rate and rhythm no clicks rubs or murmurs"
+      }
+     ],
+     "explanation": "Dictated exam.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C15",
+     "text": "Mild swelling of the third knuckles bilaterally, consistent with RA.",
+     "note_quote": "Mild swelling 3rd knuckles bilat, c/w RA.",
+     "note_span": {
+      "start": 364,
+      "end": 405
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "a little bit of swelling to to your knuckles there on your third digit on each hand which can be normal for somebody who has ra"
+      }
+     ],
+     "explanation": "Matches exam.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C16",
+     "text": "No edema in the lower extremities.",
+     "note_quote": "No edema.",
+     "note_span": {
+      "start": 406,
+      "end": 415
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "i do n't appreciate any edema to your lower extremities"
+      }
+     ],
+     "explanation": "Dictated exam.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C17",
+     "text": "CT shows a solitary 2 cm smooth nodule.",
+     "note_quote": "solitary 2 cm smooth nodule",
+     "note_span": {
+      "start": 426,
+      "end": 453
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "a solitary two centimeter nodule"
+      },
+      {
+       "line_id": 27,
+       "quote": "the nodule is smooth in appearance"
+      }
+     ],
+     "explanation": "Matches CT results.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C18",
+     "text": "The nodule is in the left upper lobe.",
+     "note_quote": "left upper lobe",
+     "note_span": {
+      "start": 455,
+      "end": 470
+     },
+     "status": "contradicted",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "lateral aspect of the right upper lobe"
+      }
+     ],
+     "explanation": "Nodule is in the right upper lobe.",
+     "correction": "right upper lobe",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C19",
+     "text": "No emphysema on CT.",
+     "note_quote": "No emphysema.",
+     "note_span": {
+      "start": 472,
+      "end": 485
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "no evidence of any type of emphysematous disease is present"
+      }
+     ],
+     "explanation": "Matches CT.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C20",
+     "text": "Order pulmonary function tests and PET-CT.",
+     "note_quote": "PFTs, PET-CT",
+     "note_span": {
+      "start": 507,
+      "end": 519
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "i'm going to order some pft"
+      },
+      {
+       "line_id": 27,
+       "quote": "i'm also going to schedule a pet ct"
+      }
+     ],
+     "explanation": "Both planned.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C21",
+     "text": "Plan video-assisted thoracoscopic resection of the nodule.",
+     "note_quote": "plan VATS resection",
+     "note_span": {
+      "start": 521,
+      "end": 540
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "i'm going to go ahead and suggest that we do remove this during or via video assisted thoracoscopy"
+      }
+     ],
+     "explanation": "Surgeon proposes VATS removal.",
+     "correction": "",
+     "receipt_failed": false
+    },
+    {
+     "claim_id": "C22",
+     "text": "Continue methotrexate and follow up with rheumatology.",
+     "note_quote": "RA: continue methotrexate, f/u rheumatology.",
+     "note_span": {
+      "start": 545,
+      "end": 589
+     },
+     "status": "supported",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "continue to follow up with your rheumatologist and continue your medication therapy"
+      }
+     ],
+     "explanation": "Matches plan.",
+     "correction": "",
+     "receipt_failed": false
+    }
+   ],
+   "suggested_additions": [],
+   "follow_up_questions": [
+    {
+     "category": "Red flags",
+     "title": "Constitutional and hemoptysis symptoms",
+     "question": "Have you had any coughing up of blood, unexplained weight loss, night sweats, or loss of appetite?",
+     "why": "These red flags for malignancy or infection were not asked and affect the urgency and work-up of the nodule."
+    },
+    {
+     "category": "Medication",
+     "title": "Perioperative methotrexate plan",
+     "question": "Do you know the exact methotrexate dose, and have you had any other immunosuppressants or recent lung problems from it? We should coordinate holding methotrexate around surgery with your rheumatologist.",
+     "why": "Methotrexate can cause lung toxicity and affects infection risk and wound healing around VATS."
+    },
+    {
+     "category": "History",
+     "title": "Smoking pack-years and exposures",
+     "question": "How much did you smoke and for how many years? Any occupational exposures (hay or mold dust, asbestos), TB exposure, or travel to areas with endemic fungi?",
+     "why": "Pack-years and exposures refine malignancy risk and the differential for an inflammatory or infectious nodule."
+    },
+    {
+     "category": "History",
+     "title": "Prior imaging for comparison",
+     "question": "Have you had any earlier chest imaging we can compare with the nodule to see if it has changed?",
+     "why": "Nodule stability or growth changes the pretest probability and management."
+    }
+   ],
+   "decision_flags": [
+    {
+     "flag_id": "F1",
+     "category": "Treatment",
+     "severity": "important",
+     "title": "Resect before PET-CT result or tissue diagnosis?",
+     "concern": "VATS resection was recommended in the same breath as ordering the PET-CT, so the surgical decision does not appear to depend on the PET result. The patient is a former smoker (quit about 7 years ago), and the nodule is smooth, 2 cm, with no emphysema. Benign causes were acknowledged.",
+     "consider": "Consider reviewing the PET-CT result and a formal malignancy risk estimate first, and discussing the options (surveillance, image-guided biopsy, or resection with frozen section) at a multidisciplinary review before committing to surgery.",
+     "evidence": [
+      {
+       "line_id": 27,
+       "quote": "i'm also going to schedule a pet ct"
+      },
+      {
+       "line_id": 27,
+       "quote": "i'm going to go ahead and suggest that we do remove this during or via video assisted thoracoscopy"
+      },
+      {
+       "line_id": 27,
+       "quote": "it could be a benign nodule"
+      }
+     ]
+    },
+    {
+     "flag_id": "F2",
+     "category": "Diagnosis",
+     "severity": "consider",
+     "title": "Is the nodule related to RA or methotrexate?",
+     "concern": "The patient has rheumatoid arthritis on methotrexate, and the work-up and discussion address only malignancy and the smoking history. Rheumatoid nodules, methotrexate-related lung disease, and infection are not mentioned.",
+     "consider": "Consider adding RA-related and drug-related nodules and infection to the differential, and review how they might affect the PET interpretation and the need for surgery.",
+     "evidence": [
+      {
+       "line_id": 14,
+       "quote": "i take methotrexate"
+      },
+      {
+       "line_id": 27,
+       "quote": "if it lights up it it can suggest that it's cancer or inflammatory"
+      }
+     ]
+    },
+    {
+     "flag_id": "F3",
+     "category": "Medication",
+     "severity": "important",
+     "title": "Perioperative methotrexate plan not addressed",
+     "concern": "Surgery under general anesthesia is planned, but the visit says only to continue the RA medication as previously outlined. There was no discussion of holding or continuing methotrexate around the operation, or of infection and wound-healing risk, and no confirmed dose.",
+     "consider": "Consider confirming the methotrexate dose and agreeing a perioperative plan with rheumatology and anesthesia before scheduling the procedure.",
+     "evidence": [
+      {
+       "line_id": 16,
+       "quote": "i think it's seven and a half milligrams every week"
+      },
+      {
+       "line_id": 27,
+       "quote": "continue your medication therapy as has been previously outlined for you"
+      }
+     ]
+    }
+   ],
+   "summary": {
+    "total": 22,
+    "supported": 17,
+    "inferred": 0,
+    "contradicted": 5,
+    "unsupported": 0,
+    "with_receipt_pct": 77.3
+   },
+   "warnings": [],
+   "meta": {
+    "model": "claude-sonnet-5-5",
+    "prompt_version": "47ac08dc9233",
+    "cached": false,
+    "latency_ms": 14553,
     "usage": {
      "calls": [
       {
        "task": "DecisionsLLM",
        "model": "claude-sonnet-5-5",
-       "seconds": 7.9,
-       "input_tokens": 1164,
-       "output_tokens": 1122,
-       "cache_read_tokens": 3831,
-       "cache_write_tokens": 0,
-       "cost_usd": 0.0139,
+       "seconds": 11.2,
+       "input_tokens": 321,
+       "output_tokens": 1543,
+       "cache_read_tokens": 0,
+       "cache_write_tokens": 3831,
+       "cost_usd": 0.0256,
        "source": "live"
       },
       {
        "task": "CoverageLLM",
        "model": "claude-sonnet-5-5",
-       "seconds": 8.6,
-       "input_tokens": 1164,
-       "output_tokens": 1169,
-       "cache_read_tokens": 3876,
-       "cache_write_tokens": 0,
-       "cost_usd": 0.0144,
+       "seconds": 12.7,
+       "input_tokens": 321,
+       "output_tokens": 1679,
+       "cache_read_tokens": 0,
+       "cache_write_tokens": 3876,
+       "cost_usd": 0.0271,
        "source": "live"
       },
       {
        "task": "ClaimsLLM",
        "model": "claude-sonnet-5-5",
-       "seconds": 24.8,
-       "input_tokens": 1164,
-       "output_tokens": 5269,
-       "cache_read_tokens": 4070,
-       "cache_write_tokens": 0,
-       "cost_usd": 0.0554,
+       "seconds": 14.5,
+       "input_tokens": 321,
+       "output_tokens": 2820,
+       "cache_read_tokens": 0,
+       "cache_write_tokens": 4070,
+       "cost_usd": 0.039,
        "source": "live"
       }
      ],
-     "input_tokens": 3492,
-     "output_tokens": 7560,
-     "cache_read_tokens": 11777,
-     "cache_write_tokens": 0,
-     "cost_usd": 0.0837,
+     "input_tokens": 963,
+     "output_tokens": 6042,
+     "cache_read_tokens": 0,
+     "cache_write_tokens": 11777,
+     "cost_usd": 0.0917,
      "source": "live"
     }
    }
@@ -2844,28 +3472,8 @@
     "model": "claude-sonnet-5-5",
     "prompt_version": "47ac08dc9233",
     "cached": false,
-    "latency_ms": 6951,
-    "usage": {
-     "calls": [
-      {
-       "task": "AskLLM",
-       "model": "claude-sonnet-5-5",
-       "seconds": 6.9,
-       "input_tokens": 821,
-       "output_tokens": 923,
-       "cache_read_tokens": 0,
-       "cache_write_tokens": 3692,
-       "cost_usd": 0.0201,
-       "source": "live"
-      }
-     ],
-     "input_tokens": 821,
-     "output_tokens": 923,
-     "cache_read_tokens": 0,
-     "cache_write_tokens": 3692,
-     "cost_usd": 0.0201,
-     "source": "live"
-    }
+    "latency_ms": 1,
+    "usage": null
    }
   },
   {
@@ -3142,28 +3750,8 @@
     "model": "claude-sonnet-5-5",
     "prompt_version": "47ac08dc9233",
     "cached": false,
-    "latency_ms": 7706,
-    "usage": {
-     "calls": [
-      {
-       "task": "AskLLM",
-       "model": "claude-sonnet-5-5",
-       "seconds": 7.7,
-       "input_tokens": 827,
-       "output_tokens": 1034,
-       "cache_read_tokens": 3692,
-       "cache_write_tokens": 0,
-       "cost_usd": 0.0124,
-       "source": "live"
-      }
-     ],
-     "input_tokens": 827,
-     "output_tokens": 1034,
-     "cache_read_tokens": 3692,
-     "cache_write_tokens": 0,
-     "cost_usd": 0.0124,
-     "source": "live"
-    }
+    "latency_ms": 1,
+    "usage": null
    }
   },
   {
@@ -3411,28 +3999,8 @@
     "model": "claude-sonnet-5-5",
     "prompt_version": "47ac08dc9233",
     "cached": false,
-    "latency_ms": 3740,
-    "usage": {
-     "calls": [
-      {
-       "task": "AskLLM",
-       "model": "claude-sonnet-5-5",
-       "seconds": 3.7,
-       "input_tokens": 810,
-       "output_tokens": 435,
-       "cache_read_tokens": 3692,
-       "cache_write_tokens": 0,
-       "cost_usd": 0.0063,
-       "source": "live"
-      }
-     ],
-     "input_tokens": 810,
-     "output_tokens": 435,
-     "cache_read_tokens": 3692,
-     "cache_write_tokens": 0,
-     "cost_usd": 0.0063,
-     "source": "live"
-    }
+    "latency_ms": 0,
+    "usage": null
    }
   }
  ]

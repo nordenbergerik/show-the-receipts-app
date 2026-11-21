@@ -46,8 +46,10 @@ def test_demo_visits_cover_every_step_of_kyle():
     visits = [v for v in demo_visits() if v["visit"]["id"].startswith("demo-cough-kyle-")]
     assert [v["visit"]["reason"].split(" · ")[1] for v in visits] == [
         "Step 1: visit recorded", "Step 2: visit checked", "Step 3: note drafted", "Step 4: note checked", "The doctor's own note",
+        "A note with errors",
     ]
-    step1, step2, step3, step4, own = visits
+    step1, step2, step3, step4, own, wrong = visits
+    assert "left upper lobe" in wrong["visit"]["note"] and wrong["work"] is None
     assert step1["work"] is None and not step1["visit"]["note"]
     assert step2["work"]["visitCheck"]["missed"] and "transcript" not in step2["work"]["visitCheck"]
     assert step3["visit"]["note"] and step3["work"]["audit"] is None
@@ -73,11 +75,11 @@ def test_every_ai_step_of_the_demo_visits_is_recorded():
     try:
         client = TestClient(app)
         visits = [v for v in demo_visits() if v["visit"]["id"].startswith("demo-cough-kyle-")]
-        step1, _, step3, _, own = visits
+        step1, _, step3, _, own, wrong = visits
         source = {"transcript_text": step1["visit"]["transcript"], "chief_complaint": "anything"}
         assert client.post("/api/visit-check", json=source).status_code == 200
         assert client.post("/api/draft-note", json={**source, "note_format": "soap"}).json()["note_text"] == step3["visit"]["note"]
-        for v in (step3, own):
+        for v in (step3, own, wrong):
             assert client.post("/api/audit", json={**source, "note_text": v["visit"]["note"]}).status_code == 200
         for q in client.post("/api/ask/suggestions", json=source).json()["questions"]:
             assert client.post("/api/ask", json={**source, "question": q, "note_text": own["visit"]["note"]}).status_code == 200

@@ -3,12 +3,25 @@
   "patient": "Kyle",
   "reason": "Cough, lung nodule",
   "notes": [
-    "note-doctor.txt"
+    "note-doctor.txt",
+    "note-with-errors.txt"
   ],
   "questions": [
     "Is there anything that raises the risk that the nodule is cancer?",
     "Could his rheumatoid arthritis or methotrexate matter for the surgery?",
     "Does he still have the cough today?"
   ],
-  "planted_errors": {}
+  "planted_errors": {
+    "note-with-errors.txt": [
+      "2 weeks",
+      "15 mg",
+      "2 years ago",
+      "lung cancer",
+      "left upper lobe"
+    ]
+  },
+  "note_labels": {
+    "note-doctor.txt": "The doctor's own note",
+    "note-with-errors.txt": "A note with errors"
+  }
 }

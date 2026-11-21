@@ -1,0 +1,63 @@
+{
+ "format": "DecisionsLLM",
+ "source": "live",
+ "response": {
+  "flags": [
+   {
+    "category": "Treatment",
+    "severity": "important",
+    "title": "Resect before PET-CT result or tissue diagnosis?",
+    "concern": "VATS resection was recommended in the same breath as ordering the PET-CT, so the surgical decision does not appear to depend on the PET result. The patient is a former smoker (quit about 7 years ago), and the nodule is smooth, 2 cm, with no emphysema. Benign causes were acknowledged.",
+    "consider": "Consider reviewing the PET-CT result and a formal malignancy risk estimate first, and discussing the options (surveillance, image-guided biopsy, or resection with frozen section) at a multidisciplinary review before committing to surgery.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "i'm also going to schedule a pet ct"
+     },
+     {
+      "line_id": 27,
+      "quote": "i'm going to go ahead and suggest that we do remove this during or via video assisted thoracoscopy"
+     },
+     {
+      "line_id": 27,
+      "quote": "it could be a benign nodule"
+     }
+    ]
+   },
+   {
+    "category": "Diagnosis",
+    "severity": "consider",
+    "title": "Is the nodule related to RA or methotrexate?",
+    "concern": "The patient has rheumatoid arthritis on methotrexate, and the work-up and discussion address only malignancy and the smoking history. Rheumatoid nodules, methotrexate-related lung disease, and infection are not mentioned.",
+    "consider": "Consider adding RA-related and drug-related nodules and infection to the differential, and review how they might affect the PET interpretation and the need for surgery.",
+    "evidence": [
+     {
+      "line_id": 14,
+      "quote": "i take methotrexate"
+     },
+     {
+      "line_id": 27,
+      "quote": "if it lights up it it can suggest that it's cancer or inflammatory"
+     }
+    ]
+   },
+   {
+    "category": "Medication",
+    "severity": "important",
+    "title": "Perioperative methotrexate plan not addressed",
+    "concern": "Surgery under general anesthesia is planned, but the visit says only to continue the RA medication as previously outlined. There was no discussion of holding or continuing methotrexate around the operation, or of infection and wound-healing risk, and no confirmed dose.",
+    "consider": "Consider confirming the methotrexate dose and agreeing a perioperative plan with rheumatology and anesthesia before scheduling the procedure.",
+    "evidence": [
+     {
+      "line_id": 16,
+      "quote": "i think it's seven and a half milligrams every week"
+     },
+     {
+      "line_id": 27,
+      "quote": "continue your medication therapy as has been previously outlined for you"
+     }
+    ]
+   }
+  ]
+ }
+}
