@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.data import DataStore
-from backend.prompts import accepted_block, note_block, numbered_note_block, question_block, transcript_block
+from backend.prompts import accepted_block, format_block, note_block, numbered_note_block, question_block, transcript_block
 from backend.schemas import VisitSource
 from backend.transcript import Line, index_transcript, render_for_prompt
 
@@ -49,8 +49,8 @@ def visit_check_content(lines: list[Line], chief_complaint: str) -> list[dict[st
     return [_transcript_part(lines, chief_complaint)]
 
 
-def draft_content(lines: list[Line], chief_complaint: str, accepted: list[str]) -> list[dict[str, Any]]:
-    content = [_transcript_part(lines, chief_complaint)]
+def draft_content(lines: list[Line], chief_complaint: str, accepted: list[str], note_format: str = "soap") -> list[dict[str, Any]]:
+    content = [_transcript_part(lines, chief_complaint), {"type": "text", "text": format_block(note_format)}]
     points = [p.strip() for p in accepted if p.strip()]
     if points:
         content.append({"type": "text", "text": accepted_block(points)})

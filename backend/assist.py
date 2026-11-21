@@ -66,7 +66,7 @@ async def run_draft_note(req: DraftNoteRequest, *, store: DataStore, llm: Struct
     started = time.perf_counter()
     lines, cc = _resolve(req, store)
     check_access(settings, allow_live)
-    raw: DraftNoteLLM = await _call(llm, "note draft", system=DRAFT_SYSTEM, content=draft_content(lines, cc, req.accepted), output_format=DraftNoteLLM)
+    raw: DraftNoteLLM = await _call(llm, "note draft", system=DRAFT_SYSTEM, content=draft_content(lines, cc, req.accepted, req.note_format), output_format=DraftNoteLLM)
     note = raw.note_text.replace("\r\n", "\n").strip()
     if not note:
         raise AuditError("The note draft came back empty. Try again.", 502)

@@ -46,6 +46,10 @@ def note_block(note_text: str) -> str:
     return f"<note>\n{note_text}\n</note>"
 
 
+def format_block(note_format: str) -> str:
+    return f"<format>{note_format}</format>"
+
+
 def accepted_block(points: list[str]) -> str:
     items = "\n".join(f"- {p}" for p in points)
     return f"<accepted_points>\n{items}\n</accepted_points>"

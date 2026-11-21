@@ -1,0 +1,13 @@
+{"format": "CoverageLLM", "source": "agent", "response": {
+"additions": [
+{"text": "Pt asked whether elevated BP could be causing CP; advised it may be a contributing factor.", "why": "Documents the patient's concern and the counselling linking her blood pressure to the cardiac work-up.", "priority": "medium", "evidence": [{"line_id": 24, "quote": "do you think that could be causing me my my chest pain"}, {"line_id": 25, "quote": "it certainly could be contributing to that"}]},
+{"text": "Discussed dietary measures to help control BP.", "why": "Lifestyle advice is part of the agreed hypertension plan and is not in the note.", "priority": "low", "evidence": [{"line_id": 27, "quote": "maybe start you on some some diet control things that we can do to help with the blood pressure"}]},
+{"text": "Elevated BP added to problem list today.", "why": "Records that hypertension is now tracked in the clinic's own record.", "priority": "low", "evidence": [{"line_id": 21, "quote": "but i did add it in today"}]}
+],
+"follow_up_questions": [
+{"category": "Red flags", "title": "Rest pain or worsening pattern", "question": "Has the pressure ever come on at rest or woken you up, or is it coming more often, lasting longer or with less walking than before?", "why": "Rest or crescendo pain defines unstable angina and would call for same-day evaluation rather than outpatient referral."},
+{"category": "Red flags", "title": "Symptoms during exertional episodes", "question": "When the pressure comes on while walking, do you also get short of breath, sweaty, nauseated, lightheaded or feel like passing out?", "why": "Associated symptoms were only asked about for the present moment, not during episodes."},
+{"category": "Medication", "title": "Allergies before aspirin and HCTZ", "question": "Do you have any allergies, especially to sulfa drugs or aspirin, and any history of stomach ulcers or bleeding?", "why": "Sulfa cross-reaction was mentioned and aspirin was started, but allergies and bleeding risk were not checked."},
+{"category": "History", "title": "Smoking and cholesterol history", "question": "Do you smoke or have you ever smoked, and when was your cholesterol last checked?", "why": "These cardiac risk factors shape the work-up and the need for a statin."}
+]
+}}

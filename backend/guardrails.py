@@ -41,6 +41,7 @@ MAX_CLAIMS = 300
 MAX_ADDITIONS = 8
 MAX_FOLLOW_UPS = 6
 MAX_TEXT = 600
+CORRECTION_OVERLAP = 70  # tillägg som i praktiken är rättningen av ett motsagt påstående tas bort
 MAX_FLAGS = 4
 MAX_MISSED = 6
 MAX_FINDINGS = 6
@@ -147,6 +148,7 @@ def check_claims(claims_llm: ClaimsLLM, lines: list[Line], note_text: str) -> li
 def check_coverage(coverage_llm: CoverageLLM, lines: list[Line], claims: list[Claim]) -> tuple[list[Addition], list[FollowUp]]:
     lines_by_id = {line.line_id: line for line in lines}
     documented = [normalize(c.text) for c in claims if c.status != "unsupported"]
+    corrections = [normalize(c.correction) for c in claims if c.status == "contradicted" and len(c.correction.strip()) >= 8]
     additions: list[Addition] = []
     for raw in coverage_llm.additions:
         if len(additions) >= MAX_ADDITIONS or not raw.text.strip():
@@ -156,6 +158,9 @@ def check_coverage(coverage_llm: CoverageLLM, lines: list[Line], claims: list[Cl
             continue  # ett tillägg utan äkta kvitto visas aldrig
         text_norm = normalize(raw.text)
         if any(fuzz.token_sort_ratio(text_norm, d) >= DUPLICATE_THRESHOLD for d in documented):
+            continue
+        # Samma sak som rättningen av ett påstående som motsägs: visas redan där.
+        if any(fuzz.token_set_ratio(text_norm, c) >= CORRECTION_OVERLAP for c in corrections):
             continue
         additions.append(
             Addition(
@@ -167,7 +172,7 @@ def check_coverage(coverage_llm: CoverageLLM, lines: list[Line], claims: list[Cl
             )
         )
     follow_ups = [
-        FollowUp(category=f.category.strip()[:60] or "Follow-up", question=f.question.strip()[:MAX_TEXT], why=f.why.strip()[:MAX_TEXT])
+        FollowUp(category=f.category.strip()[:60] or "Follow-up", title=f.title.strip()[:80], question=f.question.strip()[:MAX_TEXT], why=f.why.strip()[:MAX_TEXT])
         for f in coverage_llm.follow_up_questions
         if f.question.strip()
     ][:MAX_FOLLOW_UPS]
@@ -224,6 +229,7 @@ def check_missed(items: list[MissedItemLLM], lines: list[Line]) -> list[MissedIt
         out.append(MissedItem(
             item_id=f"M{len(out) + 1}",
             category=_clip(raw.category, 60) or "Follow-up",
+            title=_clip(raw.title, 80),
             question=_clip(raw.question),
             why=_clip(raw.why),
             evidence=validate_evidence(raw.evidence, lines_by_id),

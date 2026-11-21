@@ -29,7 +29,6 @@ const state = {
   noteText: "",
   editingText: false, // "Edit as text" mode
   visitCheck: null,
-  included: {}, // visit-check item id -> true when it should go into the note
   audit: null,
   isSample: false,
   selected: null, // { kind, id }
@@ -125,6 +124,8 @@ const store = {
   },
 };
 const ownVisits = () => store.read("visits", []);
+const NOTE_FORMATS = { soap: "SOAP", plain: "Plain text" };
+const noteFormat = () => (store.read("noteFormat", "soap") in NOTE_FORMATS ? store.read("noteFormat", "soap") : "soap");
 const reviews = () => store.read("reviews", {});
 
 function saveReviewSummary() {
@@ -439,7 +440,7 @@ async function loadVisit(visitId, variant) {
   state.variant = variant;
   if (!sameVisit) {
     state.visitCheck = null;
-    state.included = {};
+    state.visitState = {};
     state.ask = { loading: false, result: null, suggestions: [] };
     $("ask-input").value = "";
   }
@@ -560,25 +561,17 @@ async function runVisitCheck() {
   try {
     state.visitCheck = await post("/api/visit-check", visitSource());
     state.lines = state.visitCheck.transcript;
-    state.included = {};
-    for (const item of [...state.visitCheck.missed, ...state.visitCheck.decision_flags]) state.included[item.item_id || item.flag_id] = true;
+    state.visitState = {};
   } catch (error) {
     showBanner(error.message);
   }
   setBusy("");
 }
 
-function includedPoints() {
-  if (!state.visitCheck) return [];
-  const missed = state.visitCheck.missed.filter((m) => state.included[m.item_id]).map((m) => m.question);
-  const flags = state.visitCheck.decision_flags.filter((f) => state.included[f.flag_id]).map((f) => f.consider || f.title);
-  return [...missed, ...flags].slice(0, 12);
-}
-
 async function runDraft() {
   setBusy("draft", "");
   try {
-    const result = await post("/api/draft-note", { ...visitSource(), accepted: includedPoints() });
+    const result = await post("/api/draft-note", { ...visitSource(), note_format: noteFormat() });
     state.noteText = result.note_text;
     currentNote().note_text = result.note_text;
     saveOwnNote();
@@ -713,27 +706,31 @@ function renderStepper(current) {
       el("span", { class: "step-label", text: s.label }))));
 }
 
-// Step 1: before any note exists.
+// Step 1: right after the visit, before any note exists. The visit check is
+// feedback for the clinician (what may have been forgotten, which decisions
+// deserve a second look). Nothing from it is written into the note.
 function renderVisitCard() {
   if (stage() !== "visit") return;
   const turns = state.lines.length;
   const checked = Boolean(state.visitCheck);
-  $("visit-card-title").textContent = checked ? "Before you write the note" : "The visit is recorded";
+  $("visit-card-title").textContent = checked ? "Visit check" : "The visit is recorded";
   $("visit-card-text").textContent = checked
-    ? "Untick anything you do not want to carry into the note."
-    : `${turns} speaker turns. Check the visit for anything you may have missed, then draft the note.`;
+    ? "Feedback for you before you write the note. Nothing here is added to the note."
+    : `${turns} speaker turns. Get a quick check for forgotten questions and decisions worth a second look, then write the note.`;
 
   const box = $("visit-check");
   box.hidden = !checked;
   if (checked) {
     const vc = state.visitCheck;
+    const group = (title, items) => items.length
+      ? el("section", { class: "check-group" }, el("h3", { class: "check-title" }, el("span", { text: title }), el("span", { class: "count", text: String(items.length) })), el("ul", { class: "rows" }, items))
+      : null;
     fill(box,
-      vc.missed.length ? el("div", {}, el("h3", { class: "subhead", text: "Not asked or checked" }),
-        el("ul", { class: "rows" }, vc.missed.map((m) => checkRow(m.item_id, m.question, m.why, m.category, () => select({ kind: "missed", id: m.item_id }))))) : null,
-      vc.decision_flags.length ? el("div", {}, el("h3", { class: "subhead", text: "Second look at decisions" }),
-        el("ul", { class: "rows" }, vc.decision_flags.map((f) => checkRow(f.flag_id, f.title, f.concern, f.category,
-          () => select({ kind: "vflag", id: f.flag_id }), f.severity)))) : null,
-      !vc.missed.length && !vc.decision_flags.length ? el("p", { class: "all-clear", text: "Nothing stood out. You can go ahead and write the note." }) : null,
+      group("Questions you may have missed", vc.missed.map((m) =>
+        feedbackRow(m.item_id, m.title || m.question, m.title ? m.question : m.why, m.category, null, () => select({ kind: "missed", id: m.item_id })))),
+      group("Decisions worth a second look", vc.decision_flags.map((f) =>
+        feedbackRow(f.flag_id, f.title, f.concern, f.category, f.severity === "important" ? "is-important" : "is-consider", () => select({ kind: "vflag", id: f.flag_id })))),
+      !vc.missed.length && !vc.decision_flags.length ? el("p", { class: "all-clear", text: "Nothing stood out. Go ahead and write the note." }) : null,
     );
   }
 
@@ -743,36 +740,49 @@ function renderVisitCard() {
     actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runVisitCheck, text: busy === "visit-check" ? "Checking the visit…" : "Check the visit" }));
     actions.push(el("button", { type: "button", class: "btn btn-ghost", disabled: Boolean(busy), onclick: runDraft, text: busy === "draft" ? "Writing…" : "Skip and draft the note" }));
   } else {
-    const n = includedPoints().length;
-    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runDraft,
-      text: busy === "draft" ? "Writing the note…" : n ? `Draft the note with ${n} ${n === 1 ? "point" : "points"} to follow up` : "Draft the note" }));
+    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runDraft, text: busy === "draft" ? "Writing the note…" : "Draft the note" }));
   }
   actions.push(el("button", { type: "button", class: "btn btn-quiet", disabled: Boolean(busy), onclick: writeOwnNote, text: "Write it myself" }));
   actions.push(el("button", { type: "button", class: "btn btn-quiet", onclick: () => select({ kind: "transcript", id: "all" }), text: "Show transcript" }));
+  actions.push(formatSwitch());
   $("visit-actions").replaceChildren(...actions);
 }
 
-// One row layout for every AI point: a dot for importance, the point itself,
-// and a quiet second line with the category and the reason.
-function rowBody(title, meta, why, dot, open) {
+// SOAP or plain text, whichever the clinic uses. Remembered in this browser.
+function formatSwitch() {
+  const current = noteFormat();
+  return el("span", { class: "format-switch" },
+    el("span", { class: "format-label", id: "format-label", text: "Note format" }),
+    el("span", { class: "segmented", role: "radiogroup", "aria-labelledby": "format-label" },
+      Object.entries(NOTE_FORMATS).map(([key, label]) => el("button", {
+        type: "button",
+        role: "radio",
+        "aria-checked": String(current === key),
+        text: label,
+        onclick: () => { store.write("noteFormat", key); renderVisitCard(); },
+      }))));
+}
+
+// One row layout for every AI point: a short heading, the text under it, and
+// the category as a quiet label. A dot marks how important it is.
+function rowBody(title, body, meta, dot, open) {
   return el(open ? "button" : "span", { type: open ? "button" : null, class: `row-main${open ? "" : " static"}`, onclick: open },
     dot ? el("span", { class: `dot-mark ${dot}`, "aria-hidden": "true" }) : null,
     el("span", { class: "row-body" },
-      el("span", { class: "row-text", text: title }),
-      meta || why ? el("span", { class: "row-why" }, meta ? el("span", { class: "row-meta", text: meta }) : null, meta && why ? " · " : null, why || null) : null));
+      el("span", { class: "row-head" },
+        el("span", { class: "row-text", text: title }),
+        meta ? el("span", { class: "row-meta", text: meta }) : null),
+      body ? el("span", { class: "row-why", text: body }) : null));
 }
 
-function checkRow(id, title, why, tag, open, severity) {
-  const checkbox = el("input", { type: "checkbox", class: "include", id: `inc-${id}`, "aria-label": `Keep in mind for the note: ${title}` });
-  checkbox.checked = Boolean(state.included[id]);
-  checkbox.addEventListener("change", () => { state.included[id] = checkbox.checked; renderVisitCard(); });
-  const dismissed = state.visitState[id] === "dismissed";
-  return el("li", { class: `row check-row${dismissed ? " is-done" : ""}${isSelected("missed", id) || isSelected("vflag", id) ? " is-selected" : ""}` },
-    checkbox,
-    rowBody(title, tag, why, severity === "important" ? "is-important" : null, open),
-    rowActions(dismissed
-      ? { doneLabel: "Dismissed", undo: () => { delete state.visitState[id]; state.included[id] = true; renderVisitCard(); } }
-      : { dismiss: () => { state.visitState[id] = "dismissed"; state.included[id] = false; renderVisitCard(); } }));
+function feedbackRow(id, title, body, meta, dot, open) {
+  const status = state.visitState[id];
+  const set = (value) => { if (value) state.visitState[id] = value; else delete state.visitState[id]; renderVisitCard(); renderStats(); };
+  return el("li", { class: `row${status ? " is-done" : ""}${isSelected("missed", id) || isSelected("vflag", id) ? " is-selected" : ""}` },
+    rowBody(title, body, meta, dot, open),
+    rowActions(status
+      ? { doneLabel: status === "seen" ? "Seen" : "Not relevant", undo: () => set(null) }
+      : { seen: () => set("seen"), dismiss: () => set("dismissed") }));
 }
 
 function issues() {
@@ -800,7 +810,7 @@ function renderStats() {
     tiles = [
       stat(problems.length, problems.length === 1 ? "problem in the note" : "problems in the note", problems.length ? "is-bad" : "is-good", nextIssue),
       stat(missing, missing === 1 ? "thing missing" : "things missing", "", () => scrollToSection("additions-section")),
-      stat(flags, flags === 1 ? "decision to look at" : "decisions to look at", flags ? "is-warn" : "", () => scrollToSection("flags-section")),
+      stat(flags, flags === 1 ? "decision worth a second look" : "decisions worth a second look", flags ? "is-warn" : "", () => scrollToSection("flags-section")),
     ];
     notes.push(`${pct}% of ${claims.length} statements are backed by the visit.`);
     if (state.isSample) notes.push(sampleNote(state.audit.meta.model));
@@ -809,8 +819,8 @@ function renderStats() {
   } else if (state.visitCheck && stage() === "visit") {
     const vc = state.visitCheck;
     tiles = [
-      stat(vc.missed.length, vc.missed.length === 1 ? "question not asked" : "questions not asked", vc.missed.length ? "is-warn" : "is-good", null),
-      stat(vc.decision_flags.length, vc.decision_flags.length === 1 ? "decision to look at" : "decisions to look at", vc.decision_flags.length ? "is-warn" : "is-good", null),
+      stat(vc.missed.filter((m) => !state.visitState[m.item_id]).length, "questions you may have missed", vc.missed.length ? "is-warn" : "is-good", null),
+      stat(vc.decision_flags.filter((f) => !state.visitState[f.flag_id]).length, "decisions worth a second look", vc.decision_flags.length ? "is-warn" : "is-good", null),
     ];
   }
   box.hidden = !tiles.length;
@@ -927,9 +937,10 @@ function renderJournal() {
     body.replaceChildren(el("p", { class: "status-text", text: "The note is empty. Choose Edit as text to write it." }));
     return;
   }
+  const plain = sections.length === 1 && sections[0].label === "Note";
   body.replaceChildren(
     ...sections.map((section) =>
-      el("section", { class: "jsection" },
+      el("section", { class: plain ? "jsection is-plain" : "jsection" },
         el("h2", { class: "jlabel", text: section.label }),
         el("div", { class: "jrows" },
           section.rows.map((row) => {
@@ -1051,7 +1062,7 @@ function sectionTitle(id, text, onAll) {
 function flagRow(flag, kind) {
   const status = state.flagState[flag.flag_id];
   return el("li", { class: `row${status ? " is-done" : ""}${isSelected(kind, flag.flag_id) ? " is-selected" : ""}` },
-    rowBody(flag.title, flag.category, flag.concern, flag.severity === "important" ? "is-important" : "is-consider", () => select({ kind, id: flag.flag_id })),
+    rowBody(flag.title, flag.concern, flag.category, flag.severity === "important" ? "is-important" : "is-consider", () => select({ kind, id: flag.flag_id })),
     kind === "flag"
       ? rowActions(status
         ? { doneLabel: status === "noted" ? "Seen" : "Dismissed", undo: () => { delete state.flagState[flag.flag_id]; render(); } }
@@ -1063,7 +1074,7 @@ function renderFlags() {
   const flags = state.audit ? state.audit.decision_flags : [];
   $("flags-section").hidden = !flags.length;
   const open = flags.filter((f) => !state.flagState[f.flag_id]);
-  sectionTitle("flags-title", "Second look at decisions", open.length > 1 ? () => { for (const f of open) state.flagState[f.flag_id] = "noted"; render(); } : null);
+  sectionTitle("flags-title", "Decisions worth a second look", open.length > 1 ? () => { for (const f of open) state.flagState[f.flag_id] = "noted"; render(); } : null);
   $("flags").replaceChildren(...flags.map((f) => flagRow(f, "flag")));
 }
 
@@ -1088,12 +1099,12 @@ function renderFollowUps() {
   const items = state.audit ? state.audit.follow_up_questions : [];
   $("followups-section").hidden = !items.length;
   const open = items.filter((_, i) => !state.followState[i]);
-  fill($("followups-title"), el("span", { text: "Questions to follow up" }), el("span", { class: "count", text: open.length ? String(open.length) : "All seen" }));
+  fill($("followups-title"), el("span", { text: "Questions you may have missed" }), el("span", { class: "count", text: open.length ? String(open.length) : "All seen" }));
   fill($("followups"),
     ...items.map((f, i) => {
       const status = state.followState[i];
       return el("li", { class: `row${status ? " is-done" : ""}` },
-        rowBody(f.question, f.category, f.why, null, null),
+        rowBody(f.title || f.question, f.title ? f.question : f.why, f.category, null, null),
         rowActions(status
           ? { doneLabel: status === "seen" ? "Seen" : "Dismissed", undo: () => { delete state.followState[i]; render(); } }
           : { seen: () => { state.followState[i] = "seen"; render(); }, dismiss: () => { state.followState[i] = "dismissed"; render(); } }));
@@ -1248,7 +1259,7 @@ function renderDrawer() {
     addition: () => el("span", { class: "pill neutral", text: "Missing from the note" }),
     flag: () => el("span", { class: `pill ${item.severity === "important" ? "st-important" : "st-consider"}`, text: `Second look · ${item.category}` }),
     vflag: () => el("span", { class: `pill ${item.severity === "important" ? "st-important" : "st-consider"}`, text: `Second look · ${item.category}` }),
-    missed: () => el("span", { class: "pill st-consider", text: `Not asked · ${item.category}` }),
+    missed: () => el("span", { class: "pill st-consider", text: `You may have missed · ${item.category}` }),
     finding: () => el("span", { class: `pill ${item.stance === "supports" ? "st-supported" : "st-consider"}`, text: item.stance === "supports" ? "Point in favour" : "Point against" }),
   }[kind]();
   parts.push(el("div", { class: "drawer-head" }, pill, close));
@@ -1282,7 +1293,9 @@ function renderDrawer() {
         el("button", { type: "button", class: "link-btn quiet", text: "Dismiss", onclick: () => { state.flagState[item.flag_id] = "dismissed"; select(null); } })));
     }
   } else if (kind === "missed") {
-    parts.push(el("p", { class: "drawer-title", text: item.question }), el("p", { class: "drawer-text", text: item.why }));
+    parts.push(el("p", { class: "drawer-title", text: item.title || item.question }));
+    if (item.title) parts.push(el("p", { class: "consider", text: item.question }));
+    parts.push(el("p", { class: "drawer-text", text: item.why }));
   } else if (kind === "finding") {
     parts.push(el("p", { class: "drawer-title", text: item.text }));
   }

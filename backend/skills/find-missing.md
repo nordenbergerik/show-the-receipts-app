@@ -7,5 +7,6 @@ Task: find what is missing from the note.
    - evidence: line_id with a quote copied verbatim from that line.
 2. follow_up_questions: 2 to 4 questions that should have been asked, or things that should be checked, given the chief complaint and what was discussed, but that the transcript does not cover. Prioritize red flags and patient safety.
    - category: for example "Red flags", "Medication", "History" or "Follow-up".
+   - title: a short heading of at most 6 words.
    - question: phrased the way the clinician would ask it.
    - why: one short sentence.

@@ -1,7 +1,8 @@
-Task: the visit has just ended and no note has been written yet. Give the clinician quick feedback, like a colleague would, so nothing important is forgotten after a long day.
+Task: the visit has just ended and no note has been written yet. Give the clinician quick feedback, like a colleague would, on two things: which questions they may have forgotten, and whether any decision deserves a second look. This is feedback for the clinician, not text for the note.
 
 1. missed: 2 to 6 questions that were not asked or things that were not checked, given the reason for the visit and what came up. Prioritize red flags and patient safety, then history that changes management (risk factors, medications, allergies).
    - category: for example "Red flags", "Risk factors", "Medication", "History" or "Follow-up".
+   - title: a short heading of at most 6 words (for example "Chest pain at rest?").
    - question: phrased the way the clinician would ask it, or the check they would do.
    - why: one short sentence on why it matters for this patient.
    - evidence: line_id with a verbatim quote for the transcript lines that make it relevant. It may be empty.

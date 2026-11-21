@@ -1,0 +1,11 @@
+{"format": "CoverageLLM", "source": "agent", "response": {
+"additions": [
+{"text": "Discussed that elevated BP may be contributing to CP; BP diet measures to start, meds adjusted per home readings.", "why": "Records the counselled link between blood pressure and chest pain and the non-drug BP plan.", "priority": "low", "evidence": [{"line_id": 25, "quote": "it certainly could be contributing to that"}, {"line_id": 27, "quote": "maybe start you on some some diet control things that we can do to help with the blood pressure"}]},
+{"text": "Elevated BP added to problem list today.", "why": "Documents that hypertension was newly entered in the clinic record at this visit.", "priority": "low", "evidence": [{"line_id": 21, "quote": "but i did add it in today"}]}
+],
+"follow_up_questions": [
+{"category": "Red flags", "title": "Rest pain or worsening pattern", "question": "Have you had chest pain at rest or at night, or is it coming on with less walking, more often or lasting longer than before?", "why": "Rest or crescendo pain separates unstable from stable angina and decides whether same-day evaluation is needed."},
+{"category": "Red flags", "title": "Symptoms during exertional episodes", "question": "When the pressure comes on while walking, do you also get short of breath, sweaty, nauseous, lightheaded or faint?", "why": "Associated symptoms were only asked about for the present moment, not during the episodes."},
+{"category": "Medication", "title": "Allergies to sulfa or aspirin", "question": "Do you have any allergy to sulfa drugs or aspirin, or any history of stomach ulcers or bleeding?", "why": "Hydrochlorothiazide and aspirin were started without checking allergies or bleeding risk."},
+{"category": "History", "title": "Smoking and cholesterol history", "question": "Do you smoke or have you ever smoked, and has your cholesterol been checked or treated?", "why": "These cardiac risk factors shape the angina work-up and preventive therapy but were not discussed."}
+]}}

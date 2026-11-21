@@ -32,7 +32,7 @@ class FakeLLM:
         return CoverageLLM(
             additions=[AdditionLLM(text="Good to see you.", why="x", priority="low",
                                    evidence=[EvidenceLLM(line_id=2, quote="good to see you")])],
-            follow_up_questions=[FollowUpLLM(category="Red flags", question="Chest pain at rest?", why="x")],
+            follow_up_questions=[FollowUpLLM(category="Red flags", title="Rest pain?", question="Chest pain at rest?", why="x")],
         )
 
 

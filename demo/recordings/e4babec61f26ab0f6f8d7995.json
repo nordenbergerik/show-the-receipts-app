@@ -1,15 +1,76 @@
-{"format": "CoverageLLM", "source": "agent", "response": {
-"additions": [
-{"text": "Exertional chest pain now limits walking; has been unable to keep up with exercise.", "why": "Functional limitation shows the impact and possible progression of suspected angina.", "priority": "medium", "evidence": [{"line_id": 8, "quote": "lately i just have n't been able to keep up with it because i'm having this pain"}]},
-{"text": "HCTZ counseling: may increase urination, possible cross-reaction with sulfa medications; side-effect handout given.", "why": "Documents informed counseling on a new medication and the sulfa concern.", "priority": "medium", "evidence": [{"line_id": 41, "quote": "sometimes you can have a cross reaction with some other medications like sulfa medications"}]},
-{"text": "Reports blood sugars running higher with reduced activity; drinks sodas, counseled to limit soda and sweets.", "why": "Relevant to glycemic control and the A1c recheck.", "priority": "medium", "evidence": [{"line_id": 16, "quote": "i think my blood sugars have been a little higher because i have n't been able to be active"}, {"line_id": 37, "quote": "continue to try to stay away from you know the the pop and the sweet things"}]},
-{"text": "Nitroglycerin not needed if pain resolves on stopping activity; take if pain persists at rest.", "why": "Clarifies the nitroglycerin instructions given to the patient.", "priority": "low", "evidence": [{"line_id": 31, "quote": "if you stop walking the chest pain goes away you do n't have to take the pill"}]},
-{"text": "No nausea, vomiting, diarrhea or other metformin side effects. Exam also: no crackles or rhonchi, pulses equal.", "why": "Completes medication tolerance and the dictated exam.", "priority": "low", "evidence": [{"line_id": 20, "quote": "no"}, {"line_id": 29, "quote": "your pulses are equal"}]}
-],
-"follow_up_questions": [
-{"category": "Red flags", "question": "Has the chest pain ever come on at rest, or become more frequent, longer or more severe recently?", "why": "Rest pain or a crescendo pattern defines unstable angina and would call for same-day evaluation."},
-{"category": "Red flags", "question": "During the episodes, do you get short of breath, sweaty, nauseated, lightheaded or have palpitations, and how long does each episode last?", "why": "Associated symptoms were only asked about for the present moment, not during episodes."},
-{"category": "Medication", "question": "Do you have any drug allergies, especially to sulfa drugs or aspirin, and any history of stomach bleeding?", "why": "Hydrochlorothiazide and aspirin were started without checking allergies or bleeding risk."},
-{"category": "History", "question": "Do you smoke, and when was your cholesterol last checked?", "why": "Smoking and lipids are key cardiac risk factors that were not discussed."}
-]
-}}
+{
+  "format": "CoverageLLM",
+  "source": "agent",
+  "response": {
+    "additions": [
+      {
+        "text": "Start low-dose hydrochlorothiazide for BP, also to help ankle edema; counseled on increased urination and possible sulfa cross-reaction.",
+        "why": "The antihypertensive actually started was hydrochlorothiazide, so the record must name it for medication reconciliation and safety.",
+        "priority": "high",
+        "evidence": [
+          {"line_id": 39, "quote": "i'm gon na go ahead and start you on some hydrochlorothiazide"},
+          {"line_id": 41, "quote": "sometimes you can have a cross reaction with some other medications like sulfa medications"}
+        ]
+      },
+      {
+        "text": "2/6 systolic ejection murmur, known from prior exams.",
+        "why": "A documented baseline murmur matters for cardiology referral and for judging any future change.",
+        "priority": "medium",
+        "evidence": [
+          {"line_id": 29, "quote": "your heart exam you do have a two over six systolic ejection murmur you had that in the past"}
+        ]
+      },
+      {
+        "text": "Hold exercise regimen until cardiac evaluation complete; resume once cleared by cardiology.",
+        "why": "Exertion triggers her suspected unstable angina, so activity guidance is a safety-relevant part of the plan.",
+        "priority": "medium",
+        "evidence": [
+          {"line_id": 37, "quote": "once we have your heart taken care of or make sure your heart is okay"}
+        ]
+      },
+      {
+        "text": "Pain limits walking; unable to keep up with usual walking lately.",
+        "why": "Functional limitation shows the severity of exertional symptoms and helps cardiology triage.",
+        "priority": "medium",
+        "evidence": [
+          {"line_id": 8, "quote": "lately i just have n't been able to keep up with it because i'm having this pain"}
+        ]
+      },
+      {
+        "text": "Reports higher blood sugars with reduced activity; drinks sodas. Counseled to avoid soda and sweets.",
+        "why": "Explains possible worsening glycemic control ahead of the repeat HbA1c and records the diet counseling.",
+        "priority": "medium",
+        "evidence": [
+          {"line_id": 16, "quote": "i think my blood sugars have been a little higher because i have n't been able to be active"},
+          {"line_id": 37, "quote": "continue to try to stay away from you know the the pop and the sweet things"}
+        ]
+      }
+    ],
+    "follow_up_questions": [
+      {
+        "category": "Red flags",
+        "title": "Change in angina pattern",
+        "question": "Has the pain been coming on more often, lasting longer or with less activity than before, and have you had any episodes at rest or that wake you at night?",
+        "why": "A crescendo or rest-pain pattern defines unstable angina and would call for same-day emergency evaluation rather than outpatient cardiology next week."
+      },
+      {
+        "category": "Red flags",
+        "title": "Heart failure symptoms with edema",
+        "question": "Do you get short of breath lying flat or wake up at night breathless, and have you noticed weight gain or worsening leg swelling?",
+        "why": "New ankle edema with a murmur and suspected ischemia warrants excluding heart failure before attributing it to blood pressure."
+      },
+      {
+        "category": "Medication",
+        "title": "Sulfa and other drug allergies",
+        "question": "Do you have any medication allergies, in particular to sulfa drugs?",
+        "why": "Hydrochlorothiazide was started and a sulfa cross-reaction was mentioned, but allergies were never checked."
+      },
+      {
+        "category": "History",
+        "title": "Smoking and cholesterol history",
+        "question": "Do you smoke or have you ever smoked, and when was your cholesterol last checked?",
+        "why": "Smoking status was never asked although the note records non-smoker, and lipids bear on statin therapy, which was not discussed."
+      }
+    ]
+  }
+}

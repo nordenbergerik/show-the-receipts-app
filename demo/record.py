@@ -8,6 +8,7 @@ när den körs utan API-nyckel.
   .venv/Scripts/python -m demo.record export <fall> <uppgiftsmapp>
   .venv/Scripts/python -m demo.record export-draft <fall> <uppgiftsmapp>   # efter att utkastet spelats in
   .venv/Scripts/python -m demo.record check <fall>
+  .venv/Scripts/python -m demo.record prune <fall>     # tar bort inaktuella inspelningar
 """
 from __future__ import annotations
 
@@ -26,6 +27,7 @@ from backend.visit import ask_content, audit_content, draft_content, visit_check
 CASES = ROOT / "demo" / "cases"
 RECORDINGS = ROOT / "demo" / "recordings"
 REPLAY = ReplayLLM(RECORDINGS)
+FORMATS = ("soap", "plain")
 AUDIT_TASKS = [("ClaimsLLM", ClaimsLLM, CLAIMS_SYSTEM), ("CoverageLLM", CoverageLLM, COVERAGE_SYSTEM), ("DecisionsLLM", DecisionsLLM, DECISIONS_SYSTEM)]
 
 
@@ -76,12 +78,10 @@ def export(case: str, out_dir: Path) -> None:
     folder, lines, config = load_case(case)
     out_dir.mkdir(parents=True, exist_ok=True)
     jobs = {
-        "visit-check-and-draft": task_file(
-            "Visit check and note draft", visit_check_content(lines, ""), [("VisitCheckLLM", VisitCheckLLM, VISIT_CHECK_SYSTEM)]
-        ) + "\n\n" + task_file(
-            "Note draft (all visit-check points accepted)",
-            draft_content(lines, "", config["draft_accepted_example"]),
-            [("DraftNoteLLM", DraftNoteLLM, DRAFT_SYSTEM)],
+        "visit-check": task_file("Visit check", visit_check_content(lines, ""), [("VisitCheckLLM", VisitCheckLLM, VISIT_CHECK_SYSTEM)]),
+        "drafts": "\n\n".join(
+            task_file(f"Note draft, format {fmt}", draft_content(lines, "", [], fmt), [("DraftNoteLLM", DraftNoteLLM, DRAFT_SYSTEM)])
+            for fmt in FORMATS
         ),
     }
     for filename in config["notes"]:
@@ -96,17 +96,45 @@ def export(case: str, out_dir: Path) -> None:
         print(out_dir / f"{case}-{name}.md")
 
 
-def recorded_draft(lines: list) -> str:
-    path = REPLAY.path_for("DraftNoteLLM", draft_content(lines, "", []))
+def recorded_draft(lines: list, fmt: str) -> str:
+    path = REPLAY.path_for("DraftNoteLLM", draft_content(lines, "", [], fmt))
     return json.loads(path.read_text(encoding="utf-8"))["response"]["note_text"].replace("\r\n", "\n").strip()
 
 
 def export_draft(case: str, out_dir: Path) -> None:
     _, lines, _ = load_case(case)
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"{case}-audit-draft.md"
-    path.write_text(task_file("Review of the drafted note", audit_content(lines, "", recorded_draft(lines)), AUDIT_TASKS), encoding="utf-8")
-    print(path)
+    for fmt in FORMATS:
+        path = out_dir / f"{case}-audit-draft-{fmt}.md"
+        path.write_text(task_file(f"Review of the drafted note ({fmt})", audit_content(lines, "", recorded_draft(lines, fmt)), AUDIT_TASKS), encoding="utf-8")
+        print(path)
+
+
+def expected_keys(case: str) -> set[str]:
+    """Alla inspelningar som fallet behöver; allt annat i demo/recordings är inaktuellt."""
+    folder, lines, config = load_case(case)
+    keys = {replay_key("VisitCheckLLM", visit_check_content(lines, ""))}
+    notes = [note_text(folder, f) for f in config["notes"]]
+    for fmt in FORMATS:
+        keys.add(replay_key("DraftNoteLLM", draft_content(lines, "", [], fmt)))
+        try:
+            notes.append(recorded_draft(lines, fmt))
+        except FileNotFoundError:
+            pass
+    for text in notes:
+        for fmt_name, _, _ in AUDIT_TASKS:
+            keys.add(replay_key(fmt_name, audit_content(lines, "", text)))
+    for question in config["questions"]:
+        keys.add(replay_key("AskLLM", ask_content(lines, "", "", question)[0]))
+    return keys
+
+
+def prune(case: str) -> None:
+    keep = expected_keys(case)
+    for path in sorted(RECORDINGS.glob("*.json")):
+        if path.stem not in keep:
+            path.unlink()
+            print(f"removed stale {path.name}")
 
 
 def check(case: str) -> int:
@@ -134,7 +162,8 @@ def check(case: str) -> int:
             print(f"visit check: {len(vc['missed'])} missed, {len(vc['decision_flags'])} decision flags")
         notes = {f: note_text(folder, f) for f in config["notes"]}
         try:
-            notes["(draft)"] = recorded_draft(lines)
+            for fmt in FORMATS:
+                notes[f"(draft {fmt})"] = recorded_draft(lines, fmt)
         except FileNotFoundError:
             print("  ! no recorded draft yet")
             ok = False
@@ -159,6 +188,8 @@ if __name__ == "__main__":
         export(case, Path(rest[0]))
     elif command == "export-draft":
         export_draft(case, Path(rest[0]))
+    elif command == "prune":
+        prune(case)
     elif command == "check":
         sys.exit(check(case))
     else:

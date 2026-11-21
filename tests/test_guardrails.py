@@ -127,7 +127,7 @@ def test_additions_need_real_receipts_and_skip_duplicates():
             AdditionLLM(text="Chest pain for two days.", why="dup", priority="low",
                         evidence=[EvidenceLLM(line_id=2, quote="chest pain")]),
         ],
-        follow_up_questions=[FollowUpLLM(category="Red flags", question="Any sweating?", why="ACS")],
+        follow_up_questions=[FollowUpLLM(category="Red flags", title="Sweating?", question="Any sweating?", why="ACS")],
     )
     additions, follow_ups = check_coverage(coverage, TRANSCRIPT, claims)
     assert [a.text for a in additions] == ["Pain radiates to the left arm."]
@@ -144,3 +144,21 @@ def test_summary_counts():
     s = summarize(claims)
     assert (s.total, s.supported, s.inferred, s.unsupported) == (4, 1, 1, 2)
     assert s.with_receipt_pct == 50.0
+
+
+def test_addition_that_repeats_a_correction_is_dropped():
+    wrong = ClaimLLM(claim_id="x", note_quote="Start lisinopril", text="Start lisinopril.", status="contradicted",
+                     evidence=[EvidenceLLM(line_id=5, quote="start you on aspirin 81 mg")], explanation="",
+                     correction="Start aspirin 81 mg daily")
+    claims = check_claims(ClaimsLLM(claims=[wrong]), TRANSCRIPT, "Start lisinopril")
+    coverage = CoverageLLM(
+        additions=[
+            AdditionLLM(text="Started on aspirin 81 mg daily.", why="x", priority="high",
+                        evidence=[EvidenceLLM(line_id=5, quote="aspirin 81 mg")]),
+            AdditionLLM(text="EKG ordered.", why="x", priority="medium",
+                        evidence=[EvidenceLLM(line_id=5, quote="order an ekg")]),
+        ],
+        follow_up_questions=[],
+    )
+    additions, _ = check_coverage(coverage, TRANSCRIPT, claims)
+    assert [a.text for a in additions] == ["EKG ordered."]

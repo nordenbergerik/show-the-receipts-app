@@ -43,6 +43,8 @@ async def build(path: Path) -> bool:
     note = next(n for n in notes_for(enc) if n["id"] == raw["note_id"])
     for claim in raw["claims"]["claims"]:
         claim.setdefault("correction", "")  # äldre inspelningar saknar fältet
+    for follow_up in raw["coverage"].get("follow_up_questions", []):
+        follow_up.setdefault("title", "")  # äldre inspelningar saknar fältet
     claims = ClaimsLLM.model_validate(raw["claims"])
     coverage = CoverageLLM.model_validate(raw["coverage"])
     with tempfile.TemporaryDirectory() as tmp:

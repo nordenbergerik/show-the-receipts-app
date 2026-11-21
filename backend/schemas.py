@@ -15,6 +15,7 @@ FlagCategory = Literal["Diagnosis", "Treatment", "Medication", "Tests", "Follow-
 Severity = Literal["important", "consider"]
 Verdict = Literal["evidence_found", "some_evidence", "no_evidence_found"]
 Stance = Literal["supports", "against"]
+NoteFormat = Literal["soap", "plain"]
 
 
 # ---------------------------------------------------------------- LLM-utdata
@@ -52,6 +53,7 @@ class AdditionLLM(BaseModel):
 
 class FollowUpLLM(BaseModel):
     category: str
+    title: str = Field(description="Short heading, at most 6 words")
     question: str
     why: str
 
@@ -76,6 +78,7 @@ class DecisionsLLM(BaseModel):
 
 class MissedItemLLM(BaseModel):
     category: str
+    title: str = Field(description="Short heading, at most 6 words")
     question: str
     why: str
     evidence: list[EvidenceLLM]
@@ -131,6 +134,7 @@ class VisitCheckRequest(VisitSource):
 
 class DraftNoteRequest(VisitSource):
     accepted: list[str] = Field(default_factory=list, max_length=12)
+    note_format: NoteFormat = "soap"
 
 
 class AskRequest(VisitSource):
@@ -173,6 +177,7 @@ class Addition(BaseModel):
 
 class FollowUp(BaseModel):
     category: str
+    title: str = ""
     question: str
     why: str
 
@@ -190,6 +195,7 @@ class DecisionFlag(BaseModel):
 class MissedItem(BaseModel):
     item_id: str
     category: str
+    title: str = ""
     question: str
     why: str
     evidence: list[Evidence]

@@ -31,7 +31,7 @@ class FakeLLM:
         self.seen.append((output_format, content))
         if output_format is VisitCheckLLM:
             return VisitCheckLLM(
-                missed=[MissedItemLLM(category="Red flags", question="Any fainting?", why="Dizziness",
+                missed=[MissedItemLLM(category="Red flags", title="Fainting?", question="Any fainting?", why="Dizziness",
                                       evidence=[EvidenceLLM(line_id=2, quote="tired and dizzy"), EvidenceLLM(line_id=2, quote="fake")])],
                 decision_flags=[DecisionFlagLLM(category="Tests", severity="consider", title="Check orthostatics?",
                                                 concern="Dizziness", consider="Measure orthostatic BP", evidence=[])],
