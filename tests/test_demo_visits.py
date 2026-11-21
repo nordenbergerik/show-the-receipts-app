@@ -42,21 +42,12 @@ def test_recorded_answer_is_used_before_a_live_call(tmp_path):
     assert [c.source for c in calls] == ["recorded"]
 
 
-def test_demo_visits_cover_every_step_of_kyle():
+def test_kyle_has_a_transcript_only_visit_and_a_note_with_errors():
     visits = [v for v in demo_visits() if v["visit"]["id"].startswith("demo-cough-kyle-")]
-    assert [v["visit"]["reason"].split(" · ")[1] for v in visits] == [
-        "Step 1: visit recorded", "Step 2: visit checked", "Step 3: note drafted", "Step 4: note checked", "The doctor's own note",
-        "A note with errors",
-    ]
-    step1, step2, step3, step4, own, wrong = visits
+    assert [v["visit"]["reason"].split(" · ")[1] for v in visits] == ["Transcript only", "Note with errors"]
+    transcript_only, wrong = visits
+    assert transcript_only["work"] is None and not transcript_only["visit"]["note"]
     assert "left upper lobe" in wrong["visit"]["note"] and wrong["work"] is None
-    assert step1["work"] is None and not step1["visit"]["note"]
-    assert step2["work"]["visitCheck"]["missed"] and "transcript" not in step2["work"]["visitCheck"]
-    assert step3["visit"]["note"] and step3["work"]["audit"] is None
-    # the checked note is the note the visit shows, so the page does not mark the check as stale
-    assert step4["work"]["audit"]["note_text"] == step4["visit"]["note"]
-    assert step4["review"]["problems"] == sum(c["status"] in ("contradicted", "unsupported") for c in step4["work"]["audit"]["claims"])
-    assert own["visit"]["note"] and own["work"] is None
 
 
 def test_every_ai_step_of_the_demo_visits_is_recorded():
@@ -75,14 +66,14 @@ def test_every_ai_step_of_the_demo_visits_is_recorded():
     try:
         client = TestClient(app)
         visits = [v for v in demo_visits() if v["visit"]["id"].startswith("demo-cough-kyle-")]
-        step1, _, step3, _, own, wrong = visits
-        source = {"transcript_text": step1["visit"]["transcript"], "chief_complaint": "anything"}
+        transcript_only, wrong = visits
+        source = {"transcript_text": transcript_only["visit"]["transcript"], "chief_complaint": "anything"}
         assert client.post("/api/visit-check", json=source).status_code == 200
-        assert client.post("/api/draft-note", json={**source, "note_format": "soap"}).json()["note_text"] == step3["visit"]["note"]
-        for v in (step3, own, wrong):
-            assert client.post("/api/audit", json={**source, "note_text": v["visit"]["note"]}).status_code == 200
+        draft = client.post("/api/draft-note", json={**source, "note_format": "soap"}).json()["note_text"]
+        for note in (draft, wrong["visit"]["note"]):
+            assert client.post("/api/audit", json={**source, "note_text": note}).status_code == 200
         for q in client.post("/api/ask/suggestions", json=source).json()["questions"]:
-            assert client.post("/api/ask", json={**source, "question": q, "note_text": own["visit"]["note"]}).status_code == 200
+            assert client.post("/api/ask", json={**source, "question": q, "note_text": wrong["visit"]["note"]}).status_code == 200
     finally:
         app.dependency_overrides.pop(get_llm, None)
 

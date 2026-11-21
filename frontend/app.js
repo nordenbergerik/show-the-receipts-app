@@ -279,11 +279,25 @@ async function seedDemoVisits(reset = false) {
     return; // the app works without them
   }
   state.demoIds = seeds.map((s) => s.visit.id);
-  const visits = ownVisits();
+  const current = new Set(state.demoIds);
+  const all = reviews();
+  // demo visits the server no longer has (an older set of demo rows) are removed
+  const stale = ownVisits().filter((v) => v.id.startsWith("demo-") && !current.has(v.id));
+  for (const v of stale) {
+    removeWork(v.id);
+    delete all[v.id];
+  }
+  const staleIds = new Set(stale.map((v) => v.id));
+  const visits = ownVisits().filter((v) => !staleIds.has(v.id));
   const have = new Set(visits.map((v) => v.id));
   const added = seeds.filter((s) => reset || !have.has(s.visit.id));
-  if (!added.length) return;
-  const all = reviews();
+  if (!added.length) {
+    if (stale.length) {
+      store.write("visits", visits);
+      store.write("reviews", all);
+    }
+    return;
+  }
   for (const seed of added) {
     removeWork(seed.visit.id);
     delete state.pending[seed.visit.id];

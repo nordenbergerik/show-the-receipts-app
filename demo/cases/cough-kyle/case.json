@@ -20,8 +20,16 @@
       "left upper lobe"
     ]
   },
-  "note_labels": {
-    "note-doctor.txt": "The doctor's own note",
-    "note-with-errors.txt": "A note with errors"
-  }
+  "demo_visits": [
+    {
+      "key": "transcript",
+      "label": "Transcript only",
+      "stage": "recorded"
+    },
+    {
+      "key": "errors",
+      "label": "Note with errors",
+      "note": "note-with-errors.txt"
+    }
+  ]
 }

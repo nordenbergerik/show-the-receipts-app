@@ -82,25 +82,26 @@ def demo_visits() -> list[dict]:
         ask = stages["asks"][0] if stages.get("asks") else None
         reason = config.get("reason", "")
         prefix = f"demo-{folder.name}"
-
-        def visit(n: int, label: str, note: str, work: dict | None, review: dict | None = None) -> dict:
-            return {
-                "visit": {"id": f"{prefix}-{n}", "patient": config.get("patient", "Patient"), "reason": f"{reason} · {label}",
-                          "transcript": transcript, "note": note, "created": DEMO_DATE_MS, "demo": True},
+        snapshots = {
+            "recorded": ("", None, None),
+            "visit-checked": ("", {"visitCheck": visit_check, "audit": None, "ask": None}, None),
+            "drafted": (draft, {"visitCheck": visit_check, "audit": None, "ask": None}, None),
+            "checked": (draft, {"visitCheck": visit_check, "audit": _without_transcript(stages["audit_draft"]), "ask": ask},
+                        _review(stages["audit_draft"])),
+        }
+        base = {"lines": lines, "visitState": {}, "additionState": {}, "flagState": {}, "followState": {}, "draftCost": ""}
+        # case.json "demo_visits": [{"key", "label", "stage" | "note"}]; a note starts unchecked
+        for item in config.get("demo_visits", []):
+            if "note" in item:
+                note, work, review = _read(folder / item["note"]), None, None
+            else:
+                note, extra, review = snapshots[item.get("stage", "recorded")]
+                work = {**base, **extra} if extra else None
+            out.append({
+                "visit": {"id": f"{prefix}-{item['key']}", "patient": config.get("patient", "Patient"),
+                          "reason": f"{reason} · {item['label']}", "transcript": transcript, "note": note,
+                          "created": DEMO_DATE_MS, "demo": True},
                 "work": work,
                 "review": review,
-            }
-
-        base = {"lines": lines, "visitState": {}, "additionState": {}, "flagState": {}, "followState": {}, "draftCost": ""}
-        out += [
-            visit(1, "Step 1: visit recorded", "", None),
-            visit(2, "Step 2: visit checked", "", {**base, "visitCheck": visit_check, "audit": None, "ask": None}),
-            visit(3, "Step 3: note drafted", draft, {**base, "visitCheck": visit_check, "audit": None, "ask": None}),
-            visit(4, "Step 4: note checked", draft,
-                  {**base, "visitCheck": visit_check, "audit": _without_transcript(stages["audit_draft"]), "ask": ask},
-                  _review(stages["audit_draft"])),
-        ]
-        labels = config.get("note_labels", {})
-        for i, name in enumerate(config.get("notes", []), start=5):
-            out.append(visit(i, labels.get(name, "The doctor's own note"), _read(folder / name), None))
+            })
     return out
