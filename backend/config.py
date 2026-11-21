@@ -46,7 +46,7 @@ class Settings:
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings(
-        model=os.getenv("CLAUDE_MODEL", "claude-fable-5-2"),
+        model=os.getenv("CLAUDE_MODEL", "claude-sonnet-5-5"),
         effort=os.getenv("CLAUDE_EFFORT", "high"),
         use_fallbacks=_flag("CLAUDE_FALLBACKS", "1"),
         demo_offline=_flag("DEMO_OFFLINE"),
