@@ -10,7 +10,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-Speaker = Literal["doctor", "patient", "patient_guest", "unknown"]
+Speaker = Literal["doctor", "patient", "patient_guest", "unknown", "note"]
 KNOWN_SPEAKERS: frozenset[str] = frozenset({"doctor", "patient", "patient_guest"})
 
 _SPEAKER_RE = re.compile(r"^\[(?P<speaker>[A-Za-z_]+)\]\s*(?P<text>.*)$")
@@ -46,7 +46,7 @@ def index_transcript(dialogue: str) -> list[Line]:
     return lines
 
 
-def render_for_prompt(lines: list[Line]) -> str:
+def render_for_prompt(lines: list[Line], start_width: int | None = None) -> str:
     """Formaterar raderna för LLM:en, t.ex. "[07] [patient] it started two days ago"."""
-    width = max(2, len(str(len(lines))))
+    width = max(2, start_width or len(str(len(lines))))
     return "\n".join(f"[{line.line_id:0{width}d}] [{line.speaker}] {line.text}" for line in lines)

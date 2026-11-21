@@ -28,6 +28,14 @@ class Settings:
     access_code: str | None
     cache_dir: Path
     frontend_dir: Path
+    replay: bool
+    recordings_dir: Path
+
+    @property
+    def model_label(self) -> str:
+        """Det som visas och ingår i cache-nyckeln: inspelade svar får aldrig
+        förväxlas med (eller cachas som) riktiga svar från modellen."""
+        return "recorded" if self.replay else self.model
 
 
 @lru_cache(maxsize=1)
@@ -40,4 +48,17 @@ def get_settings() -> Settings:
         access_code=os.getenv("ACCESS_CODE") or None,
         cache_dir=ROOT / "cache",
         frontend_dir=ROOT / "frontend",
+        replay=_replay_mode(),
+        recordings_dir=ROOT / "demo" / "recordings",
     )
+
+
+def _replay_mode() -> bool:
+    """DEMO_REPLAY=1 tvingar fram inspelade svar, 0 stänger av dem. Standard
+    (auto): inspelade svar används när ingen API-nyckel finns."""
+    mode = os.getenv("DEMO_REPLAY", "auto").strip().lower()
+    if mode in {"1", "true", "yes", "on"}:
+        return True
+    if mode in {"0", "false", "no", "off"}:
+        return False
+    return not (os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN"))

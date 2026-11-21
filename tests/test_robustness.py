@@ -11,7 +11,7 @@ from backend.cache import AuditCache
 from backend.config import get_settings
 from backend.guardrails import MAX_ADDITIONS, check_claims, check_coverage
 from backend.llm import ClaudeLLM, LLMError
-from backend.schemas import AdditionLLM, ClaimLLM, ClaimsLLM, CoverageLLM, EvidenceLLM
+from backend.schemas import AdditionLLM, ClaimLLM, ClaimsLLM, CoverageLLM, DecisionsLLM, EvidenceLLM
 from backend.transcript import index_transcript
 
 ENCOUNTER = "D2N068"
@@ -107,6 +107,8 @@ class PartlyFailingLLM:
             if self.fail_claims:
                 raise LLMError("The model answered in an unexpected format twice. Try again in a moment.", 502)
             return GOOD_CLAIMS
+        if output_format is DecisionsLLM:
+            return DecisionsLLM(flags=[])
         if self.fail_coverage:
             raise RuntimeError("boom")
         return CoverageLLM(additions=[], follow_up_questions=[])

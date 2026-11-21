@@ -15,12 +15,18 @@ from rapidfuzz import fuzz
 
 from backend.schemas import (
     Addition,
+    AskLLM,
     Claim,
     ClaimsLLM,
     CoverageLLM,
+    DecisionFlag,
+    DecisionFlagLLM,
     Evidence,
     EvidenceLLM,
+    Finding,
     FollowUp,
+    MissedItemLLM,
+    MissedItem,
     NoteSpan,
     Summary,
 )
@@ -35,6 +41,10 @@ MAX_CLAIMS = 300
 MAX_ADDITIONS = 8
 MAX_FOLLOW_UPS = 6
 MAX_TEXT = 600
+MAX_FLAGS = 4
+MAX_MISSED = 6
+MAX_FINDINGS = 6
+MAX_WHERE = 3
 
 _PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
 _WS_RE = re.compile(r"\s+")
@@ -176,3 +186,69 @@ def summarize(claims: list[Claim]) -> Summary:
         unsupported=counts["unsupported"],
         with_receipt_pct=round(100 * with_receipt / total, 1) if total else 0.0,
     )
+
+
+# ---------------------------------------------------------------- andra blick, besökskontroll, frågor
+
+
+def _clip(text: str, limit: int = MAX_TEXT) -> str:
+    return text.strip()[:limit]
+
+
+def check_flags(flags: list[DecisionFlagLLM], lines: list[Line], prefix: str = "F") -> list[DecisionFlag]:
+    """Andra blicken på beslut. En flagga får sakna kvitto (ofta gäller den något
+    som aldrig togs upp), men de kvitton som anges måste vara äkta."""
+    lines_by_id = {line.line_id: line for line in lines}
+    out: list[DecisionFlag] = []
+    for raw in flags:
+        if len(out) >= MAX_FLAGS or not raw.title.strip() or not raw.concern.strip():
+            continue
+        out.append(DecisionFlag(
+            flag_id=f"{prefix}{len(out) + 1}",
+            category=raw.category,
+            severity=raw.severity,
+            title=_clip(raw.title, 120),
+            concern=_clip(raw.concern),
+            consider=_clip(raw.consider),
+            evidence=validate_evidence(raw.evidence, lines_by_id),
+        ))
+    return out
+
+
+def check_missed(items: list[MissedItemLLM], lines: list[Line]) -> list[MissedItem]:
+    lines_by_id = {line.line_id: line for line in lines}
+    out: list[MissedItem] = []
+    for raw in items:
+        if len(out) >= MAX_MISSED or not raw.question.strip():
+            continue
+        out.append(MissedItem(
+            item_id=f"M{len(out) + 1}",
+            category=_clip(raw.category, 60) or "Follow-up",
+            question=_clip(raw.question),
+            why=_clip(raw.why),
+            evidence=validate_evidence(raw.evidence, lines_by_id),
+        ))
+    return out
+
+
+def check_answer(answer: AskLLM, record: list[Line]) -> tuple[AskLLM, list[Finding], list[str]]:
+    """Ett svar på en fråga till journalen får bara peka på det som faktiskt står
+    där. Fynd utan äkta kvitto tas bort; finns inga kvar kan svaret inte påstå
+    att det finns belägg."""
+    lines_by_id = {line.line_id: line for line in record}
+    findings: list[Finding] = []
+    for raw in answer.findings:
+        if len(findings) >= MAX_FINDINGS or not raw.text.strip():
+            continue
+        evidence = validate_evidence(raw.evidence, lines_by_id)
+        if not evidence:
+            continue
+        findings.append(Finding(finding_id=f"E{len(findings) + 1}", stance=raw.stance, text=_clip(raw.text), evidence=evidence))
+    warnings: list[str] = []
+    verdict = answer.verdict
+    if verdict != "no_evidence_found" and not any(f.stance == "supports" for f in findings):
+        verdict = "no_evidence_found"
+        warnings.append("The answer pointed to evidence that could not be found in the record, so it is shown as no evidence found.")
+    where = [_clip(w, 200) for w in answer.where_to_look if w.strip()][:MAX_WHERE]
+    cleaned = AskLLM(verdict=verdict, summary=_clip(answer.summary), findings=[], where_to_look=where)
+    return cleaned, findings, warnings

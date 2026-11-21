@@ -31,6 +31,10 @@ def _version() -> str:
 PROMPT_VERSION = _version()
 CLAIMS_SYSTEM = system_prompt("common", "check-claims")
 COVERAGE_SYSTEM = system_prompt("common", "find-missing")
+DECISIONS_SYSTEM = system_prompt("common", "decision-review")
+VISIT_CHECK_SYSTEM = system_prompt("common", "visit-check")
+DRAFT_SYSTEM = system_prompt("common", "draft-note")
+ASK_SYSTEM = system_prompt("common", "ask-record")
 
 
 def transcript_block(rendered_transcript: str, chief_complaint: str = "") -> str:
@@ -40,3 +44,17 @@ def transcript_block(rendered_transcript: str, chief_complaint: str = "") -> str
 
 def note_block(note_text: str) -> str:
     return f"<note>\n{note_text}\n</note>"
+
+
+def accepted_block(points: list[str]) -> str:
+    items = "\n".join(f"- {p}" for p in points)
+    return f"<accepted_points>\n{items}\n</accepted_points>"
+
+
+def numbered_note_block(note_lines: str) -> str:
+    """Anteckningen numrerad efter samtalet, så att svar kan citera den."""
+    return f"<note>\n{note_lines}\n</note>"
+
+
+def question_block(question: str) -> str:
+    return f"<question>\n{question}\n</question>"

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from backend.app import app, get_cache, get_llm
 from backend.cache import AuditCache
 from backend.config import get_settings
-from backend.schemas import AdditionLLM, ClaimLLM, ClaimsLLM, CoverageLLM, EvidenceLLM, FollowUpLLM
+from backend.schemas import AdditionLLM, ClaimLLM, ClaimsLLM, CoverageLLM, DecisionFlagLLM, DecisionsLLM, EvidenceLLM, FollowUpLLM
 
 ENCOUNTER = "D2N068"  # virtassist, Brian White
 NOTE = "58M CHF, HTN. Fatigue x5 wks. Denies cough."
@@ -26,6 +26,9 @@ class FakeLLM:
                 ClaimLLM(claim_id="2", note_quote="Denies cough", text="Denies cough.", status="contradicted",
                          evidence=[EvidenceLLM(line_id=2, quote="something never said")], explanation="x", correction="Coughs sometimes."),
             ])
+        if output_format is DecisionsLLM:
+            return DecisionsLLM(flags=[DecisionFlagLLM(category="Diagnosis", severity="important", title="Is it really CHF?",
+                                                       concern="c", consider="k", evidence=[EvidenceLLM(line_id=2, quote="good to see you"), EvidenceLLM(line_id=1, quote="made up")])])
         return CoverageLLM(
             additions=[AdditionLLM(text="Good to see you.", why="x", priority="low",
                                    evidence=[EvidenceLLM(line_id=2, quote="good to see you")])],
@@ -68,12 +71,14 @@ def test_audit_runs_guardrails_and_caches(client):
     assert data["claims"][1]["receipt_failed"] is True
     assert data["claims"][0]["note_span"] == {"start": NOTE.index("Fatigue"), "end": NOTE.index("Fatigue") + 14}
     assert [a["text"] for a in data["suggested_additions"]] == ["Good to see you."]
+    [flag] = data["decision_flags"]
+    assert flag["title"] == "Is it really CHF?" and [e["line_id"] for e in flag["evidence"]] == [2]  # påhittat kvitto bort
     assert data["meta"]["cached"] is False
-    assert client.fake.calls == 2
+    assert client.fake.calls == 3
 
     second = client.post("/api/audit", json=body).json()
     assert second["meta"]["cached"] is True
-    assert client.fake.calls == 2  # inga nya LLM-anrop
+    assert client.fake.calls == 3  # inga nya LLM-anrop
 
 
 def test_audit_validation(client):

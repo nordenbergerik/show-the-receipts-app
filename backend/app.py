@@ -8,14 +8,26 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.staticfiles import StaticFiles
 
+from backend.assist import run_ask, run_draft_note, run_visit_check
 from backend.audit import AuditError, run_audit
 from backend.auth import User, get_current_user
 from backend.cache import AuditCache
 from backend.config import Settings, get_settings
 from backend.data import VARIANTS, DataStore, get_store
 from backend.llm import ClaudeLLM, StructuredLLM
+from backend.replay import ReplayLLM
 from backend.notes import demo_notes, notes_for
-from backend.schemas import AuditRequest, AuditResult, Variant
+from backend.schemas import (
+    AskRequest,
+    AskResult,
+    AuditRequest,
+    AuditResult,
+    DraftNoteRequest,
+    DraftNoteResult,
+    Variant,
+    VisitCheckRequest,
+    VisitCheckResult,
+)
 from backend.transcript import index_transcript
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -37,10 +49,21 @@ _llm: StructuredLLM | None = None
 
 
 def get_llm() -> StructuredLLM:
+    """Riktiga Claude-anrop, eller inspelade svar när demon körs utan API-nyckel."""
     global _llm
     if _llm is None:
-        _llm = ClaudeLLM(get_settings())
+        settings = get_settings()
+        _llm = ReplayLLM(settings.recordings_dir) if settings.replay else ClaudeLLM(settings)
     return _llm
+
+
+def allow_live(
+    settings: Annotated[Settings, Depends(get_settings)],
+    x_access_code: Annotated[str | None, Header()] = None,
+) -> bool:
+    return settings.access_code is None or (
+        x_access_code is not None and hmac.compare_digest(x_access_code, settings.access_code)
+    )
 
 
 def get_cache(settings: Annotated[Settings, Depends(get_settings)]) -> AuditCache:
@@ -53,6 +76,7 @@ def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict:
         "status": "ok",
         "model": settings.model,
         "offline": settings.demo_offline,
+        "replay": settings.replay,
         "access_code_required": settings.access_code is not None,
     }
 
@@ -102,20 +126,41 @@ def get_encounter(
     }
 
 
+Store = Annotated[DataStore, Depends(get_store)]
+LLM = Annotated[StructuredLLM, Depends(get_llm)]
+SettingsDep = Annotated[Settings, Depends(get_settings)]
+Live = Annotated[bool, Depends(allow_live)]
+
+
 @app.post("/api/audit")
-async def audit(
-    req: AuditRequest,
-    store: Annotated[DataStore, Depends(get_store)],
-    llm: Annotated[StructuredLLM, Depends(get_llm)],
-    cache: Annotated[AuditCache, Depends(get_cache)],
-    settings: Annotated[Settings, Depends(get_settings)],
-    x_access_code: Annotated[str | None, Header()] = None,
-) -> AuditResult:
-    allow_live = settings.access_code is None or (
-        x_access_code is not None and hmac.compare_digest(x_access_code, settings.access_code)
-    )
+async def audit(req: AuditRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live,
+                cache: Annotated[AuditCache, Depends(get_cache)]) -> AuditResult:
     try:
-        return await run_audit(req, store=store, llm=llm, cache=cache, settings=settings, allow_live=allow_live)
+        return await run_audit(req, store=store, llm=llm, cache=cache, settings=settings, allow_live=live)
+    except AuditError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+
+
+@app.post("/api/visit-check")
+async def visit_check(req: VisitCheckRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live) -> VisitCheckResult:
+    try:
+        return await run_visit_check(req, store=store, llm=llm, settings=settings, allow_live=live)
+    except AuditError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+
+
+@app.post("/api/draft-note")
+async def draft_note(req: DraftNoteRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live) -> DraftNoteResult:
+    try:
+        return await run_draft_note(req, store=store, llm=llm, settings=settings, allow_live=live)
+    except AuditError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+
+
+@app.post("/api/ask")
+async def ask(req: AskRequest, store: Store, llm: LLM, settings: SettingsDep, live: Live) -> AskResult:
+    try:
+        return await run_ask(req, store=store, llm=llm, settings=settings, allow_live=live)
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
 
