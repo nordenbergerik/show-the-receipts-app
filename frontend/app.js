@@ -720,8 +720,8 @@ function renderVisitCard() {
   const checked = Boolean(state.visitCheck);
   $("visit-card-title").textContent = checked ? "Before you write the note" : "The visit is recorded";
   $("visit-card-text").textContent = checked
-    ? "A colleague's quick look at the visit. Untick anything you do not want to keep in mind for the note."
-    : `${turns} speaker turns from the visit. Check the visit for anything you may have missed, then draft the note.`;
+    ? "Untick anything you do not want to carry into the note."
+    : `${turns} speaker turns. Check the visit for anything you may have missed, then draft the note.`;
 
   const box = $("visit-check");
   box.hidden = !checked;
@@ -731,7 +731,7 @@ function renderVisitCard() {
       vc.missed.length ? el("div", {}, el("h3", { class: "subhead", text: "Not asked or checked" }),
         el("ul", { class: "rows" }, vc.missed.map((m) => checkRow(m.item_id, m.question, m.why, m.category, () => select({ kind: "missed", id: m.item_id }))))) : null,
       vc.decision_flags.length ? el("div", {}, el("h3", { class: "subhead", text: "Second look at decisions" }),
-        el("ul", { class: "rows" }, vc.decision_flags.map((f) => checkRow(f.flag_id, f.title, f.concern, f.severity === "important" ? "Important" : f.category,
+        el("ul", { class: "rows" }, vc.decision_flags.map((f) => checkRow(f.flag_id, f.title, f.concern, f.category,
           () => select({ kind: "vflag", id: f.flag_id }), f.severity)))) : null,
       !vc.missed.length && !vc.decision_flags.length ? el("p", { class: "all-clear", text: "Nothing stood out. You can go ahead and write the note." }) : null,
     );
@@ -752,6 +752,16 @@ function renderVisitCard() {
   $("visit-actions").replaceChildren(...actions);
 }
 
+// One row layout for every AI point: a dot for importance, the point itself,
+// and a quiet second line with the category and the reason.
+function rowBody(title, meta, why, dot, open) {
+  return el(open ? "button" : "span", { type: open ? "button" : null, class: `row-main${open ? "" : " static"}`, onclick: open },
+    dot ? el("span", { class: `dot-mark ${dot}`, "aria-hidden": "true" }) : null,
+    el("span", { class: "row-body" },
+      el("span", { class: "row-text", text: title }),
+      meta || why ? el("span", { class: "row-why" }, meta ? el("span", { class: "row-meta", text: meta }) : null, meta && why ? " · " : null, why || null) : null));
+}
+
 function checkRow(id, title, why, tag, open, severity) {
   const checkbox = el("input", { type: "checkbox", class: "include", id: `inc-${id}`, "aria-label": `Keep in mind for the note: ${title}` });
   checkbox.checked = Boolean(state.included[id]);
@@ -759,10 +769,7 @@ function checkRow(id, title, why, tag, open, severity) {
   const dismissed = state.visitState[id] === "dismissed";
   return el("li", { class: `row check-row${dismissed ? " is-done" : ""}${isSelected("missed", id) || isSelected("vflag", id) ? " is-selected" : ""}` },
     checkbox,
-    el("button", { type: "button", class: "row-main column", onclick: open },
-      el("span", { class: `row-tag${severity === "important" ? " is-important" : ""}`, text: tag }),
-      el("span", { class: "row-text", text: title }),
-      el("span", { class: "row-why", text: why })),
+    rowBody(title, tag, why, severity === "important" ? "is-important" : null, open),
     rowActions(dismissed
       ? { doneLabel: "Dismissed", undo: () => { delete state.visitState[id]; state.included[id] = true; renderVisitCard(); } }
       : { dismiss: () => { state.visitState[id] = "dismissed"; state.included[id] = false; renderVisitCard(); } }));
@@ -921,7 +928,6 @@ function renderJournal() {
     return;
   }
   body.replaceChildren(
-    el("p", { class: "edit-hint", text: "Click any sentence to edit it." }),
     ...sections.map((section) =>
       el("section", { class: "jsection" },
         el("h2", { class: "jlabel", text: section.label }),
@@ -1045,10 +1051,7 @@ function sectionTitle(id, text, onAll) {
 function flagRow(flag, kind) {
   const status = state.flagState[flag.flag_id];
   return el("li", { class: `row${status ? " is-done" : ""}${isSelected(kind, flag.flag_id) ? " is-selected" : ""}` },
-    el("button", { type: "button", class: "row-main column", onclick: () => select({ kind, id: flag.flag_id }) },
-      el("span", { class: `row-tag${flag.severity === "important" ? " is-important" : ""}`, text: flag.severity === "important" ? `Important · ${flag.category}` : flag.category }),
-      el("span", { class: "row-text", text: flag.title }),
-      el("span", { class: "row-why", text: flag.concern })),
+    rowBody(flag.title, flag.category, flag.concern, flag.severity === "important" ? "is-important" : "is-consider", () => select({ kind, id: flag.flag_id })),
     kind === "flag"
       ? rowActions(status
         ? { doneLabel: status === "noted" ? "Seen" : "Dismissed", undo: () => { delete state.flagState[flag.flag_id]; render(); } }
@@ -1060,7 +1063,7 @@ function renderFlags() {
   const flags = state.audit ? state.audit.decision_flags : [];
   $("flags-section").hidden = !flags.length;
   const open = flags.filter((f) => !state.flagState[f.flag_id]);
-  sectionTitle("flags-title", "Second look", open.length > 1 ? () => { for (const f of open) state.flagState[f.flag_id] = "noted"; render(); } : null);
+  sectionTitle("flags-title", "Second look at decisions", open.length > 1 ? () => { for (const f of open) state.flagState[f.flag_id] = "noted"; render(); } : null);
   $("flags").replaceChildren(...flags.map((f) => flagRow(f, "flag")));
 }
 
@@ -1071,13 +1074,11 @@ function renderAdditions() {
     ...additions.map((a) => {
       const status = state.additionState[a.addition_id];
       return el("li", { class: `row${status ? " is-done" : ""}${isSelected("addition", a.addition_id) ? " is-selected" : ""}` },
-        el("button", { type: "button", class: "row-main", onclick: () => select({ kind: "addition", id: a.addition_id }) },
-          el("span", { class: `prio prio-${a.priority}`, title: `${a.priority} priority` }),
-          el("span", { class: "row-text", text: a.text })),
+        rowBody(a.text, null, null, `prio-${a.priority}`, () => select({ kind: "addition", id: a.addition_id })),
         status === "added" ? el("span", { class: "row-done", text: "Added" })
           : status === "dismissed" ? rowActions({ doneLabel: "Dismissed", undo: () => { delete state.additionState[a.addition_id]; render(); } })
           : el("span", { class: "row-actions" },
-            el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add", onclick: () => addAddition(a) }),
+            el("button", { type: "button", class: "icon-action is-add", title: "Add to note", "aria-label": "Add to note", text: "+", onclick: () => addAddition(a) }),
             el("button", { type: "button", class: "icon-action is-dismiss", title: "Dismiss", "aria-label": "Dismiss", text: "\u00d7", onclick: () => { state.additionState[a.addition_id] = "dismissed"; render(); } })));
     }),
   );
@@ -1087,12 +1088,12 @@ function renderFollowUps() {
   const items = state.audit ? state.audit.follow_up_questions : [];
   $("followups-section").hidden = !items.length;
   const open = items.filter((_, i) => !state.followState[i]);
-  $("followups-title").textContent = open.length ? `Questions to follow up (${open.length})` : "Questions to follow up (all seen)";
+  fill($("followups-title"), el("span", { text: "Questions to follow up" }), el("span", { class: "count", text: open.length ? String(open.length) : "All seen" }));
   fill($("followups"),
     ...items.map((f, i) => {
       const status = state.followState[i];
       return el("li", { class: `row${status ? " is-done" : ""}` },
-        el("span", { class: "row-main column static" }, el("span", { class: "row-text", text: f.question }), el("span", { class: "row-why", text: f.why })),
+        rowBody(f.question, f.category, f.why, null, null),
         rowActions(status
           ? { doneLabel: status === "seen" ? "Seen" : "Dismissed", undo: () => { delete state.followState[i]; render(); } }
           : { seen: () => { state.followState[i] = "seen"; render(); }, dismiss: () => { state.followState[i] = "dismissed"; render(); } }));
@@ -1164,8 +1165,8 @@ function renderAsk() {
     el("h3", { class: "subhead", text: title }),
     el("ul", { class: "rows" }, list.map((f) => el("li", { class: `row${isSelected("finding", f.finding_id) ? " is-selected" : ""}` },
       el("button", { type: "button", class: "row-main", onclick: () => select({ kind: "finding", id: f.finding_id }) },
-        el("span", { class: `stance stance-${f.stance}`, "aria-hidden": "true", text: f.stance === "supports" ? "+" : "−" }),
-        el("span", { class: "row-text", text: f.text })),
+        el("span", { class: `stance stance-${f.stance}`, "aria-hidden": "true", text: f.stance === "supports" ? "+" : "\u2212" }),
+        el("span", { class: "row-body" }, el("span", { class: "row-text", text: f.text }))),
       el("span", { class: "p-chevron", "aria-hidden": "true", text: "›" }))))) : null;
 
   fill(box,
