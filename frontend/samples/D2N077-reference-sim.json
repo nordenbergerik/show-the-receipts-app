@@ -412,11 +412,11 @@
  "claims": [
   {
    "claim_id": "C1",
-   "text": "Chief complaint is a right wrist injury.",
-   "note_quote": "Right wrist injury.",
+   "text": "The patient presents for evaluation of a right wrist injury.",
+   "note_quote": "presents to the clinic today for the evaluation of a right wrist injury",
    "note_span": {
-    "start": 19,
-    "end": 38
+    "start": 121,
+    "end": 192
    },
    "status": "supported",
    "evidence": [
@@ -435,15 +435,15 @@
   },
   {
    "claim_id": "C2",
-   "text": "The patient is a 61-year-old female.",
-   "note_quote": "61-year-old female",
+   "text": "The patient is 61 years old.",
+   "note_quote": "61-year-old",
    "note_span": {
     "start": 98,
-    "end": 116
+    "end": 109
    },
    "status": "unsupported",
    "evidence": [],
-   "explanation": "The patient's age is never mentioned in the transcript.",
+   "explanation": "The patient's age is never mentioned in the visit.",
    "correction": "",
    "receipt_failed": false
   },
@@ -468,7 +468,7 @@
   },
   {
    "claim_id": "C4",
-   "text": "The injury date was 05/12/2022.",
+   "text": "The injury occurred on 05/12/2022.",
    "note_quote": "05/12/2022",
    "note_span": {
     "start": 247,
@@ -483,16 +483,20 @@
   {
    "claim_id": "C5",
    "text": "She slipped on the stairs while carrying a laundry basket.",
-   "note_quote": "she slipped on the stairs while carrying a laundry basket",
+   "note_quote": "when she slipped on the stairs while carrying a laundry basket",
    "note_span": {
-    "start": 264,
+    "start": 259,
     "end": 321
    },
    "status": "supported",
    "evidence": [
     {
      "line_id": 2,
-     "quote": "i was walking up and down the stairs i was doing my laundry"
+     "quote": "i was walking up and down the stairs i was doing my laundry and i slipped"
+    },
+    {
+     "line_id": 22,
+     "quote": "i had my back hit my basket"
     },
     {
      "line_id": 22,
@@ -505,7 +509,7 @@
   },
   {
    "claim_id": "C6",
-   "text": "She tried to catch herself with outstretched arms.",
+   "text": "She tried to break her fall with outstretched arms.",
    "note_quote": "She states she tried to catch herself with her arms outstretched.",
    "note_span": {
     "start": 323,
@@ -518,7 +522,7 @@
      "quote": "i put my arms out to catch myself"
     }
    ],
-   "explanation": "The patient states she put her arms out to catch herself.",
+   "explanation": "The patient describes putting her arms out to catch herself.",
    "correction": "",
    "receipt_failed": false
   },
@@ -537,13 +541,13 @@
      "quote": "all of a sudden i just my wrist started to hurt real bad and it got real swollen"
     }
    ],
-   "explanation": "The patient describes sudden pain and swelling after the fall.",
+   "explanation": "The patient reports sudden pain and swelling after the fall.",
    "correction": "",
    "receipt_failed": false
   },
   {
    "claim_id": "C8",
-   "text": "She has no previous injuries to the right arm.",
+   "text": "She has no prior injuries to the right arm.",
    "note_quote": "She denies any previous injuries to her right arm.",
    "note_span": {
     "start": 469,
@@ -579,13 +583,13 @@
      "quote": "gosh it's like a nine"
     }
    ],
-   "explanation": "The patient rates the pain as a nine.",
+   "explanation": "The patient rates her pain as a nine.",
    "correction": "",
    "receipt_failed": false
   },
   {
    "claim_id": "C10",
-   "text": "Pain worsens with movement.",
+   "text": "Movement worsens her pain.",
    "note_quote": "Her pain is aggravated by movement.",
    "note_span": {
     "start": 564,
@@ -598,50 +602,35 @@
      "quote": "it's just really really bad when i move it all"
     }
    ],
-   "explanation": "The patient says the pain is very bad when she moves the wrist.",
+   "explanation": "The patient says the pain is really bad when she moves the wrist.",
    "correction": "",
    "receipt_failed": false
   },
   {
    "claim_id": "C11",
-   "text": "The patient reports numbness in her fingers.",
-   "note_quote": "reports numbness",
+   "text": "The patient reports numbness and tingling in her fingers.",
+   "note_quote": "The patient also reports numbness and tingling in her fingers.",
    "note_span": {
-    "start": 617,
-    "end": 633
+    "start": 600,
+    "end": 662
    },
    "status": "contradicted",
    "evidence": [
     {
      "line_id": 28,
      "quote": "i can feel it my fingers still"
-    }
-   ],
-   "explanation": "The patient says she can still feel her fingers and describes only a little tingling, not numbness.",
-   "correction": "",
-   "receipt_failed": false
-  },
-  {
-   "claim_id": "C12",
-   "text": "The patient reports tingling in her fingers.",
-   "note_quote": "tingling in her fingers",
-   "note_span": {
-    "start": 638,
-    "end": 661
-   },
-   "status": "supported",
-   "evidence": [
+    },
     {
      "line_id": 30,
      "quote": "maybe a little bit of tingling"
     }
    ],
-   "explanation": "The patient reports a little tingling.",
-   "correction": "",
+   "explanation": "The patient reports only a little tingling and says she can still feel her fingers, so numbness is not reported.",
+   "correction": "The patient also reports mild tingling in her fingers but can still feel them.",
    "receipt_failed": false
   },
   {
-   "claim_id": "C13",
+   "claim_id": "C12",
    "text": "She has been icing the wrist and wrapping it with an ACE wrap.",
    "note_quote": "She has been icing and wrapping her right wrist with an ACE wrap.",
    "note_span": {
@@ -664,8 +653,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C14",
-   "text": "Ibuprofen provides some pain relief.",
+   "claim_id": "C13",
+   "text": "Ibuprofen gives her some relief.",
    "note_quote": "The patient has also been taking ibuprofen, which provides some relief.",
    "note_span": {
     "start": 729,
@@ -683,8 +672,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C15",
-   "text": "Resting the arm straight on a pillow eases some of the pain.",
+   "claim_id": "C14",
+   "text": "Resting the arm straight on a pillow eases her pain.",
    "note_quote": "She notes fully extending her arm while resting it on a pillow alleviates some of her pain as well.",
    "note_span": {
     "start": 801,
@@ -702,8 +691,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C16",
-   "text": "The patient is going on vacation in one month.",
+   "claim_id": "C15",
+   "text": "She is going on vacation in one month.",
    "note_quote": "The patient is going on vacation in 1 month.",
    "note_span": {
     "start": 904,
@@ -725,18 +714,18 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C17",
-   "text": "Review of systems positive for right wrist pain and swelling.",
-   "note_quote": "Musculoskeletal: Reports right wrist pain and swelling.",
+   "claim_id": "C16",
+   "text": "She reports right wrist pain and swelling.",
+   "note_quote": "Reports right wrist pain and swelling.",
    "note_span": {
-    "start": 973,
+    "start": 990,
     "end": 1028
    },
    "status": "supported",
    "evidence": [
     {
      "line_id": 2,
-     "quote": "my wrist started to hurt real bad and it got real swollen"
+     "quote": "all of a sudden i just my wrist started to hurt real bad and it got real swollen"
     }
    ],
    "explanation": "The patient reports wrist pain and swelling.",
@@ -744,45 +733,30 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C18",
-   "text": "Review of systems positive for numbness of the right-hand digits.",
-   "note_quote": "Reports numbness",
+   "claim_id": "C17",
+   "text": "She reports numbness and tingling in the fingers of the right hand.",
+   "note_quote": "Reports numbness and tingling to the digits of the right hand.",
    "note_span": {
     "start": 1044,
-    "end": 1060
+    "end": 1106
    },
    "status": "contradicted",
    "evidence": [
     {
      "line_id": 28,
      "quote": "i can feel it my fingers still"
-    }
-   ],
-   "explanation": "The patient says she can still feel her fingers; only mild tingling was reported.",
-   "correction": "",
-   "receipt_failed": false
-  },
-  {
-   "claim_id": "C19",
-   "text": "Review of systems positive for tingling of the right-hand digits.",
-   "note_quote": "tingling to the digits of the right hand",
-   "note_span": {
-    "start": 1065,
-    "end": 1105
-   },
-   "status": "supported",
-   "evidence": [
+    },
     {
      "line_id": 30,
      "quote": "maybe a little bit of tingling"
     }
    ],
-   "explanation": "The patient reports a little tingling.",
-   "correction": "",
+   "explanation": "Only mild tingling was reported; the patient says she can still feel her fingers.",
+   "correction": "Reports mild tingling to the digits of the right hand; sensation intact.",
    "receipt_failed": false
   },
   {
-   "claim_id": "C20",
+   "claim_id": "C18",
    "text": "Blood pressure is elevated at 140/70 mmHg.",
    "note_quote": "Blood Pressure: Elevated at 140/70 mmHg.",
    "note_span": {
@@ -805,7 +779,7 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C21",
+   "claim_id": "C19",
    "text": "Heart rate is 80 beats per minute.",
    "note_quote": "Heart Rate: 80 beats per minute.",
    "note_span": {
@@ -824,7 +798,7 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C22",
+   "claim_id": "C20",
    "text": "Respiratory rate is 20 breaths per minute.",
    "note_quote": "Respiratory Rate: 20 breaths per minute.",
    "note_span": {
@@ -843,8 +817,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C23",
-   "text": "Body temperature is 97.2 degrees Fahrenheit.",
+   "claim_id": "C21",
+   "text": "Temperature is 97.2 degrees Fahrenheit.",
    "note_quote": "Body Temperature: 97.2 degrees F.",
    "note_span": {
     "start": 1238,
@@ -862,36 +836,36 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C24",
+   "claim_id": "C22",
    "text": "The head is normocephalic.",
-   "note_quote": "HEAD: Normocephalic",
+   "note_quote": "Normocephalic",
    "note_span": {
-    "start": 1273,
+    "start": 1279,
     "end": 1292
    },
    "status": "unsupported",
    "evidence": [],
-   "explanation": "The clinician looked at the head but did not state it was normocephalic.",
+   "explanation": "The head exam was not described beyond the neck findings.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C25",
+   "claim_id": "C23",
    "text": "No neck swelling is noted.",
-   "note_quote": "NECK: No swelling noted",
+   "note_quote": "No swelling noted",
    "note_span": {
-    "start": 1294,
+    "start": 1300,
     "end": 1317
    },
    "status": "unsupported",
    "evidence": [],
-   "explanation": "Neck swelling is not mentioned; only adenopathy, thyromegaly and bruit were commented on.",
+   "explanation": "Neck swelling was not specifically examined or mentioned; only adenopathy and thyromegaly were.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C26",
-   "text": "No edema in either lower extremity.",
+   "claim_id": "C24",
+   "text": "There is no edema in either lower leg.",
    "note_quote": "No bilateral lower extremity edema.",
    "note_span": {
     "start": 1323,
@@ -909,8 +883,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C27",
-   "text": "No carotid bruit.",
+   "claim_id": "C25",
+   "text": "There is no carotid bruit.",
    "note_quote": "No carotid bruit.",
    "note_span": {
     "start": 1359,
@@ -928,7 +902,7 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C28",
+   "claim_id": "C26",
    "text": "No heart murmurs, gallops or rubs.",
    "note_quote": "No murmurs, gallops or rubs heard during auscultation of the heart.",
    "note_span": {
@@ -947,8 +921,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C29",
-   "text": "Pulses are palpable in both lower extremities.",
+   "claim_id": "C27",
+   "text": "Pulses are palpable in both lower legs.",
    "note_quote": "Palpabale pulses to the bilateral lower extremities.",
    "note_span": {
     "start": 1445,
@@ -966,8 +940,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C30",
-   "text": "Normal respiratory effort without respiratory distress.",
+   "claim_id": "C28",
+   "text": "Respiratory effort is normal with no distress.",
    "note_quote": "Normal respiratory effort no respiratory distress.",
    "note_span": {
     "start": 1512,
@@ -980,8 +954,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C31",
-   "text": "Lungs are clear to auscultation bilaterally.",
+   "claim_id": "C29",
+   "text": "Lungs are clear on both sides.",
    "note_quote": "Lungs clear to auscultation bilaterally.",
    "note_span": {
     "start": 1563,
@@ -994,41 +968,41 @@
      "quote": "your lungs are clear to auscultation bilaterally"
     }
    ],
-   "explanation": "The clinician states the lungs are clear bilaterally.",
+   "explanation": "The clinician reports clear lungs bilaterally.",
+   "correction": "",
+   "receipt_failed": false
+  },
+  {
+   "claim_id": "C30",
+   "text": "The abdomen is not distended.",
+   "note_quote": "Non-distended",
+   "note_span": {
+    "start": 1612,
+    "end": 1625
+   },
+   "status": "unsupported",
+   "evidence": [],
+   "explanation": "No abdominal or GI/GU exam was performed or mentioned.",
+   "correction": "",
+   "receipt_failed": false
+  },
+  {
+   "claim_id": "C31",
+   "text": "The back shows no trauma or deformity.",
+   "note_quote": "No evidence of trauma or deformity",
+   "note_span": {
+    "start": 1633,
+    "end": 1667
+   },
+   "status": "unsupported",
+   "evidence": [],
+   "explanation": "The back was not examined or mentioned.",
    "correction": "",
    "receipt_failed": false
   },
   {
    "claim_id": "C32",
-   "text": "The abdomen is non-distended.",
-   "note_quote": "GI/GU: Non-distended",
-   "note_span": {
-    "start": 1605,
-    "end": 1625
-   },
-   "status": "unsupported",
-   "evidence": [],
-   "explanation": "No abdominal or genitourinary exam was performed or mentioned.",
-   "correction": "",
-   "receipt_failed": false
-  },
-  {
-   "claim_id": "C33",
-   "text": "The back shows no trauma or deformity.",
-   "note_quote": "BACK: No evidence of trauma or deformity",
-   "note_span": {
-    "start": 1627,
-    "end": 1667
-   },
-   "status": "unsupported",
-   "evidence": [],
-   "explanation": "No back exam is mentioned in the transcript.",
-   "correction": "",
-   "receipt_failed": false
-  },
-  {
-   "claim_id": "C34",
-   "text": "No neck adenopathy and no thyromegaly.",
+   "text": "No neck adenopathy and no enlarged thyroid.",
    "note_quote": "No adenopathy. No thyromegaly.",
    "note_span": {
     "start": 1675,
@@ -1041,13 +1015,13 @@
      "quote": "i do n't appreciate any like adenopathy no thyromegaly"
     }
    ],
-   "explanation": "The clinician reports no adenopathy and no thyromegaly.",
+   "explanation": "The clinician reports no adenopathy or thyromegaly.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C35",
-   "text": "Right wrist range of movement is limited.",
+   "claim_id": "C33",
+   "text": "Right wrist range of motion is limited.",
    "note_quote": "Limited range of movement.",
    "note_span": {
     "start": 1744,
@@ -1064,12 +1038,12 @@
      "quote": "it's really hard to move any direction of this hand"
     }
    ],
-   "explanation": "Limited motion is inferred from pain and difficulty with all wrist movements; it was not stated as such.",
+   "explanation": "Limited motion follows from the patient's difficulty moving the wrist in any direction.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C36",
+   "claim_id": "C34",
    "text": "The right wrist is tender to palpation.",
    "note_quote": "Tenderness to palpation.",
    "note_span": {
@@ -1083,17 +1057,21 @@
      "quote": "when i push on the inside here does it hurt"
     },
     {
+     "line_id": 34,
+     "quote": "yes"
+    },
+    {
      "line_id": 38,
      "quote": "yeah it does"
     }
    ],
-   "explanation": "The patient reports pain when the inside and outside of the wrist are pressed.",
+   "explanation": "Pressing on the inside and outside of the wrist hurts.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C37",
-   "text": "Pain with wrist flexion and extension.",
+   "claim_id": "C35",
+   "text": "Wrist flexion and extension are painful.",
    "note_quote": "Pain on flexion and extension.",
    "note_span": {
     "start": 1796,
@@ -1103,20 +1081,20 @@
    "evidence": [
     {
      "line_id": 41,
-     "quote": "so pain on flexion what about extension"
+     "quote": "okay so pain on flexion what about extension"
     },
     {
      "line_id": 42,
      "quote": "i have a hard time doing that actually"
     }
    ],
-   "explanation": "The clinician notes pain on flexion and the patient has difficulty with extension.",
+   "explanation": "The clinician notes pain on flexion and the patient struggles with extension.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C38",
-   "text": "Pain with radial and lateral deviation of the wrist.",
+   "claim_id": "C36",
+   "text": "Radial and lateral deviation of the wrist are painful.",
    "note_quote": "Pain with radial deviation and lateral deviation.",
    "note_span": {
     "start": 1827,
@@ -1129,21 +1107,21 @@
      "quote": "does radial deviation hurt"
     },
     {
-     "line_id": 45,
-     "quote": "and then lateral as well"
+     "line_id": 44,
+     "quote": "yeah"
     },
     {
-     "line_id": 46,
-     "quote": "it's really hard to move any direction of this hand"
+     "line_id": 45,
+     "quote": "and then lateral as well"
     }
    ],
-   "explanation": "The patient confirms pain with radial and lateral deviation.",
+   "explanation": "The patient confirms pain on radial and lateral deviation.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C39",
-   "text": "Pain with wrist abduction and adduction.",
+   "claim_id": "C37",
+   "text": "Wrist abduction and adduction are painful.",
    "note_quote": "Pain with wrist abduction and adduction.",
    "note_span": {
     "start": 1877,
@@ -1156,12 +1134,12 @@
      "quote": "wrist abduction adduction positive for pain on movement"
     }
    ],
-   "explanation": "The clinician dictates pain with abduction and adduction.",
+   "explanation": "The clinician dictates pain on abduction and adduction.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C40",
+   "claim_id": "C38",
    "text": "The metacarpals are intact.",
    "note_quote": "The metacarpals are intact.",
    "note_span": {
@@ -1180,8 +1158,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C41",
-   "text": "Obvious swelling and bruising of the wrist.",
+   "claim_id": "C39",
+   "text": "There is obvious swelling and bruising.",
    "note_quote": "Obvious swelling and bruising.",
    "note_span": {
     "start": 1946,
@@ -1199,8 +1177,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C42",
-   "text": "Tenderness on palpation throughout the wrist.",
+   "claim_id": "C40",
+   "text": "There is tenderness on palpation throughout.",
    "note_quote": "Tenderness on palpation throughout.",
    "note_span": {
     "start": 1977,
@@ -1218,7 +1196,7 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C43",
+   "claim_id": "C41",
    "text": "Exam suggests a possible fracture with bony crepitus.",
    "note_quote": "There is evidence of potential fracture feeling and bony crepitus.",
    "note_span": {
@@ -1237,8 +1215,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C44",
-   "text": "Right wrist x-rays were taken today.",
+   "claim_id": "C42",
+   "text": "Right wrist x-rays were done today.",
    "note_quote": "X-rays of the right wrist were taken today.",
    "note_span": {
     "start": 2094,
@@ -1256,7 +1234,7 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C45",
+   "claim_id": "C43",
    "text": "The fracture is extra-articular and proximal to the radioulnar joint.",
    "note_quote": "the fracture appears extra-articular and proximal to the radioulnar joint",
    "note_span": {
@@ -1270,13 +1248,13 @@
      "quote": "the fracture appears extra-articular and usually proximal to the radial ulnar joint"
     }
    ],
-   "explanation": "The clinician dictates an extra-articular fracture proximal to the radioulnar joint.",
+   "explanation": "The dictated x-ray findings describe an extra-articular fracture proximal to the radioulnar joint.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C46",
-   "text": "There is variable dorsal angulation of the distal fracture fragment.",
+   "claim_id": "C44",
+   "text": "The distal fragment shows a variable degree of dorsal angulation.",
    "note_quote": "Dorsal angulation of the distal fracture fragment is present to a variable degree.",
    "note_span": {
     "start": 2226,
@@ -1289,26 +1267,31 @@
      "quote": "dorsal angulation of the distal fracture fragment is present to a variable degree"
     }
    ],
-   "explanation": "The clinician dictates this finding.",
+   "explanation": "The dictated findings state variable dorsal angulation.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C47",
-   "text": "Dorsal angulation is severe with a dinner fork deformity.",
+   "claim_id": "C45",
+   "text": "The dorsal angulation is severe with a dinner fork deformity.",
    "note_quote": "Dorsal angulation is severe, presenting with a dinner fork deformity.",
    "note_span": {
     "start": 2309,
     "end": 2378
    },
-   "status": "unsupported",
-   "evidence": [],
-   "explanation": "The dictation only says a dinner fork deformity occurs if angulation is severe; it never states the angulation is severe in this patient.",
-   "correction": "",
+   "status": "contradicted",
+   "evidence": [
+    {
+     "line_id": 81,
+     "quote": "if dorsal angulation is severe presenting with a dinner fork deformity"
+    }
+   ],
+   "explanation": "The transcript states this only conditionally ('if' severe), not as a finding in this patient.",
+   "correction": "If dorsal angulation is severe, it presents with a dinner fork deformity.",
    "receipt_failed": false
   },
   {
-   "claim_id": "C48",
+   "claim_id": "C46",
    "text": "There is an ulnar styloid fracture.",
    "note_quote": "An ulnar styloid fracture is present.",
    "note_span": {
@@ -1322,12 +1305,12 @@
      "quote": "ulnar styloid fracture is present"
     }
    ],
-   "explanation": "The clinician dictates an ulnar styloid fracture.",
+   "explanation": "The dictated findings state an ulnar styloid fracture.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C49",
+   "claim_id": "C47",
    "text": "Assessment is a right wrist Colles fracture.",
    "note_quote": "Right wrist Colles fracture.",
    "note_span": {
@@ -1339,15 +1322,19 @@
     {
      "line_id": 53,
      "quote": "you are positive for what we call a colles' fracture"
+    },
+    {
+     "line_id": 4,
+     "quote": "it's my right one of course"
     }
    ],
-   "explanation": "The clinician states the x-ray shows a Colles fracture.",
+   "explanation": "The clinician diagnoses a Colles fracture of the injured right wrist.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C50",
-   "text": "The x-rays showed a right wrist Colles fracture, as discussed with the patient.",
+   "claim_id": "C48",
+   "text": "The x-rays show a right wrist Colles fracture.",
    "note_quote": "her x-rays revealed a right wrist Colles fracture",
    "note_span": {
     "start": 2588,
@@ -1360,17 +1347,36 @@
      "quote": "you are positive for what we call a colles' fracture"
     }
    ],
-   "explanation": "The clinician explains the Colles fracture to the patient.",
+   "explanation": "The clinician tells the patient the x-ray shows a Colles fracture.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C51",
+   "claim_id": "C49",
+   "text": "Treatment options were discussed.",
+   "note_quote": "We discussed treatment options",
+   "note_span": {
+    "start": 2639,
+    "end": 2669
+   },
+   "status": "supported",
+   "evidence": [
+    {
+     "line_id": 59,
+     "quote": "we have a couple of options"
+    }
+   ],
+   "explanation": "The clinician mentions having a couple of options.",
+   "correction": "",
+   "receipt_failed": false
+  },
+  {
+   "claim_id": "C50",
    "text": "Open reduction and internal fixation of the right wrist is recommended.",
-   "note_quote": "I have recommended that we proceed with a right wrist ORIF",
+   "note_quote": "I have recommended that we proceed with a right wrist ORIF and all indicated procedures",
    "note_span": {
     "start": 2674,
-    "end": 2732
+    "end": 2761
    },
    "status": "inferred",
    "evidence": [
@@ -1380,16 +1386,16 @@
     },
     {
      "line_id": 61,
-     "quote": "put screws in to make sure that we hold it in place"
+     "quote": "get your wrist straight and then like put screws in"
     }
    ],
-   "explanation": "Surgery with screws is recommended, which corresponds to ORIF, though the term is not used.",
+   "explanation": "Surgery to straighten the wrist and place screws corresponds to ORIF.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C52",
-   "text": "Risks, benefits and alternatives of surgery were reviewed.",
+   "claim_id": "C51",
+   "text": "Surgical risks, benefits and alternatives were reviewed.",
    "note_quote": "We reviewed the risks, benefits, and alternatives of the surgery.",
    "note_span": {
     "start": 2763,
@@ -1397,16 +1403,16 @@
    },
    "status": "unsupported",
    "evidence": [],
-   "explanation": "Options were mentioned in passing but risks and benefits of surgery were not discussed.",
+   "explanation": "Risks, benefits and alternatives of surgery were not discussed in the visit.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C53",
-   "text": "Surgery should be done as soon as possible to prevent malunion.",
-   "note_quote": "schedule the operation for as soon as possible to ensure adequate healing and to limit malformation of the wrist",
+   "claim_id": "C52",
+   "text": "Surgery should happen as soon as possible to prevent malunion.",
+   "note_quote": "we should schedule the operation for as soon as possible to ensure adequate healing and to limit malformation of the wrist",
    "note_span": {
-    "start": 2856,
+    "start": 2846,
     "end": 2968
    },
    "status": "supported",
@@ -1425,11 +1431,11 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C54",
-   "text": "The procedure requires an overnight hospital stay.",
-   "note_quote": "admitted to the hospital for an overnight stay",
+   "claim_id": "C53",
+   "text": "The surgery requires an overnight hospital stay.",
+   "note_quote": "this procedure will require her to be admitted to the hospital for an overnight stay",
    "note_span": {
-    "start": 3023,
+    "start": 2985,
     "end": 3069
    },
    "status": "supported",
@@ -1444,7 +1450,7 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C55",
+   "claim_id": "C54",
    "text": "The patient will be placed in a thumb spica brace.",
    "note_quote": "the patient will be placed in a thumb spica brace",
    "note_span": {
@@ -1458,13 +1464,13 @@
      "quote": "not a thumb spica we're gon na brace your arm"
     }
    ],
-   "explanation": "The clinician corrected himself: not a thumb spica, but an arm brace.",
-   "correction": "",
+   "explanation": "The clinician corrects himself: not a thumb spica, but a wrist brace.",
+   "correction": "the patient will be placed in a wrist brace",
    "receipt_failed": false
   },
   {
-   "claim_id": "C56",
-   "text": "The patient will receive instructions on brace use.",
+   "claim_id": "C55",
+   "text": "She will receive instructions on using the brace.",
    "note_quote": "receive instructions on its proper usage",
    "note_span": {
     "start": 3145,
@@ -1472,17 +1478,17 @@
    },
    "status": "unsupported",
    "evidence": [],
-   "explanation": "No brace instructions are mentioned in the transcript.",
+   "explanation": "No brace usage instructions were given in the visit.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C57",
-   "text": "Ultram (tramadol) 50 mg every 6 hours prescribed for pain.",
-   "note_quote": "Ultram 50 mg every 6 hours",
+   "claim_id": "C56",
+   "text": "Ultram 50 mg every 6 hours is prescribed for pain.",
+   "note_quote": "I have prescribed the patient Ultram 50 mg every 6 hours to treat her pain.",
    "note_span": {
-    "start": 3217,
-    "end": 3243
+    "start": 3187,
+    "end": 3262
    },
    "status": "supported",
    "evidence": [
@@ -1496,11 +1502,11 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C58",
+   "claim_id": "C57",
    "text": "She will wear a brace for 6 weeks after surgery.",
-   "note_quote": "wearing a brace for 6 weeks",
+   "note_quote": "her postoperative course will include wearing a brace for 6 weeks",
    "note_span": {
-    "start": 3324,
+    "start": 3286,
     "end": 3351
    },
    "status": "supported",
@@ -1508,15 +1514,19 @@
     {
      "line_id": 65,
      "quote": "you're gon na be wearing the brace for about six weeks"
+    },
+    {
+     "line_id": 67,
+     "quote": "then you'll be bracing it for six weeks"
     }
    ],
-   "explanation": "The clinician states about six weeks of bracing.",
+   "explanation": "The clinician states six weeks of bracing after surgery.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C59",
-   "text": "Physical therapy will start a few weeks after surgery.",
+   "claim_id": "C58",
+   "text": "Physical therapy starts a few weeks after surgery.",
    "note_quote": "A few weeks after surgery, the patient will initiate formal physical therapy",
    "note_span": {
     "start": 3353,
@@ -1529,13 +1539,13 @@
      "quote": "get you into physical therapy a few weeks after surgery"
     }
    ],
-   "explanation": "The clinician states physical therapy a few weeks after surgery.",
+   "explanation": "The clinician plans physical therapy a few weeks after surgery.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C60",
-   "text": "Physical therapy will be 3 times per week to strengthen the wrist.",
+   "claim_id": "C59",
+   "text": "Physical therapy will be three times per week to strengthen the wrist.",
    "note_quote": "will attend 3 times per week to strengthen her right wrist",
    "note_span": {
     "start": 3434,
@@ -1552,12 +1562,12 @@
      "quote": "get your wrist as strong as possible"
     }
    ],
-   "explanation": "The clinician expects three sessions per week to strengthen the wrist, pending PT assessment.",
+   "explanation": "The clinician suggests therapy about three times a week to strengthen the wrist.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C61",
+   "claim_id": "C60",
    "text": "She has a two-week vacation planned in one month.",
    "note_quote": "The patient has a 2-week vacation planned in 1 month.",
    "note_span": {
@@ -1580,8 +1590,8 @@
    "receipt_failed": false
   },
   {
-   "claim_id": "C62",
-   "text": "Physical therapy will determine whether she can do exercises on her own instead of postponing the vacation.",
+   "claim_id": "C61",
+   "text": "Physical therapy input will decide whether she can do exercises on her own rather than postpone the vacation.",
    "note_quote": "I recommended that we consult with her physical therapist to determine if there are exercises she can perform on her own instead of postponing her vacation.",
    "note_span": {
     "start": 3548,
@@ -1598,51 +1608,39 @@
      "quote": "if there's something that you can do by yourself then you should be fine"
     }
    ],
-   "explanation": "The clinician said postponement depends on physical therapy's view of independent exercises; the note frames it more definitively.",
+   "explanation": "The clinician said postponing may be needed depending on physical therapy and whether she can exercise on her own.",
    "correction": "",
    "receipt_failed": false
   },
   {
-   "claim_id": "C63",
-   "text": "Follow-up in 4 weeks after surgery to discuss progress.",
+   "claim_id": "C62",
+   "text": "Follow-up is 4 weeks after surgery to discuss progress.",
    "note_quote": "The patient will follow up with me in 4 weeks status post surgery to discuss her progress.",
    "note_span": {
     "start": 3724,
     "end": 3814
    },
-   "status": "inferred",
+   "status": "contradicted",
    "evidence": [
     {
      "line_id": 77,
      "quote": "how about in a month we come you come back let's do a checkup again"
+    },
+    {
+     "line_id": 77,
+     "quote": "assess whether or not this is something that i would recommend you do"
     }
    ],
-   "explanation": "A one-month checkup was agreed, but it was framed around assessing the vacation, not as a set interval after surgery.",
-   "correction": "",
+   "explanation": "The follow-up was set for one month from now to reassess the vacation, not 4 weeks after surgery.",
+   "correction": "The patient will follow up with me in 1 month for a checkup to reassess whether she can go on her vacation.",
    "receipt_failed": false
   }
  ],
  "suggested_additions": [
   {
    "addition_id": "A1",
-   "text": "Sensation in the fingers is preserved; she reports only mild tingling, which she thinks may be related to the swelling.",
-   "why": "Accurate baseline neurovascular status is essential in a distal radius fracture and the note currently records numbness.",
-   "priority": "high",
-   "evidence": [
-    {
-     "line_id": 28,
-     "quote": "i can feel it my fingers still"
-    },
-    {
-     "line_id": 30,
-     "quote": "maybe a little bit of tingling"
-    }
-   ]
-  },
-  {
-   "addition_id": "A2",
-   "text": "She is able to make a fist but cannot make a tight fist.",
-   "why": "Grip limitation documents baseline hand function before surgery.",
+   "text": "She is unable to make a tight fist.",
+   "why": "Grip limitation is a relevant functional exam finding for a distal radius fracture.",
    "priority": "medium",
    "evidence": [
     {
@@ -1652,10 +1650,10 @@
    ]
   },
   {
-   "addition_id": "A3",
+   "addition_id": "A2",
    "text": "Pain is localized to the wrist without radiation.",
-   "why": "Absence of radiation helps exclude associated injuries proximal to the wrist.",
-   "priority": "low",
+   "why": "Absence of radiation is a key pain characteristic and helps exclude other injuries.",
+   "priority": "medium",
    "evidence": [
     {
      "line_id": 24,
@@ -1668,21 +1666,21 @@
    ]
   },
   {
-   "addition_id": "A4",
-   "text": "Shoulders and upper extremities show normal range of motion.",
-   "why": "Documents that no other upper limb injury was found after the fall.",
-   "priority": "low",
+   "addition_id": "A3",
+   "text": "She is unsure whether the tingling is due to wrist swelling; sensation in the fingers is intact.",
+   "why": "Baseline neurovascular status matters for monitoring median nerve compromise before surgery.",
+   "priority": "medium",
    "evidence": [
     {
-     "line_id": 33,
-     "quote": "your upper extremities i see normal range of movement"
+     "line_id": 28,
+     "quote": "ca n't tell if it's just because of the swelling in my wrist"
     }
    ]
   },
   {
-   "addition_id": "A5",
-   "text": "Mildly elevated blood pressure is likely secondary to pain.",
-   "why": "Records the clinician's interpretation of the abnormal vital sign.",
+   "addition_id": "A4",
+   "text": "Mildly elevated blood pressure is likely related to pain.",
+   "why": "Documents the clinician's interpretation of the abnormal vital sign so it can be rechecked.",
    "priority": "low",
    "evidence": [
     {
@@ -1690,37 +1688,49 @@
      "quote": "that's probably to do with the pain"
     }
    ]
+  },
+  {
+   "addition_id": "A5",
+   "text": "Upper extremities otherwise show normal range of motion.",
+   "why": "Documents that the injury is isolated to the right wrist.",
+   "priority": "low",
+   "evidence": [
+    {
+     "line_id": 33,
+     "quote": "your upper extremities i see normal range of movement"
+    }
+   ]
   }
  ],
  "follow_up_questions": [
   {
    "category": "Red flags",
-   "question": "Can you feel me touching each fingertip, and is the color and capillary refill of your right fingers normal compared with the left?",
-   "why": "Median nerve compromise and vascular injury must be excluded in a displaced distal radius fracture."
+   "question": "Do you have any numbness in your thumb, index or middle finger, or are your fingers cold, pale or swelling more under the brace?",
+   "why": "Worsening median nerve symptoms or compromised circulation would need urgent attention."
   },
   {
    "category": "History",
-   "question": "When you fell, did you hit your head, lose consciousness, or hurt anywhere else?",
-   "why": "A fall on the stairs may cause other injuries that were not assessed."
+   "question": "Did you hit your head or hurt anything else, like your other wrist, hip or back, when you fell?",
+   "why": "A fall on the stairs can cause other injuries that were not checked."
   },
   {
    "category": "Medication",
-   "question": "What other medications do you take, and do you have any allergies or a history of seizures before we start Ultram and plan surgery?",
-   "why": "Tramadol has seizure and serotonergic interaction risks, and allergies matter for surgery."
+   "question": "What medications do you take, including blood thinners or antidepressants, and do you have any drug allergies?",
+   "why": "Needed before surgery and before starting Ultram, which interacts with serotonergic drugs."
   },
   {
    "category": "History",
-   "question": "Are you right- or left-handed, and have you ever been told you have osteoporosis or had other fractures?",
-   "why": "Hand dominance affects function and recovery, and a low-energy fracture may warrant bone health evaluation."
+   "question": "Which is your dominant hand, and have you ever been told you have osteoporosis?",
+   "why": "Hand dominance affects recovery planning and a low-energy wrist fracture may warrant bone density evaluation."
   }
  ],
  "summary": {
-  "total": 63,
-  "supported": 46,
-  "inferred": 4,
-  "contradicted": 3,
-  "unsupported": 10,
-  "with_receipt_pct": 79.4
+  "total": 62,
+  "supported": 45,
+  "inferred": 3,
+  "contradicted": 5,
+  "unsupported": 9,
+  "with_receipt_pct": 77.4
  },
  "meta": {
   "model": "simulated (Claude agent)",
