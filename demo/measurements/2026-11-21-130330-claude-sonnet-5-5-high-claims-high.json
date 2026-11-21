@@ -1,0 +1,175 @@
+{
+ "model": "claude-sonnet-5-5",
+ "effort": "high",
+ "efforts": {
+  "ClaimsLLM": "high",
+  "CoverageLLM": "high",
+  "DecisionsLLM": "high"
+ },
+ "case": "chest-pain",
+ "steps": [
+  {
+   "step": "Visit check",
+   "seconds": 23.6,
+   "calls": 1,
+   "input": 4,
+   "output": 2305,
+   "cache_read": 0,
+   "cache_write": 5286,
+   "cost_usd": 0.0363,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "VisitCheckLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 23.6,
+     "input_tokens": 4,
+     "output_tokens": 2305,
+     "cost_usd": 0.0363,
+     "source": "live"
+    }
+   ]
+  },
+  {
+   "step": "Draft note (SOAP)",
+   "seconds": 16.7,
+   "calls": 1,
+   "input": 11,
+   "output": 977,
+   "cache_read": 0,
+   "cache_write": 4355,
+   "cost_usd": 0.0207,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DraftNoteLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 16.7,
+     "input_tokens": 11,
+     "output_tokens": 977,
+     "cost_usd": 0.0207,
+     "source": "live"
+    }
+   ]
+  },
+  {
+   "step": "Note check of the draft",
+   "seconds": 38.6,
+   "calls": 3,
+   "input": 2880,
+   "output": 9052,
+   "cache_read": 14699,
+   "cache_write": 0,
+   "cost_usd": 0.0977,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 9.4,
+     "input_tokens": 960,
+     "output_tokens": 1250,
+     "cost_usd": 0.0149,
+     "source": "live"
+    },
+    {
+     "task": "CoverageLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 14.9,
+     "input_tokens": 960,
+     "output_tokens": 1720,
+     "cost_usd": 0.0196,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 38.6,
+     "input_tokens": 960,
+     "output_tokens": 6082,
+     "cost_usd": 0.0632,
+     "source": "live"
+    }
+   ],
+   "quality": {
+    "statements": 42,
+    "problems": 1,
+    "planted_found": 0,
+    "planted_total": 0,
+    "missing": 2,
+    "flags": 4
+   }
+  },
+  {
+   "step": "Note check, note with errors",
+   "seconds": 18.3,
+   "calls": 3,
+   "input": 1173,
+   "output": 7070,
+   "cache_read": 14699,
+   "cache_write": 0,
+   "cost_usd": 0.0745,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 9.2,
+     "input_tokens": 391,
+     "output_tokens": 1254,
+     "cost_usd": 0.0138,
+     "source": "live"
+    },
+    {
+     "task": "CoverageLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 15.3,
+     "input_tokens": 391,
+     "output_tokens": 2184,
+     "cost_usd": 0.0231,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 18.3,
+     "input_tokens": 391,
+     "output_tokens": 3632,
+     "cost_usd": 0.0376,
+     "source": "live"
+    }
+   ],
+   "quality": {
+    "statements": 29,
+    "problems": 6,
+    "planted_found": 5,
+    "planted_total": 6,
+    "missing": 0,
+    "flags": 4
+   }
+  },
+  {
+   "step": "Ask one question",
+   "seconds": 7.3,
+   "calls": 1,
+   "input": 448,
+   "output": 963,
+   "cache_read": 0,
+   "cache_write": 4666,
+   "cost_usd": 0.0222,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "AskLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 7.3,
+     "input_tokens": 448,
+     "output_tokens": 963,
+     "cost_usd": 0.0222,
+     "source": "live"
+    }
+   ]
+  }
+ ],
+ "total_cost_usd": 0.2514
+}

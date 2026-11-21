@@ -39,7 +39,8 @@ def quality(data: dict, planted: list[str]) -> dict:
     flagged = [c for c in data["claims"] if c["status"] in ("contradicted", "unsupported")]
     found = [p for p in planted if any(p.lower() in (c["note_quote"] + " " + c["text"]).lower() for c in flagged)]
     return {"statements": len(data["claims"]), "problems": len(flagged), "planted_found": len(found),
-            "planted_total": len(planted), "missing": len(data["suggested_additions"]), "flags": len(data["decision_flags"])}
+            "planted_total": len(planted), "planted_missed": [p for p in planted if p not in found],
+            "missing": len(data["suggested_additions"]), "flags": len(data["decision_flags"])}
 
 
 def main(case: str = "chest-pain", audits_only: bool = False) -> int:
@@ -81,6 +82,8 @@ def main(case: str = "chest-pain", audits_only: bool = False) -> int:
                 extra = f"  {q['problems']} problems"
                 if q["planted_total"]:
                     extra += f", planted errors found {q['planted_found']}/{q['planted_total']}"
+                    if q["planted_missed"]:
+                        extra += f" (missed: {', '.join(q['planted_missed'])})"
             rows.append(row)
             print(f"{name:<36} {row['seconds']:>6.1f} s  ${row['cost_usd']:.3f}  ({row['calls']} calls){extra}")
             return data

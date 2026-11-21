@@ -1,0 +1,113 @@
+{
+ "model": "claude-sonnet-5-5",
+ "effort": "high",
+ "efforts": {
+  "ClaimsLLM": "high",
+  "CoverageLLM": "high",
+  "DecisionsLLM": "high"
+ },
+ "case": "chest-pain",
+ "steps": [
+  {
+   "step": "Note check, correct note",
+   "seconds": 17.8,
+   "calls": 3,
+   "input": 1188,
+   "output": 5543,
+   "cache_read": 14699,
+   "cache_write": 0,
+   "cost_usd": 0.0592,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 10.8,
+     "input_tokens": 396,
+     "output_tokens": 1092,
+     "cost_usd": 0.0122,
+     "source": "live"
+    },
+    {
+     "task": "CoverageLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 11.6,
+     "input_tokens": 396,
+     "output_tokens": 1227,
+     "cost_usd": 0.0135,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 17.7,
+     "input_tokens": 396,
+     "output_tokens": 3224,
+     "cost_usd": 0.0335,
+     "source": "live"
+    }
+   ],
+   "quality": {
+    "statements": 24,
+    "problems": 0,
+    "planted_found": 0,
+    "planted_total": 0,
+    "planted_missed": [],
+    "missing": 5,
+    "flags": 4
+   }
+  },
+  {
+   "step": "Note check, note with errors",
+   "seconds": 18.8,
+   "calls": 3,
+   "input": 1173,
+   "output": 6866,
+   "cache_read": 14699,
+   "cache_write": 0,
+   "cost_usd": 0.0725,
+   "source": "live",
+   "per_call": [
+    {
+     "task": "DecisionsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 8.9,
+     "input_tokens": 391,
+     "output_tokens": 1241,
+     "cost_usd": 0.0137,
+     "source": "live"
+    },
+    {
+     "task": "CoverageLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 13.6,
+     "input_tokens": 391,
+     "output_tokens": 1892,
+     "cost_usd": 0.0202,
+     "source": "live"
+    },
+    {
+     "task": "ClaimsLLM",
+     "model": "claude-sonnet-5-5",
+     "seconds": 18.8,
+     "input_tokens": 391,
+     "output_tokens": 3733,
+     "cost_usd": 0.0386,
+     "source": "live"
+    }
+   ],
+   "quality": {
+    "statements": 29,
+    "problems": 6,
+    "planted_found": 5,
+    "planted_total": 6,
+    "planted_missed": [
+     "metformin 1000 mg"
+    ],
+    "missing": 1,
+    "flags": 4
+   }
+  }
+ ],
+ "total_cost_usd": 0.1317
+}
