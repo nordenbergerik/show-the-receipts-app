@@ -5,19 +5,35 @@ import hmac
 import logging
 from typing import Annotated
 
+from urllib.parse import quote
+
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
 from backend.assist import run_ask, run_draft_note, run_visit_check
 from backend.audit import AuditError, run_audit
-from backend.auth import User, get_current_user
+from backend.auth import (
+    COOKIE,
+    SESSION_SECONDS,
+    User,
+    auth_enabled,
+    check_credentials,
+    get_current_user,
+    is_https,
+    make_token,
+    read_token,
+    record_failure,
+    reset_failures,
+    too_many_attempts,
+)
 from backend.cache import AuditCache
-from backend.cases import example_cases, suggested_questions
+from backend.cases import suggested_questions
 from backend.config import Settings, get_settings
 from backend.data import VARIANTS, DataStore, get_store
 from backend.llm import ClaudeLLM, StructuredLLM
 from backend.replay import ReplayLLM
-from backend.notes import demo_notes, notes_for
 from backend.schemas import (
     AskRequest,
     AskResult,
@@ -44,6 +60,53 @@ async def no_stale_frontend(request: Request, call_next):
     response = await call_next(request)
     if not request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+# Utan inloggning nås bara inloggningssidan, dess stilmall och hälsokontrollen
+# (som Render använder).
+PUBLIC_PATHS = {"/login", "/api/login", "/api/health", "/style.css"}
+
+
+@app.middleware("http")
+async def require_login(request: Request, call_next):
+    path = request.url.path
+    if auth_enabled() and path not in PUBLIC_PATHS and read_token(request.cookies.get(COOKIE)) is None:
+        if path.startswith("/api/"):
+            return JSONResponse({"detail": "Sign in to continue."}, status_code=401)
+        return RedirectResponse(f"/login?next={quote(path)}", status_code=303)
+    return await call_next(request)
+
+
+class LoginRequest(BaseModel):
+    username: str = Field(max_length=100)
+    password: str = Field(max_length=200)
+
+
+@app.get("/login", include_in_schema=False)
+def login_page() -> FileResponse:
+    return FileResponse(get_settings().frontend_dir / "login.html")
+
+
+@app.post("/api/login")
+def login(body: LoginRequest, request: Request) -> JSONResponse:
+    client = request.client.host if request.client else "unknown"
+    if too_many_attempts(client):
+        raise HTTPException(429, "Too many attempts. Wait a few minutes and try again.")
+    if not auth_enabled() or not check_credentials(body.username, body.password):
+        record_failure(client)
+        raise HTTPException(401, "Wrong username or password.")
+    reset_failures(client)
+    response = JSONResponse({"ok": True})
+    response.set_cookie(COOKIE, make_token(body.username.strip()), max_age=SESSION_SECONDS, httponly=True,
+                        samesite="lax", secure=is_https(request), path="/")
+    return response
+
+
+@app.post("/api/logout")
+def logout() -> JSONResponse:
+    response = JSONResponse({"ok": True})
+    response.delete_cookie(COOKIE, path="/")
     return response
 
 
@@ -98,7 +161,6 @@ def list_encounters(store: Annotated[DataStore, Depends(get_store)]) -> list[dic
             "chief_complaint": e.chief_complaint,
             "patient": e.patient_name,
             "variants": list(e.variants),
-            "featured": e.encounter_id in demo_notes(),
         }
         for e in store.list()
     ]
@@ -124,7 +186,7 @@ def get_encounter(
         "variant": variant,
         "variants": {v: VARIANTS[v] for v in enc.variants},
         "transcript": [line.model_dump() for line in index_transcript(enc.variants[variant])],
-        "notes": notes_for(enc),
+        "reference_note": enc.reference_note,
     }
 
 
@@ -157,12 +219,6 @@ async def draft_note(req: DraftNoteRequest, store: Store, llm: LLM, settings: Se
         return await run_draft_note(req, store=store, llm=llm, settings=settings, allow_live=live)
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
-
-
-@app.get("/api/cases")
-def list_cases() -> list[dict]:
-    """Exempelfallen i demo/cases/, så att de kan startas med ett klick i appen."""
-    return example_cases()
 
 
 @app.post("/api/ask/suggestions")

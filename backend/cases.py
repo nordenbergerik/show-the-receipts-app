@@ -1,5 +1,5 @@
 """Exempelfallen i demo/cases/: föreslagna frågor till journalen per samtal och
-fallen själva, så att de kan startas med ett klick i appen."""
+filerna som kan laddas upp under New visit."""
 from __future__ import annotations
 
 import hashlib
@@ -47,20 +47,3 @@ def _questions_by_transcript() -> dict[str, list[str]]:
 
 def suggested_questions(lines: list[Line]) -> list[str]:
     return _questions_by_transcript().get(transcript_fingerprint(lines), [])
-
-
-@lru_cache(maxsize=1)
-def example_cases() -> list[dict]:
-    cases = []
-    for config_path in sorted(CASES_DIR.glob("*/case.json")):
-        folder = config_path.parent
-        config = json.loads(config_path.read_text(encoding="utf-8"))
-        cases.append({
-            "id": folder.name,
-            "title": config.get("title", folder.name),
-            "patient": config.get("patient", ""),
-            "reason": config.get("reason", ""),
-            "transcript": _read(folder / "transcript.txt"),
-            "notes": {name: _read(folder / name) for name in config.get("notes", [])},
-        })
-    return cases

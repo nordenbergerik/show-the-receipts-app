@@ -18,33 +18,28 @@ Byggt för Hacking Healthcare Hackathon (Track 1). Planer: [PLAN.md](PLAN.md) ·
 
 | Steg | Vad AI:n gör |
 |---|---|
-| **Visit check**, direkt efter samtalet | Frågor som inte ställdes och en andra blick på besluten. Läkaren kryssar i det hen vill ta med. |
-| **Note** | Ett journalutkast från samtalet, eller läkarens egen anteckning. Redigeras direkt i dokumentet. |
-| **Note check** | Kvitto på varje mening, fel som går att rätta med ett klick, det som saknas, och en andra blick på besluten. |
+| **Visit check**, direkt efter samtalet | Feedback till läkaren: frågor som kan ha glömts och beslut som är värda en andra blick. Ingenting förs in i journalen. |
+| **Note** | Ett journalutkast i SOAP eller löptext (klinikens val), eller läkarens egen anteckning. Redigeras direkt i dokumentet. |
+| **Note check** | Kvitto på varje mening, fel som rättas med ett klick, det som saknas och en andra blick på besluten. |
+| **Sign and send** | Kontroll före skick av det som fortfarande är öppet, därefter signering. Demo: ingenting lämnar webbläsaren. *Copy note* kopierar journalen på riktigt. |
 | **Ask about this patient** | Söker belägg i journalen för en misstanke, med kvitton och en tydlig varning om att AI kan ha fel. |
 
 Varje AI-punkt kan kvitteras (✓) eller avfärdas (×) med ett klick.
 
 ## Demo
 
-Öppna http://localhost:8000/app/ och välj ett exempel under **Try an example**, eller ladda upp filerna i [demo/cases/chest-pain/](demo/cases/chest-pain/) under **New visit**:
+Logga in (se *Inloggning* nedan), välj **New visit** och ladda upp filerna i [demo/cases/chest-pain/](demo/cases/chest-pain/):
 
-- **Hela flödet:** ladda upp bara `transcript.txt` och kör Visit check → Draft → Check note.
-- **Tillägget:** ladda upp `transcript.txt` och `note-wrong.txt` (eller `note-correct.txt`) och gå direkt till Check note.
+- **Hela flödet:** ladda upp bara `transcript.txt` → *Check the visit* → *Draft the note* → *Check note* → *Sign and send*.
+- **Tillägget:** ladda upp `transcript.txt` och `note-wrong.txt` (eller `note-correct.txt`) → *Check note* → *Sign and send*.
 
-Utan API-nyckel svarar appen med **inspelade AI-svar** på exakt de förfrågningar den skickar (märkt *Demo mode* uppe till höger). Svaren togs fram av Claude-agenter med samma promptar och scheman, och går genom samma kvittokontroll som riktiga svar. Med `ANTHROPIC_API_KEY` i `.env` används Claude-API:t i stället. Inspelningarna görs med `python -m demo.record` (se filen).
+Utan API-nyckel svarar appen med **inspelade AI-svar** för de filerna (märkt *Demo mode* uppe till höger). Svaren togs fram av Claude-agenter på exakt de förfrågningar appen skickar och går genom samma kvittokontroll som riktiga svar. Med `ANTHROPIC_API_KEY` används Claude-API:t för allt. Inspelningar hanteras med `python -m demo.record` (se filen).
 
-## Status
+## Inloggning
 
-| Del | Status |
-|---|---|
-| Datalager, kvittokontroll, granskning, andra blick, besökskontroll, utkast, frågor till journalen | Klart och testat (falsk LLM och inspelade svar) |
-| Landningssida, patientlista, uppladdning, stegflöde, redigerbar journal | Klart |
-| Inloggning | Platshållare (`backend/auth.py`) |
-| Riktiga API-anrop | Inte testat än (nyckel saknas) |
-| Driftsättning (Render) | Pågår |
+Hela appen ligger bakom en inloggning med **ett enda konto och ingen registrering**. Användarnamn och lösenord sätts som miljövariabler (`AUTH_USERNAME`, `AUTH_PASSWORD`) och finns aldrig i koden. Sessionen är en signerad cookie som gäller i 12 timmar, och upprepade felaktiga försök spärras i fem minuter.
 
-## Kom igång
+## Kom igång lokalt
 
 Kräver Python 3.12 eller senare.
 
@@ -52,7 +47,7 @@ Kräver Python 3.12 eller senare.
 python -m venv .venv
 .venv/Scripts/python -m pip install -r backend/requirements.txt   # Windows
 # .venv/bin/python -m pip install -r backend/requirements.txt     # macOS/Linux
-cp .env.example .env    # fyll i ANTHROPIC_API_KEY
+cp .env.example .env    # fyll i ANTHROPIC_API_KEY och AUTH_PASSWORD
 ```
 
 Starta appen och öppna http://localhost:8000:
@@ -61,17 +56,15 @@ Starta appen och öppna http://localhost:8000:
 .venv/Scripts/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 ```
 
-Bygg om de simulerade granskningarna efter ändringar i `demo/llm/` eller i kvittokontrollen:
-
-```bash
-.venv/Scripts/python -m demo.make_samples
-```
-
 Kör testerna:
 
 ```bash
 .venv/Scripts/python -m pytest -q
 ```
+
+## Driftsättning på Render
+
+Repot har en [render.yaml](render.yaml). Välj **New → Blueprint** i Render och peka på repot. Fyll sedan i de hemliga värdena under *Environment*: `ANTHROPIC_API_KEY` och `AUTH_PASSWORD`. `SESSION_SECRET` genereras automatiskt.
 
 ## Data
 

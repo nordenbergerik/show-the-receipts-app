@@ -27,7 +27,8 @@
     <div class="topbar-right">
       <span id="replay-badge" class="replay-badge" hidden title="No API key is configured, so the app answers with AI responses recorded in advance for the example files.">Demo mode · recorded AI answers</span>
       <a class="btn btn-primary btn-sm" href="#/new">New visit</a>
-      <span id="user-chip" class="user-chip" title="Sign-in is not enabled in this demo"></span>
+      <span id="user-chip" class="user-chip"></span>
+      <button id="logout-btn" class="btn btn-quiet btn-sm" type="button" hidden>Sign out</button>
     </div>
   </header>
 
@@ -41,23 +42,14 @@
   <main id="view-patients" class="view narrow" hidden>
     <div class="view-head">
       <h1>Patients</h1>
-      <input id="patient-search" class="search" type="search" placeholder="Search by name, reason or visit" aria-label="Search patients">
+      <input id="patient-search" class="search" type="search" placeholder="Search by name or reason" aria-label="Search patients">
     </div>
-    <section id="group-cases" class="group" hidden>
-      <h2 class="section-title">Try an example</h2>
-      <div id="case-cards" class="case-cards"></div>
-    </section>
-    <section id="group-own" class="group" hidden>
-      <h2 class="section-title">Your visits</h2>
-      <ul id="list-own" class="rows patient-list"></ul>
-    </section>
-    <section id="group-demo" class="group">
-      <h2 class="section-title">Demo patients</h2>
-      <ul id="list-demo" class="rows patient-list"></ul>
-    </section>
     <section class="group">
-      <h2 id="all-title" class="section-title">All visits</h2>
-      <ul id="list-all" class="rows patient-list"></ul>
+      <ul id="list-own" class="rows patient-list"></ul>
+      <div class="group-footer">
+        <a class="btn btn-ghost btn-sm" href="#/new">New visit</a>
+        <button id="clear-btn" class="btn btn-quiet btn-sm" type="button" hidden>Clear all</button>
+      </div>
     </section>
   </main>
 
@@ -119,13 +111,10 @@
             <h1 id="patient-name"></h1>
             <p id="patient-meta" class="journal-meta"></p>
           </div>
-          <div class="journal-controls">
-            <select id="note-select" aria-label="Note"></select>
-            <select id="variant-select" aria-label="Transcript source"></select>
-          </div>
         </header>
 
         <ol id="stepper" class="stepper" aria-label="Progress"></ol>
+        <div id="signed-banner" class="signed-banner" role="status" hidden></div>
         <section id="stats" class="stats" aria-label="Summary" hidden></section>
 
         <!-- Step 1: right after the visit, before a note exists -->
@@ -145,9 +134,10 @@
                     placeholder="Type or paste a note. Shorthand is fine."></textarea>
           <footer class="journal-actions">
             <button id="audit-btn" class="btn btn-primary" type="button">Check note</button>
-            <button id="edit-btn" class="btn btn-ghost" type="button">Edit as text</button>
-            <button id="sample-btn" class="btn btn-ghost" type="button" hidden>Show simulated review</button>
-            <button id="delete-btn" class="btn btn-quiet" type="button" hidden>Delete visit</button>
+            <button id="sign-btn" class="btn btn-primary" type="button">Sign and send</button>
+            <button id="edit-btn" class="btn btn-quiet" type="button">Edit as text</button>
+            <button id="copy-btn" class="btn btn-quiet" type="button">Copy note</button>
+            <button id="delete-btn" class="btn btn-quiet" type="button">Delete visit</button>
             <span id="status-text" class="status-text" role="status"></span>
             <span class="edit-hint">Click any sentence to edit</span>
           </footer>
@@ -188,6 +178,11 @@
     </div>
   </main>
   <div id="backdrop" class="backdrop" hidden></div>
+
+  <!-- Pre-send check and signing (demo: nothing leaves the browser) -->
+  <div id="sign-dialog" class="dialog-backdrop" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="sign-title" id="sign-dialog-body"></div>
+  </div>
 
   <footer class="footer">Demo data: ACI-Bench (Yim et al., 2023, CC BY 4.0). Role-played visits, no real patients.</footer>
 </body>

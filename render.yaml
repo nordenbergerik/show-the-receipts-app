@@ -1,0 +1,26 @@
+# Render Blueprint: New → Blueprint → välj repot. Hemliga värden (sync: false)
+# fylls i i Renders panel och hamnar aldrig i repot.
+services:
+  - type: web
+    name: show-the-receipts
+    runtime: python
+    plan: free
+    branch: feat/auditor-mvp
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.1
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AUTH_USERNAME
+        value: Demo
+      - key: AUTH_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CLAUDE_MODEL
+        value: claude-opus-5-5
+      - key: CLAUDE_EFFORT
+        value: medium

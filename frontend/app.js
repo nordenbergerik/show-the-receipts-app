@@ -20,17 +20,13 @@ const REQUEST_TIMEOUT_MS = 330_000;
 const state = {
   health: null,
   user: null,
-  encounters: [],
-  cases: [],
   encounter: null, // the open visit
   lines: [], // the visit transcript, indexed
-  variant: "clean",
-  noteId: null,
   noteText: "",
   editingText: false, // "Edit as text" mode
   visitCheck: null,
   audit: null,
-  isSample: false,
+  signed: null, // { at, by } once the note is signed and sent
   selected: null, // { kind, id }
   showFullTranscript: false,
   additionState: {}, // addition_id -> "added" | "dismissed"
@@ -82,6 +78,11 @@ async function api(path, options = {}) {
       : "Could not reach the server. Check your connection and try again.";
     throw Object.assign(new Error(message), { status: 0 });
   }
+  if (response.status === 401 && path !== "/api/login") {
+    // the session has ended: back to the sign-in page, then here again
+    location.href = `/login?next=${encodeURIComponent(location.pathname + location.hash)}`;
+    throw Object.assign(new Error("Sign in to continue."), { status: 401 });
+  }
   let body = null;
   try { body = await response.json(); } catch { /* not JSON */ }
   if (!response.ok) {
@@ -100,12 +101,9 @@ function isValidAudit(result) {
   return Boolean(result && typeof result.note_text === "string" && Array.isArray(result.claims) && Array.isArray(result.transcript));
 }
 
-// The visit as the API wants it: from the dataset, or the user's own transcript.
+// Every visit is a transcript the clinician uploaded (or an example case).
 function visitSource() {
-  const enc = state.encounter;
-  return enc.own
-    ? { transcript_text: enc.transcript_text, chief_complaint: enc.chief_complaint || "" }
-    : { encounter_id: enc.encounter_id, variant: state.variant };
+  return { transcript_text: state.encounter.transcript_text, chief_complaint: state.encounter.chief_complaint || "" };
 }
 
 // ------------------------------------------------------------------ browser storage (no login yet)
@@ -157,20 +155,29 @@ async function init() {
   $("new-form").addEventListener("submit", createVisit);
   setupUpload("transcript");
   setupUpload("note");
-  $("variant-select").addEventListener("change", (e) => loadVisit(state.encounter.encounter_id, e.target.value));
-  $("note-select").addEventListener("change", (e) => selectNote(e.target.value));
   $("audit-btn").addEventListener("click", runAudit);
   $("edit-btn").addEventListener("click", toggleTextEdit);
-  $("sample-btn").addEventListener("click", showSample);
+  $("sign-btn").addEventListener("click", openSignDialog);
+  $("copy-btn").addEventListener("click", copyNote);
   $("delete-btn").addEventListener("click", deleteVisit);
+  $("clear-btn").addEventListener("click", clearAll);
+  $("logout-btn").addEventListener("click", async () => {
+    try { await post("/api/logout", {}); } catch { /* signing out anyway */ }
+    location.href = "/login";
+  });
+  $("sign-dialog").addEventListener("click", (e) => { if (e.target.id === "sign-dialog") closeSignDialog(); });
   $("ask-form").addEventListener("submit", (e) => { e.preventDefault(); runAsk($("ask-input").value); });
   $("backdrop").addEventListener("click", () => select(null));
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!$("sign-dialog").hidden) closeSignDialog();
+    else select(null);
+  });
   window.addEventListener("hashchange", route);
 
   try {
-    [state.health, state.encounters, state.user, state.cases] = await Promise.all([
-      api("/api/health"), api("/api/encounters"), api("/api/me"), api("/api/cases").catch(() => []),
+    [state.health, state.user] = await Promise.all([
+      api("/api/health"), api("/api/me"),
     ]);
   } catch (error) {
     showBanner(`Could not reach the server: ${error.message}`);
@@ -179,13 +186,14 @@ async function init() {
   const initialsOf = state.user.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   $("user-chip").replaceChildren(el("span", { class: "avatar", text: initialsOf }), el("span", { class: "user-name", text: state.user.name }));
   $("replay-badge").hidden = !state.health.replay;
+  $("logout-btn").hidden = !state.user.authenticated;
   route();
 }
 
 function route() {
   const [view, id] = location.hash.replace(/^#\/?/, "").split("/");
   hideBanner();
-  if (view === "visit" && id) return openView("visit", () => loadVisit(decodeURIComponent(id), "clean"));
+  if (view === "visit" && id) return openView("visit", () => loadVisit(decodeURIComponent(id)));
   if (view === "new") return openView("new", resetNewVisitForm);
   return openView("patients", renderPatients);
 }
@@ -210,7 +218,9 @@ function initials(name) {
 function patientRow(visit) {
   const review = reviews()[visit.id];
   let status = el("span", { class: "p-status", text: visit.hasNote === false ? "No note yet" : "Not checked" });
-  if (review) {
+  if (visit.signed) {
+    status = el("span", { class: "p-status is-good", text: "Signed" });
+  } else if (review) {
     status = review.problems
       ? el("span", { class: "p-status is-bad", text: `${review.problems} ${review.problems === 1 ? "problem" : "problems"}` })
       : el("span", { class: "p-status is-good", text: "All backed" });
@@ -227,55 +237,27 @@ function patientRow(visit) {
 
 function renderPatients() {
   const query = $("patient-search").value.trim().toLowerCase();
-  const matches = (v) => !query || [v.patient, v.reason, v.id].some((s) => (s || "").toLowerCase().includes(query));
-  const own = ownVisits().map((v) => ({ id: v.id, patient: v.patient, reason: v.reason, hasNote: Boolean((v.note || "").trim()) })).filter(matches);
-  const fromData = state.encounters.map((e) => ({ id: e.encounter_id, patient: e.patient, reason: e.chief_complaint, featured: e.featured })).filter(matches);
-  const demo = fromData.filter((v) => v.featured);
-  const rest = fromData.filter((v) => !v.featured);
-
-  renderCaseCards(!query);
-  $("group-own").hidden = !own.length;
-  $("list-own").replaceChildren(...own.map(patientRow));
-  $("group-demo").hidden = !demo.length;
-  $("list-demo").replaceChildren(...demo.map(patientRow));
-  $("all-title").textContent = `All visits (${rest.length})`;
-  $("list-all").replaceChildren(...(rest.length ? rest.map(patientRow) : [el("li", { class: "empty-row", text: "No visits match your search." })]));
+  const matches = (v) => !query || [v.patient, v.reason].some((s) => (s || "").toLowerCase().includes(query));
+  const all = ownVisits().map((v) => ({ id: v.id, patient: v.patient, reason: v.reason, hasNote: Boolean((v.note || "").trim()), signed: Boolean(v.signed) }));
+  const shown = all.filter(matches);
+  $("clear-btn").hidden = !all.length;
+  $("clear-btn").dataset.confirm = "";
+  $("clear-btn").textContent = "Clear all";
+  $("list-own").replaceChildren(...(shown.length
+    ? shown.map(patientRow)
+    : [el("li", { class: "empty-row", text: all.length ? "No patients match your search." : "No patients yet. Choose New visit and upload a transcript to start." })]));
 }
 
-// Example cases start a visit with one click, as if the files had been uploaded.
-function renderCaseCards(show) {
-  const cards = [];
-  for (const c of state.cases) {
-    const wrong = Object.keys(c.notes).find((n) => n.includes("wrong"));
-    cards.push(caseCard("Full flow", `${c.title}: upload only the transcript, check the visit, draft the note, then check it.`,
-      () => startCase(c, null)));
-    if (wrong) {
-      cards.push(caseCard("Add-on", `${c.title}: transcript and an existing note with errors, straight to the check.`,
-        () => startCase(c, wrong)));
-    }
+function clearAll() {
+  const button = $("clear-btn");
+  if (button.dataset.confirm !== "1") {
+    button.dataset.confirm = "1";
+    button.textContent = "Click again to clear all";
+    return;
   }
-  $("group-cases").hidden = !show || !cards.length;
-  $("case-cards").replaceChildren(...cards);
-}
-
-function caseCard(label, text, run) {
-  return el("button", { type: "button", class: "case-card", onclick: run },
-    el("span", { class: "case-label", text: label }),
-    el("span", { class: "case-text", text }),
-    el("span", { class: "case-go", text: "Start →" }));
-}
-
-function startCase(c, noteFile) {
-  const visit = {
-    id: `${OWN_PREFIX}${Date.now().toString(36)}`,
-    patient: c.patient || "Example patient",
-    reason: c.reason || c.title,
-    transcript: normalizeTranscript(c.transcript),
-    note: noteFile ? c.notes[noteFile] : "",
-    created: Date.now(),
-  };
-  store.write("visits", [visit, ...ownVisits()]);
-  location.hash = `#/visit/${visit.id}`;
+  store.write("visits", []);
+  store.write("reviews", {});
+  renderPatients();
 }
 
 // ------------------------------------------------------------------ new visit
@@ -391,7 +373,7 @@ function createVisit(event) {
 }
 
 function deleteVisit() {
-  if (!state.encounter || !state.encounter.own) return;
+  if (!state.encounter) return;
   const button = $("delete-btn");
   if (button.dataset.confirm !== "1") {
     button.dataset.confirm = "1";
@@ -407,62 +389,35 @@ function deleteVisit() {
 
 // ------------------------------------------------------------------ open a visit
 
-async function loadVisit(visitId, variant) {
-  let encounter;
-  if (visitId.startsWith(OWN_PREFIX)) {
-    const own = ownVisits().find((v) => v.id === visitId);
-    if (!own) {
-      showBanner("This visit is not saved in this browser.");
-      location.hash = "#/patients";
-      return;
-    }
-    encounter = {
-      encounter_id: own.id,
-      own: true,
-      patient: own.patient,
-      chief_complaint: own.reason,
-      transcript_text: own.transcript,
-      transcript: indexTranscript(own.transcript),
-      variants: {},
-      notes: [{ id: "own", label: "Note", note_text: own.note || "" }],
-    };
-  } else {
-    try {
-      encounter = await api(`/api/encounters/${encodeURIComponent(visitId)}?variant=${variant}`);
-    } catch (error) {
-      showBanner(error.message);
-      return;
-    }
+async function loadVisit(visitId) {
+  const own = ownVisits().find((v) => v.id === visitId);
+  if (!own) {
+    showBanner("This visit is not saved in this browser.");
+    location.hash = "#/patients";
+    return;
   }
   const sameVisit = state.encounter && state.encounter.encounter_id === visitId;
-  state.encounter = encounter;
-  state.lines = encounter.transcript;
-  state.variant = variant;
+  state.encounter = {
+    encounter_id: own.id,
+    patient: own.patient,
+    chief_complaint: own.reason,
+    transcript_text: own.transcript,
+  };
+  state.lines = indexTranscript(own.transcript);
+  state.noteText = own.note || "";
+  state.signed = own.signed || null;
+  state.editingText = false;
   if (!sameVisit) {
     state.visitCheck = null;
     state.visitState = {};
     state.ask = { loading: false, result: null, suggestions: [] };
     $("ask-input").value = "";
   }
-
-  $("patient-name").textContent = encounter.patient || "Unknown patient";
-  $("patient-meta").textContent = [encounter.chief_complaint, encounter.own ? "Your visit" : `Visit ${encounter.encounter_id}`].filter(Boolean).join(" · ");
-  const variants = Object.keys(encounter.variants);
-  $("variant-select").hidden = variants.length < 2;
-  $("variant-select").replaceChildren(...variants.map((key) => el("option", { value: key, text: VARIANT[key] || key })));
-  $("variant-select").value = variant;
-  $("note-select").hidden = encounter.notes.length < 2;
-  $("delete-btn").hidden = !encounter.own;
+  $("patient-name").textContent = own.patient || "Unknown patient";
+  $("patient-meta").textContent = [own.reason, `Recorded ${new Date(own.created || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`].filter(Boolean).join(" · ");
   $("delete-btn").dataset.confirm = "";
   $("delete-btn").textContent = "Delete visit";
-
-  if (sameVisit && state.noteId) {
-    resetAudit();
-  } else {
-    $("note-select").replaceChildren(...encounter.notes.map((n) => el("option", { value: n.id, text: n.label })));
-    const preferred = encounter.notes.find((n) => n.sample) || encounter.notes[0];
-    selectNote(preferred.id);
-  }
+  resetAudit();
   loadSuggestions();
 }
 
@@ -476,21 +431,8 @@ async function loadSuggestions() {
   renderAsk();
 }
 
-function currentNote() {
-  return state.encounter.notes.find((n) => n.id === state.noteId);
-}
-
-function selectNote(noteId) {
-  state.noteId = noteId;
-  $("note-select").value = noteId;
-  state.noteText = currentNote().note_text;
-  state.editingText = false;
-  resetAudit();
-}
-
 function resetAudit() {
   state.audit = null;
-  state.isSample = false;
   state.selected = null;
   state.additionState = {};
   state.flagState = {};
@@ -500,9 +442,11 @@ function resetAudit() {
 }
 
 function saveOwnNote() {
-  if (!state.encounter.own) return;
-  store.write("visits", ownVisits().map((v) => (v.id === state.encounter.encounter_id ? { ...v, note: state.noteText } : v)));
-  state.encounter.notes[0].note_text = state.noteText;
+  updateVisit({ note: state.noteText });
+}
+
+function updateVisit(changes) {
+  store.write("visits", ownVisits().map((v) => (v.id === state.encounter.encounter_id ? { ...v, ...changes } : v)));
 }
 
 function toggleTextEdit() {
@@ -573,7 +517,6 @@ async function runDraft() {
   try {
     const result = await post("/api/draft-note", { ...visitSource(), note_format: noteFormat() });
     state.noteText = result.note_text;
-    currentNote().note_text = result.note_text;
     saveOwnNote();
     resetAudit();
   } catch (error) {
@@ -602,26 +545,14 @@ async function runAudit() {
   hideBanner();
   setBusy("audit", "Checking the note against the visit…");
   try {
-    showAudit(await post("/api/audit", { ...visitSource(), note_text: noteText }), false);
+    showAudit(await post("/api/audit", { ...visitSource(), note_text: noteText }));
   } catch (error) {
-    const note = currentNote();
-    const canShowSample = note && note.sample && noteText === note.note_text.trim();
-    showBanner(error.message, canShowSample ? { label: "Show simulated review", run: showSample } : null);
+    showBanner(error.message);
   }
   setBusy("");
 }
 
-async function showSample() {
-  const note = currentNote();
-  if (!note || !note.sample) return;
-  try {
-    showAudit(await api(`/samples/${encodeURIComponent(note.sample)}.json`), true);
-  } catch (error) {
-    showBanner(`Could not load the simulated review: ${error.message}`);
-  }
-}
-
-function showAudit(result, isSample) {
+function showAudit(result) {
   if (!isValidAudit(result)) {
     showBanner("The review came back incomplete and could not be shown. Try again.");
     return;
@@ -634,7 +565,6 @@ function showAudit(result, isSample) {
   state.audit.changed = 0;
   state.lines = state.audit.transcript;
   state.noteText = state.audit.note_text;
-  state.isSample = isSample;
   state.editingText = false;
   state.selected = null;
   state.additionState = {};
@@ -664,6 +594,7 @@ async function runAsk(question) {
 // ------------------------------------------------------------------ rendering the visit
 
 function stage() {
+  if (state.signed) return "signed";
   if (state.noteText.trim() || state.editingText) return state.audit ? "checked" : "note";
   return "visit";
 }
@@ -679,11 +610,17 @@ function render() {
   $("note-input").hidden = !state.editingText;
   if (state.editingText && document.activeElement !== $("note-input")) $("note-input").value = state.noteText;
   $("edit-btn").textContent = state.editingText ? "Done" : "Edit as text";
+  const signed = Boolean(state.signed);
+  const needsCheck = !state.audit || state.audit.changed > 0;
   $("audit-btn").textContent = state.audit ? "Check again" : "Check note";
-  $("audit-btn").hidden = Boolean(state.audit) && !(state.audit.changed > 0);
+  $("audit-btn").hidden = signed || !needsCheck;
   $("audit-btn").disabled = state.busy === "audit";
-  const note = currentNote();
-  $("sample-btn").hidden = Boolean(state.audit) || !(note && note.sample && state.noteText === note.note_text);
+  $("sign-btn").hidden = signed || state.editingText;
+  $("sign-btn").className = `btn ${needsCheck ? "btn-ghost" : "btn-primary"}`;
+  $("edit-btn").hidden = signed;
+  $("delete-btn").hidden = false;
+  $("note-card").classList.toggle("is-signed", signed);
+  renderSigned();
 
   renderJournal();
   renderStats();
@@ -698,7 +635,8 @@ function renderStepper(current) {
   const steps = [
     { label: "Visit check", done: Boolean(state.visitCheck), active: current === "visit" },
     { label: "Note", done: current !== "visit", active: current === "note" },
-    { label: "Note check", done: current === "checked", active: current === "checked" },
+    { label: "Note check", done: current === "checked" || current === "signed", active: current === "checked" },
+    { label: "Signed", done: current === "signed", active: current === "signed" },
   ];
   $("stepper").replaceChildren(...steps.map((s, i) =>
     el("li", { class: `step${s.done ? " is-done" : ""}${s.active ? " is-active" : ""}`, "aria-current": s.active ? "step" : null },
@@ -813,7 +751,6 @@ function renderStats() {
       stat(flags, flags === 1 ? "decision worth a second look" : "decisions worth a second look", flags ? "is-warn" : "", () => scrollToSection("flags-section")),
     ];
     notes.push(`${pct}% of ${claims.length} statements are backed by the visit.`);
-    if (state.isSample) notes.push(sampleNote(state.audit.meta.model));
     if (state.audit.changed) notes.push(`${state.audit.changed} ${state.audit.changed === 1 ? "statement has" : "statements have"} changed since the check. Choose Check again to verify.`);
     for (const w of state.audit.warnings || []) notes.push(w);
   } else if (state.visitCheck && stage() === "visit") {
@@ -837,13 +774,6 @@ function stat(value, label, cls, onclick) {
 function scrollToSection(id) {
   const node = $(id);
   if (node && !node.hidden) node.scrollIntoView({ behavior: REDUCED_MOTION ? "auto" : "smooth", block: "start" });
-}
-
-function sampleNote(model) {
-  if ((model || "").startsWith("simulated")) {
-    return "Simulated review: a Claude agent answered the exact request the app sends to the API, and the result went through the same receipt checks.";
-  }
-  return "Example review, written by hand to show the interface. Not generated by Claude.";
 }
 
 function nextIssue() {
@@ -946,7 +876,7 @@ function renderJournal() {
           section.rows.map((row) => {
             const editable = el("span", {
               class: "jtext",
-              contenteditable: "true",
+              contenteditable: state.signed ? "false" : "true",
               spellcheck: "false",
               "data-start": row.start,
               "data-end": row.end,
@@ -1151,6 +1081,96 @@ function addFlagToNote(flag) {
   render();
 }
 
+// ------------------------------------------------------------------ sign and send (demo)
+
+// What is still open before the note goes to the record: the pre-send check.
+function openItems() {
+  if (!state.audit) return { unchecked: true, items: [] };
+  const items = [];
+  const problems = issues().length;
+  const changed = state.audit.changed || 0;
+  const flags = state.audit.decision_flags.filter((f) => !state.flagState[f.flag_id]).length;
+  const missing = state.audit.suggested_additions.filter((a) => !state.additionState[a.addition_id]).length;
+  if (problems) items.push(`${problems} ${problems === 1 ? "statement contradicts" : "statements contradict"} the visit or ${problems === 1 ? "has" : "have"} no support`);
+  if (changed) items.push(`${changed} ${changed === 1 ? "statement has" : "statements have"} changed since the check`);
+  if (flags) items.push(`${flags} ${flags === 1 ? "decision" : "decisions"} worth a second look not yet reviewed`);
+  if (missing) items.push(`${missing} ${missing === 1 ? "detail" : "details"} from the visit not added or dismissed`);
+  return { unchecked: false, items };
+}
+
+function openSignDialog() {
+  if (state.editingText) toggleTextEdit();
+  const { unchecked, items } = openItems();
+  const clean = !unchecked && !items.length;
+  const box = $("sign-dialog-body");
+  fill(box,
+    el("h2", { class: "dialog-title", id: "sign-title", text: clean ? "Sign and send the note" : "Before you sign" }),
+    unchecked
+      ? el("p", { class: "dialog-text", text: "This note has not been checked against the visit yet." })
+      : items.length
+        ? [el("p", { class: "dialog-text", text: "Some things are still open:" }), el("ul", { class: "dialog-list" }, items.map((t) => el("li", { text: t })))]
+        : el("p", { class: "dialog-text", text: "Every statement is backed by the visit or reviewed by you, and every suggestion has been handled." }),
+    el("p", { class: "dialog-fine", text: `Signed by ${state.user.name}. Demo: nothing leaves this browser.` }),
+    el("div", { class: "dialog-actions" },
+      clean
+        ? [el("button", { type: "button", class: "btn btn-ghost", text: "Cancel", onclick: closeSignDialog }),
+          el("button", { type: "button", class: "btn btn-primary", id: "confirm-sign", text: "Sign and send", onclick: signNote })]
+        : [el("button", { type: "button", class: "btn btn-quiet", text: "Sign anyway", onclick: signNote }),
+          el("button", { type: "button", class: "btn btn-primary", id: "confirm-sign", text: unchecked ? "Check the note first" : "Go back and review",
+            onclick: () => { closeSignDialog(); if (unchecked) runAudit(); else nextOpenItem(); } })]),
+  );
+  $("sign-dialog").hidden = false;
+  $("confirm-sign").focus();
+}
+
+function closeSignDialog() {
+  $("sign-dialog").hidden = true;
+  $("sign-btn").focus();
+}
+
+function nextOpenItem() {
+  if (issues().length) return nextIssue();
+  if (state.audit.decision_flags.some((f) => !state.flagState[f.flag_id])) return scrollToSection("flags-section");
+  return scrollToSection("additions-section");
+}
+
+function signNote() {
+  state.signed = { at: Date.now(), by: state.user.name };
+  updateVisit({ note: state.noteText, signed: state.signed });
+  $("sign-dialog").hidden = true;
+  state.selected = null;
+  render();
+  window.scrollTo({ top: 0, behavior: REDUCED_MOTION ? "auto" : "smooth" });
+}
+
+function renderSigned() {
+  const box = $("signed-banner");
+  box.hidden = !state.signed;
+  if (!state.signed) return;
+  const when = new Date(state.signed.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  fill(box,
+    el("span", { class: "signed-mark", "aria-hidden": "true", text: "\u2713" }),
+    el("span", { class: "signed-text" },
+      el("strong", { text: "Signed and sent to the record system" }),
+      el("span", { text: `${when} · ${state.signed.by} · Demo: nothing left this browser` })));
+}
+
+// Real: copies the note as plain text, ready to paste into any record system.
+async function copyNote() {
+  const text = state.noteText.trim();
+  const button = $("copy-btn");
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = "Copied";
+  } catch {
+    // fall back to selecting the text so the clinician can copy it by hand
+    toggleTextEdit();
+    $("note-input").select();
+    button.textContent = "Press Ctrl+C to copy";
+  }
+  setTimeout(() => { button.textContent = "Copy note"; }, 2000);
+}
+
 // ------------------------------------------------------------------ ask the record
 
 function renderAsk() {
@@ -1267,7 +1287,7 @@ function renderDrawer() {
   if (kind === "claim") {
     parts.push(el("p", { class: "drawer-title", text: item.added ? item.text : item.note_quote }));
     parts.push(el("p", { class: "drawer-text", text: item.receipt_failed ? "The cited evidence could not be found in the visit." : item.explanation }));
-    if ((item.status === "contradicted" || item.status === "unsupported") && item.note_span) {
+    if ((item.status === "contradicted" || item.status === "unsupported") && item.note_span && !state.signed) {
       if (item.kept) {
         parts.push(el("p", { class: "drawer-fine" }, "You chose to keep this as written. ",
           el("button", { type: "button", class: "link-btn quiet small", text: "Undo", onclick: () => { item.kept = false; saveReviewSummary(); render(); } })));
@@ -1277,7 +1297,7 @@ function renderDrawer() {
     }
   } else if (kind === "addition") {
     parts.push(el("p", { class: "drawer-title", text: item.text }), el("p", { class: "drawer-text", text: item.why }));
-    if (!state.additionState[item.addition_id]) {
+    if (!state.additionState[item.addition_id] && !state.signed) {
       parts.push(el("div", { class: "drawer-actions" },
         el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add to note", onclick: () => addAddition(item) }),
         el("button", { type: "button", class: "link-btn quiet", text: "Dismiss", onclick: () => { state.additionState[item.addition_id] = "dismissed"; select(null); } })));
@@ -1286,7 +1306,7 @@ function renderDrawer() {
     parts.push(el("p", { class: "drawer-title", text: item.title }), el("p", { class: "drawer-text", text: item.concern }));
     if (item.consider) parts.push(el("p", { class: "consider" }, el("strong", { text: "Consider: " }), item.consider));
     parts.push(el("p", { class: "drawer-fine", text: "A prompt to think again, not a verdict. You know the patient; you decide." }));
-    if (kind === "flag" && !state.flagState[item.flag_id]) {
+    if (kind === "flag" && !state.flagState[item.flag_id] && !state.signed) {
       parts.push(el("div", { class: "drawer-actions" },
         el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add to follow-up", onclick: () => addFlagToNote(item) }),
         el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Noted", onclick: () => { state.flagState[item.flag_id] = "noted"; select(null); } }),
