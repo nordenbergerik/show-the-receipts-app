@@ -165,7 +165,7 @@ sequenceDiagram
 | Effort | `medium` som standard, konfigurerbart | Balans mellan kvalitet och latens. Justeras efter utvärderingen. |
 | Refusal | Kontrollera `stop_reason` och slå på server-side fallback | Ett nekat svar ska ge ett tydligt fel och inte en krasch |
 | Fel | Typade SDK-undantag (429/5xx med retry, 4xx direkt till klienten) | Begripliga felmeddelanden i UI:t |
-| Promptversion | `PROMPT_VERSION` ingår i cache-nyckeln | En ändrad prompt ger aldrig gamla svar ur cachen |
+| Promptversion | Promptarna ligger i `backend/skills/*.md`, och `PROMPT_VERSION` är en hash av dem som ingår i cache-nyckeln | En ändrad prompt ger aldrig gamla svar ur cachen |
 
 Promptarna ligger samlade i `prompts.py`, så att de kan itereras utan att resten av koden rörs.
 
@@ -225,6 +225,26 @@ Skripten körs offline och skriver till `eval/results/` och `cache/`.
 - **Versionshantering:** demosvaren committas till repot, så demon fungerar på vilken dator som helst.
 
 ---
+
+## 9b. Robusthet och felhantering
+
+Målet är att ett fel aldrig ska ge en krasch eller ett obegripligt meddelande, och att kärnan, kvittokontrollen, fungerar även när resten inte gör det.
+
+| Lager | Vad kan gå fel | Hantering |
+|---|---|---|
+| Nätverk och API | Timeout, 429, 5xx, avbruten anslutning | SDK:n försöker om två gånger. Därefter ges ett tydligt fel med rätt statuskod (429/503/504). |
+| Svarets format | Svaret går inte att tolka eller validera mot schemat | Structured outputs gör det ovanligt. Händer det ändå görs **ett nytt försök**, och därefter ges ett tydligt fel (502). (`llm.py`) |
+| Modellens beslut | Refusal eller avklippt svar (`max_tokens`) | Eget felmeddelande, inget nytt försök (samma fråga ger samma utfall). |
+| Saknad nyckel | Ingen `ANTHROPIC_API_KEY` | 503: "Live review is not set up yet", i stället för en krasch. |
+| Delvis fel | Ett av de två parallella anropen misslyckas | Misslyckas kvittokontrollen avbryts granskningen med ett tydligt fel. Misslyckas förslagen visas granskningen ändå med en **varning**, och resultatet cachas inte, så nästa försök blir komplett. (`audit.py`) |
+| Total tid | Granskningen hänger | Tidsgräns på 300 s för hela granskningen och 330 s i webbläsaren. |
+| Innehållet | Påhittade citat, rad-ID:n som inte finns, tomma eller orimligt många poster | Kvittokontrollen tar bort och nedgraderar. Rimlighetsgränser: högst 300 påståenden, 8 tillägg och 6 frågor, 600 tecken per text. (`guardrails.py`) |
+| Indata | För stora texter, fel id, fel variant | Pydantic-validering (422) och tydliga 404:or. |
+| Uppladdning | Tom fil, binärfil (till exempel PDF), BOM, för stor fil, "Doctor:"-format | Kontrolleras i webbläsaren med tydliga meddelanden. Formatet normaliseras. |
+| Frontend | Servern nås inte, svaret är inte JSON eller saknar delar | Tydliga meddelanden. Ett ofullständigt svar visas aldrig halvt. |
+| Cache | Gammalt svar efter promptändring | Versionen är en hash av `backend/skills/*.md` och ingår i cache-nyckeln. |
+
+Felfallen har egna tester i `tests/test_robustness.py`.
 
 ## 10. Säkerhet
 

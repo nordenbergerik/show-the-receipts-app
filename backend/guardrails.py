@@ -30,6 +30,12 @@ QUOTE_THRESHOLD = 90  # fuzzy-tröskel för att ett citat ska räknas som att de
 SPAN_THRESHOLD = 85  # fuzzy-tröskel för att hitta påståendets position i anteckningen
 DUPLICATE_THRESHOLD = 90  # tillägg som i princip upprepar ett befintligt påstående tas bort
 
+# Rimlighetsgränser: ett svar som spårat ur ska inte kunna fylla gränssnittet.
+MAX_CLAIMS = 300
+MAX_ADDITIONS = 8
+MAX_FOLLOW_UPS = 6
+MAX_TEXT = 600
+
 _PUNCT_RE = re.compile(r"[^\w\s]", re.UNICODE)
 _WS_RE = re.compile(r"\s+")
 
@@ -95,7 +101,8 @@ def check_claims(claims_llm: ClaimsLLM, lines: list[Line], note_text: str) -> li
     lines_by_id = {line.line_id: line for line in lines}
     claims: list[Claim] = []
     cursor = 0
-    for i, raw in enumerate(claims_llm.claims, start=1):
+    raw_claims = [c for c in claims_llm.claims if c.note_quote.strip() and c.text.strip()][:MAX_CLAIMS]
+    for i, raw in enumerate(raw_claims, start=1):
         evidence = validate_evidence(raw.evidence, lines_by_id)
         status = raw.status
         receipt_failed = False
@@ -114,13 +121,13 @@ def check_claims(claims_llm: ClaimsLLM, lines: list[Line], note_text: str) -> li
         claims.append(
             Claim(
                 claim_id=f"C{i}",
-                text=raw.text,
+                text=raw.text.strip()[:MAX_TEXT],
                 note_quote=raw.note_quote,
                 note_span=span,
                 status=status,
                 evidence=evidence,
-                explanation=raw.explanation,
-                correction=correction,
+                explanation=raw.explanation.strip()[:MAX_TEXT],
+                correction=correction[:MAX_TEXT],
                 receipt_failed=receipt_failed,
             )
         )
@@ -132,6 +139,8 @@ def check_coverage(coverage_llm: CoverageLLM, lines: list[Line], claims: list[Cl
     documented = [normalize(c.text) for c in claims if c.status != "unsupported"]
     additions: list[Addition] = []
     for raw in coverage_llm.additions:
+        if len(additions) >= MAX_ADDITIONS or not raw.text.strip():
+            continue
         evidence = validate_evidence(raw.evidence, lines_by_id)
         if not evidence:
             continue  # ett tillägg utan äkta kvitto visas aldrig
@@ -141,13 +150,17 @@ def check_coverage(coverage_llm: CoverageLLM, lines: list[Line], claims: list[Cl
         additions.append(
             Addition(
                 addition_id=f"A{len(additions) + 1}",
-                text=raw.text,
-                why=raw.why,
+                text=raw.text.strip()[:MAX_TEXT],
+                why=raw.why.strip()[:MAX_TEXT],
                 priority=raw.priority,
                 evidence=evidence,
             )
         )
-    follow_ups = [FollowUp(category=f.category, question=f.question, why=f.why) for f in coverage_llm.follow_up_questions]
+    follow_ups = [
+        FollowUp(category=f.category.strip()[:60] or "Follow-up", question=f.question.strip()[:MAX_TEXT], why=f.why.strip()[:MAX_TEXT])
+        for f in coverage_llm.follow_up_questions
+        if f.question.strip()
+    ][:MAX_FOLLOW_UPS]
     return additions, follow_ups
 
 

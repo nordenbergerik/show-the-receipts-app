@@ -134,4 +134,5 @@ class AuditResult(BaseModel):
     suggested_additions: list[Addition]
     follow_up_questions: list[FollowUp]
     summary: Summary
+    warnings: list[str] = []
     meta: AuditMeta

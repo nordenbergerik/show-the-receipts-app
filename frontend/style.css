@@ -594,3 +594,4 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .dropzone.is-loaded .drop-hint { color: var(--green); font-weight: 500; }
 .paste summary { cursor: pointer; font-size: 13px; color: var(--green); font-weight: 500; margin-top: 2px; }
 .paste textarea { margin-top: 8px; }
+.stats-note.is-warning { color: var(--orange); }

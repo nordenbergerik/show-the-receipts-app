@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 
 from backend.cache import AuditCache, audit_key
@@ -12,6 +13,11 @@ from backend.llm import LLMError, StructuredLLM
 from backend.prompts import CLAIMS_SYSTEM, COVERAGE_SYSTEM, PROMPT_VERSION, note_block, transcript_block
 from backend.schemas import AuditMeta, AuditRequest, AuditResult, ClaimsLLM, CoverageLLM
 from backend.transcript import index_transcript, render_for_prompt
+
+
+log = logging.getLogger("receipts.audit")
+
+AUDIT_TIMEOUT_S = 300
 
 
 class AuditError(Exception):
@@ -68,13 +74,35 @@ async def run_audit(
         {"type": "text", "text": transcript_block(rendered, chief_complaint), "cache_control": {"type": "ephemeral"}},
         {"type": "text", "text": note_block(note_text)},
     ]
+    # Kvittokontrollen av anteckningen är kärnan och måste lyckas. Förslagen
+    # (tillägg och frågor) är ett plus: misslyckas de visas granskningen ändå,
+    # med en varning, och resultatet cachas inte så att nästa försök blir komplett.
     try:
-        claims_llm, coverage_llm = await asyncio.gather(
-            llm.parse(system=CLAIMS_SYSTEM, content=content, output_format=ClaimsLLM),
-            llm.parse(system=COVERAGE_SYSTEM, content=content, output_format=CoverageLLM),
+        claims_res, coverage_res = await asyncio.wait_for(
+            asyncio.gather(
+                llm.parse(system=CLAIMS_SYSTEM, content=content, output_format=ClaimsLLM),
+                llm.parse(system=COVERAGE_SYSTEM, content=content, output_format=CoverageLLM),
+                return_exceptions=True,
+            ),
+            timeout=AUDIT_TIMEOUT_S,
         )
-    except LLMError as exc:
-        raise AuditError(str(exc), exc.status_code) from exc
+    except asyncio.TimeoutError as exc:
+        raise AuditError("The review took too long. Try again in a moment.", 504) from exc
+
+    if isinstance(claims_res, LLMError):
+        raise AuditError(str(claims_res), claims_res.status_code) from claims_res
+    if isinstance(claims_res, BaseException):
+        log.exception("claims call failed", exc_info=claims_res)
+        raise AuditError("The review failed unexpectedly. Try again.", 502) from claims_res
+    claims_llm = claims_res
+
+    warnings: list[str] = []
+    if isinstance(coverage_res, BaseException):
+        log.warning("coverage call failed: %s", type(coverage_res).__name__)
+        warnings.append("Suggestions for missing details could not be generated this time. Check the note again to retry.")
+        coverage_llm = CoverageLLM(additions=[], follow_up_questions=[])
+    else:
+        coverage_llm = coverage_res
 
     claims = check_claims(claims_llm, lines, note_text)
     additions, follow_ups = check_coverage(coverage_llm, lines, claims)
@@ -87,6 +115,7 @@ async def run_audit(
         suggested_additions=additions,
         follow_up_questions=follow_ups,
         summary=summarize(claims),
+        warnings=warnings,
         meta=AuditMeta(
             model=settings.model,
             prompt_version=PROMPT_VERSION,
@@ -94,5 +123,6 @@ async def run_audit(
             latency_ms=int((time.perf_counter() - started) * 1000),
         ),
     )
-    cache.put(key, result)
+    if not warnings:
+        cache.put(key, result)
     return result

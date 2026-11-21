@@ -24,7 +24,7 @@ def _version() -> str:
     h = hashlib.sha256()
     for path in sorted(SKILLS_DIR.glob("*.md")):
         h.update(path.name.encode())
-        h.update(path.read_bytes())
+        h.update(path.read_text(encoding="utf-8").replace(chr(13) + chr(10), chr(10)).encode("utf-8"))
     return h.hexdigest()[:12]
 
 

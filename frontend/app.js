@@ -48,17 +48,37 @@ function el(tag, props = {}, ...children) {
   return node;
 }
 
+const REQUEST_TIMEOUT_MS = 330_000; // a little longer than the server's own limit
+
 async function api(path, options = {}) {
-  const response = await fetch(path, { ...options, headers: { "Content-Type": "application/json", ...(options.headers || {}) } });
+  let response;
+  try {
+    response = await fetch(path, {
+      ...options,
+      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const message = error && error.name === "TimeoutError"
+      ? "The server took too long to answer. Try again."
+      : "Could not reach the server. Check your connection and try again.";
+    throw Object.assign(new Error(message), { status: 0 });
+  }
   let body = null;
-  try { body = await response.json(); } catch { /* empty body */ }
+  try { body = await response.json(); } catch { /* not JSON */ }
   if (!response.ok) {
-    let message = `Something went wrong (${response.status}).`;
+    let message = `Something went wrong (${response.status}). Try again.`;
     if (body && typeof body.detail === "string") message = body.detail;
     else if (response.status === 422) message = "The request is not valid. Check the transcript and note and try again.";
     throw Object.assign(new Error(message), { status: response.status });
   }
+  if (body === null) throw Object.assign(new Error("The server sent an unexpected answer. Try again."), { status: response.status });
   return body;
+}
+
+// A review from the server or a sample file must have the parts the UI uses.
+function isValidAudit(result) {
+  return Boolean(result && typeof result.note_text === "string" && Array.isArray(result.claims) && Array.isArray(result.transcript));
 }
 
 // ------------------------------------------------------------------ browser storage (no login yet)
@@ -215,7 +235,19 @@ function setupUpload(kind) {
     if (!/\.(txt|md)$/i.test(file.name) && file.type && !file.type.startsWith("text/")) {
       return showUploadError(kind, `${file.name} is not a text file. Upload a .txt file.`);
     }
-    let text = await file.text();
+    let text;
+    try {
+      text = await file.text();
+    } catch {
+      return showUploadError(kind, `${file.name} could not be read. Try saving it again as a .txt file.`);
+    }
+    text = text.replace(/^﻿/, "");
+    if (text.includes("\u0000")) {
+      return showUploadError(kind, `${file.name} does not look like a text file. Upload a .txt file.`);
+    }
+    if (!text.trim()) {
+      return showUploadError(kind, `${file.name} is empty.`);
+    }
     if (kind === "transcript") text = normalizeTranscript(text);
     if (text.length > UPLOAD_LIMITS[kind]) {
       return showUploadError(kind, `${file.name} is too long (max ${UPLOAD_LIMITS[kind].toLocaleString("en-US")} characters).`);
@@ -425,7 +457,14 @@ async function showSample() {
 }
 
 function showAudit(result, isSample) {
+  if (!isValidAudit(result)) {
+    showBanner("The review came back incomplete and could not be shown. Try again.");
+    return;
+  }
   state.audit = structuredClone(result);
+  state.audit.suggested_additions = state.audit.suggested_additions || [];
+  state.audit.follow_up_questions = state.audit.follow_up_questions || [];
+  state.audit.claims = state.audit.claims.filter((c) => c && typeof c.claim_id === "string" && STATUS[c.status]);
   state.noteText = state.audit.note_text;
   state.isSample = isSample;
   state.editing = false;
@@ -495,6 +534,7 @@ function renderStats() {
       $("additions-section").scrollIntoView({ behavior: REDUCED_MOTION ? "auto" : "smooth", block: "start" })),
     stat(`${pct}%`, "backed by the visit", "is-good", null, `${backed} of ${claims.length} statements have a receipt`),
     state.isSample ? el("p", { class: "stats-note", text: sampleNote(state.audit.meta.model) }) : null,
+    ...(state.audit.warnings || []).map((w) => el("p", { class: "stats-note is-warning", text: w })),
   );
   box.hidden = false;
 }
