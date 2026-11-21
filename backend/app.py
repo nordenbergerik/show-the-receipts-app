@@ -5,7 +5,7 @@ import hmac
 import logging
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.staticfiles import StaticFiles
 
 from backend.audit import AuditError, run_audit
@@ -21,6 +21,17 @@ from backend.transcript import index_transcript
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 app = FastAPI(title="Show the Receipts", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+
+@app.middleware("http")
+async def no_stale_frontend(request: Request, call_next):
+    """Webbläsaren ska alltid fråga efter en ny version av sidans filer
+    (ETag gör att oförändrade filer ändå bara ger ett snabbt 304-svar)."""
+    response = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
 
 _llm: StructuredLLM | None = None
 

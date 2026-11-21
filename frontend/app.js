@@ -731,9 +731,14 @@ function renderFixActions(claim) {
     actions.append(el("button", { type: "button", class: "btn btn-primary btn-sm fix-change", onclick: () => applyFix(claim, claim.correction, "corrected") },
       "Change to ", el("span", { class: "fix-text", text: `“${claim.correction}”` })));
   }
-  if (!claim.correction || claim.status === "unsupported") {
-    actions.append(el("button", { type: "button", class: `btn ${claim.correction ? "btn-ghost" : "btn-primary"} btn-sm`, text: "Remove from note", onclick: () => applyFix(claim, "", "removed") }));
-  }
+  // With a rewrite that keeps the supported part, "Change to" is the main
+  // action and removing is secondary; with no rewrite, removing is the main one.
+  actions.append(el("button", {
+    type: "button",
+    class: `btn ${claim.correction ? "btn-ghost" : "btn-primary"} btn-sm`,
+    text: claim.correction ? "Remove instead" : "Remove from note",
+    onclick: () => applyFix(claim, "", "removed"),
+  }));
   actions.append(el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Write my own", onclick: () => { state.writingOwn = true; renderDrawer(); } }));
   box.append(actions);
   return box;

@@ -29,8 +29,9 @@ class ClaimLLM(BaseModel):
     evidence: list[EvidenceLLM]
     explanation: str
     correction: str = Field(
-        description="For contradicted or unsupported claims: replacement text for note_quote that matches the "
-        "transcript, in the note's style. Empty string to suggest removing it. Empty for supported and inferred."
+        description="For contradicted or unsupported claims: note_quote rewritten to say only what the transcript "
+        "supports, keeping any supported part. Empty string only if nothing is supported and it should be removed. "
+        "Empty for supported and inferred."
     )
 
 

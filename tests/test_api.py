@@ -124,3 +124,8 @@ def test_missing_api_key_gives_clear_error(tmp_path, monkeypatch):
         app.dependency_overrides.clear()
     assert r.status_code == 503, r.text
     assert "API key" in r.json()["detail"]
+
+
+def test_frontend_files_are_revalidated(client):
+    assert client.get("/app.js").headers["cache-control"] == "no-cache"
+    assert "cache-control" not in client.get("/api/health").headers
