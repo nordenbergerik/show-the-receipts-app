@@ -5,7 +5,7 @@
 // drawer when something is clicked. All text from transcripts, notes and the
 // model is untrusted input and is rendered with textContent, never innerHTML.
 
-const STATUS = { supported: "Supported", inferred: "Inferred", contradicted: "Contradicted", unsupported: "No support" };
+const STATUS = { supported: "Supported", inferred: "Inferred", contradicted: "Contradicted", unsupported: "No support", edited: "Edited" };
 const SPEAKER = { doctor: "Doctor", patient: "Patient", patient_guest: "Companion", unknown: "Unknown" };
 const VARIANT = { clean: "Transcript", asr: "Raw speech-to-text", asrcorr: "Corrected speech-to-text", humantrans: "Manual transcript" };
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -24,6 +24,7 @@ const state = {
   isSample: false,
   selected: null, // { kind: "claim" | "addition", id }
   showFullTranscript: false,
+  writingOwn: false,
   additionState: {}, // addition_id -> "added" | "dismissed"
   issueCursor: -1,
 };
@@ -105,6 +106,8 @@ async function init() {
   $("banner-close").addEventListener("click", hideBanner);
   $("patient-search").addEventListener("input", renderPatients);
   $("new-form").addEventListener("submit", createVisit);
+  setupUpload("transcript");
+  setupUpload("note");
   $("variant-select").addEventListener("change", (e) => loadVisit(state.encounter.encounter_id, e.target.value));
   $("note-select").addEventListener("change", (e) => selectNote(e.target.value));
   $("audit-btn").addEventListener("click", runAudit);
@@ -130,7 +133,7 @@ function route() {
   const [view, id] = location.hash.replace(/^#\/?/, "").split("/");
   hideBanner();
   if (view === "visit" && id) return openView("visit", () => loadVisit(decodeURIComponent(id), "clean"));
-  if (view === "new") return openView("new", () => { $("new-form").reset(); $("new-error").hidden = true; $("new-patient").focus(); });
+  if (view === "new") return openView("new", resetNewVisitForm);
   return openView("patients", renderPatients);
 }
 
@@ -187,11 +190,74 @@ function renderPatients() {
 
 // ------------------------------------------------------------------ new visit
 
+const UPLOAD_LIMITS = { transcript: 100_000, note: 10_000 };
+const UPLOAD_HINTS = {
+  transcript: "A .txt file from speech-to-text. Drop it here or click to choose.",
+  note: "The clinician's note as a .txt file. Optional, you can also write it later.",
+};
+
+// "Doctor: ..." / "Patient: ..." lines become the "[doctor] ..." format the app uses.
+function normalizeTranscript(text) {
+  return text
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.replace(/^\s*(doctor|dr\.?|physician|clinician)\s*:\s*/i, "[doctor] ").replace(/^\s*(patient|pt)\s*:\s*/i, "[patient] "))
+    .join("\n")
+    .trim();
+}
+
+function setupUpload(kind) {
+  const zone = $(`drop-${kind}`);
+  const input = $(`file-${kind}`);
+  const target = $(`new-${kind}`);
+  const load = async (file) => {
+    if (!file) return;
+    if (!/\.(txt|md)$/i.test(file.name) && file.type && !file.type.startsWith("text/")) {
+      return showUploadError(kind, `${file.name} is not a text file. Upload a .txt file.`);
+    }
+    let text = await file.text();
+    if (kind === "transcript") text = normalizeTranscript(text);
+    if (text.length > UPLOAD_LIMITS[kind]) {
+      return showUploadError(kind, `${file.name} is too long (max ${UPLOAD_LIMITS[kind].toLocaleString("en-US")} characters).`);
+    }
+    target.value = text;
+    const turns = text.split("\n").filter((l) => l.trim()).length;
+    $(`hint-${kind}`).textContent = kind === "transcript" ? `${file.name} · ${turns} speaker turns` : `${file.name} · ${text.length.toLocaleString("en-US")} characters`;
+    zone.classList.add("is-loaded");
+    $("new-error").hidden = true;
+  };
+  input.addEventListener("change", () => load(input.files[0]));
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("is-over"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("is-over"));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    zone.classList.remove("is-over");
+    load(e.dataTransfer.files[0]);
+  });
+}
+
+function showUploadError(kind, message) {
+  $(`drop-${kind}`).classList.remove("is-loaded");
+  $(`hint-${kind}`).textContent = UPLOAD_HINTS[kind];
+  $("new-error").textContent = message;
+  $("new-error").hidden = false;
+}
+
+function resetNewVisitForm() {
+  $("new-form").reset();
+  $("new-error").hidden = true;
+  for (const kind of ["transcript", "note"]) {
+    $(`drop-${kind}`).classList.remove("is-loaded", "is-over");
+    $(`hint-${kind}`).textContent = UPLOAD_HINTS[kind];
+  }
+  $("new-patient").focus();
+}
+
 function createVisit(event) {
   event.preventDefault();
   const patient = $("new-patient").value.trim();
-  const transcript = $("new-transcript").value.trim();
-  const error = !patient ? "Add the patient's name." : !transcript ? "Paste the transcript of the visit." : "";
+  const transcript = normalizeTranscript($("new-transcript").value);
+  const error = !patient ? "Add the patient's name." : !transcript ? "Upload or paste the transcript of the visit." : "";
   if (error) {
     $("new-error").textContent = error;
     $("new-error").hidden = false;
@@ -546,7 +612,7 @@ function appendWithClaims(parent, text, start, end, claims) {
     if (s > pos) parent.append(text.slice(pos, s));
     const open = () => select({ kind: "claim", id: claim.claim_id });
     const classes = ["claim", `st-${claim.status}`];
-    if (claim.added) classes.push("is-added");
+    if (claim.added || claim.fixed === "corrected") classes.push("is-added");
     if (isSelected("claim", claim.claim_id)) classes.push("is-selected");
     parent.append(el("span", {
       class: classes.join(" "),
@@ -640,7 +706,78 @@ function selectedItem() {
 function select(selection) {
   state.selected = selection;
   state.showFullTranscript = false;
+  state.writingOwn = false;
   if (!$("view-visit").hidden) render();
+}
+
+// ------------------------------------------------------------------ fixing a statement in the note
+
+function renderFixActions(claim) {
+  const box = el("div", { class: "fix" });
+  if (state.writingOwn) {
+    const input = el("textarea", { id: "own-fix", class: "fix-input", rows: "2", "aria-label": "Your wording" });
+    input.value = claim.note_quote;
+    box.append(
+      input,
+      el("div", { class: "drawer-actions" },
+        el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Save", onclick: () => applyFix(claim, input.value.trim(), "edited") }),
+        el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Cancel", onclick: () => { state.writingOwn = false; renderDrawer(); } })),
+    );
+    setTimeout(() => input.focus(), 0);
+    return box;
+  }
+  const actions = el("div", { class: "drawer-actions" });
+  if (claim.correction) {
+    actions.append(el("button", { type: "button", class: "btn btn-primary btn-sm fix-change", onclick: () => applyFix(claim, claim.correction, "corrected") },
+      "Change to ", el("span", { class: "fix-text", text: `“${claim.correction}”` })));
+  }
+  if (!claim.correction || claim.status === "unsupported") {
+    actions.append(el("button", { type: "button", class: `btn ${claim.correction ? "btn-ghost" : "btn-primary"} btn-sm`, text: "Remove from note", onclick: () => applyFix(claim, "", "removed") }));
+  }
+  actions.append(el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Write my own", onclick: () => { state.writingOwn = true; renderDrawer(); } }));
+  box.append(actions);
+  return box;
+}
+
+// Replaces (or removes) the statement's text in the note and shifts the
+// positions of every statement after it.
+function applyFix(claim, newText, kind) {
+  const audit = state.audit;
+  const text = audit.note_text;
+  const start = claim.note_span.start;
+  let end = claim.note_span.end;
+  if (!newText) {
+    while (end < text.length && /[.,;]/.test(text[end])) end += 1;
+    while (end < text.length && text[end] === " ") end += 1;
+  }
+  audit.note_text = text.slice(0, start) + newText + text.slice(end);
+  const delta = newText.length - (end - start);
+  for (const other of audit.claims) {
+    if (other === claim || !other.note_span || other.note_span.start < end) continue;
+    other.note_span = { start: other.note_span.start + delta, end: other.note_span.end + delta };
+  }
+  if (!newText) {
+    audit.claims = audit.claims.filter((c) => c !== claim);
+    state.selected = null;
+  } else {
+    claim.note_span = { start, end: start + newText.length };
+    claim.note_quote = newText;
+    claim.fixed = kind;
+    if (kind === "corrected" && claim.evidence.length) {
+      claim.status = "supported";
+      claim.explanation = "Corrected to match the visit.";
+    } else {
+      claim.status = "edited";
+      claim.explanation = "Changed by you. Check the note again to verify it.";
+    }
+    claim.correction = "";
+  }
+  state.noteText = audit.note_text;
+  state.writingOwn = false;
+  state.issueCursor = -1;
+  saveOwnNote();
+  saveReviewSummary(state.encounter.encounter_id, audit);
+  render();
 }
 
 function renderDrawer() {
@@ -661,6 +798,9 @@ function renderDrawer() {
   ];
   const why = isClaim ? (item.receipt_failed ? "The cited evidence could not be found in the visit." : item.explanation) : item.why;
   if (why) parts.push(el("p", { class: "drawer-text", text: why }));
+  if (isClaim && (item.status === "contradicted" || item.status === "unsupported") && item.note_span) {
+    parts.push(renderFixActions(item));
+  }
 
   parts.push(el("p", { class: "drawer-section", text: "In the visit" }));
   if (item.evidence.length) parts.push(renderExcerpt(item.evidence, status));
@@ -672,13 +812,14 @@ function renderDrawer() {
       el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Dismiss", onclick: () => { state.additionState[item.addition_id] = "dismissed"; select(null); } })));
   }
 
+  // The toggle sits below the full transcript once it is open.
+  if (state.showFullTranscript) parts.push(renderFullTranscript(item.evidence, status));
   parts.push(el("button", {
     type: "button",
     class: "link-btn",
     text: state.showFullTranscript ? "Hide full transcript" : "Show full transcript",
     onclick: () => { state.showFullTranscript = !state.showFullTranscript; renderDrawer(); },
   }));
-  if (state.showFullTranscript) parts.push(renderFullTranscript(item.evidence, status));
 
   $("drawer-content").replaceChildren(el("div", { class: "drawer-content" }, parts));
   if (state.showFullTranscript) {

@@ -552,3 +552,45 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
   .steps, .features, .features.two { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .nav a:not(.btn) { display: none; }
 }
+
+/* ================================================================ rätta i anteckningen */
+
+.claim.st-edited { background: rgb(0 0 0 / 0.05); box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.28); }
+.pill.st-edited { background: rgb(0 0 0 / 0.05); color: var(--label-2); }
+.fix { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: var(--fill); }
+.fix-change { height: auto; min-height: 30px; padding-block: 7px; border-radius: 12px; text-align: left; line-height: 1.35; white-space: normal; }
+.fix-text { font-weight: 600; }
+.fix-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  background: var(--bg);
+  font: 15px/1.5 var(--font);
+  resize: vertical;
+}
+.fix-input:focus { outline: none; border-color: rgb(52 199 89 / 0.6); box-shadow: 0 0 0 3px rgb(52 199 89 / 0.15); }
+
+/* ================================================================ filuppladdning */
+
+.dropzone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1.5px dashed rgb(0 0 0 / 0.15);
+  border-radius: 14px;
+  background: var(--fill);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover, .dropzone.is-over { border-color: var(--green-bright); background: var(--green-softer); }
+.dropzone.is-loaded { border-style: solid; border-color: rgb(52 199 89 / 0.45); background: var(--green-softer); }
+.dropzone input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.drop-icon { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--bg); color: var(--green); font-size: 18px; box-shadow: 0 0 0 1px var(--separator); }
+.drop-main { display: flex; flex-direction: column; min-width: 0; }
+.drop-title { font-weight: 500; color: var(--label); }
+.drop-hint { font-size: 13px; color: var(--label-2); overflow-wrap: anywhere; }
+.dropzone.is-loaded .drop-hint { color: var(--green); font-weight: 500; }
+.paste summary { cursor: pointer; font-size: 13px; color: var(--green); font-weight: 500; margin-top: 2px; }
+.paste textarea { margin-top: 8px; }

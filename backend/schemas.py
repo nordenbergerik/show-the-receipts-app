@@ -28,6 +28,10 @@ class ClaimLLM(BaseModel):
     status: Status
     evidence: list[EvidenceLLM]
     explanation: str
+    correction: str = Field(
+        description="For contradicted or unsupported claims: replacement text for note_quote that matches the "
+        "transcript, in the note's style. Empty string to suggest removing it. Empty for supported and inferred."
+    )
 
 
 class ClaimsLLM(BaseModel):
@@ -86,6 +90,7 @@ class Claim(BaseModel):
     status: Status
     evidence: list[Evidence]
     explanation: str
+    correction: str = ""
     receipt_failed: bool = False
 
 

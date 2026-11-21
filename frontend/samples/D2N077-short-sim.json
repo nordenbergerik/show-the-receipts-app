@@ -426,6 +426,7 @@
     }
    ],
    "explanation": "The patient confirms the injured wrist is the right one.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -444,6 +445,7 @@
     }
    ],
    "explanation": "The patient states the timing directly.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -466,6 +468,7 @@
     }
    ],
    "explanation": "The patient describes slipping on the stairs while carrying laundry.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -484,6 +487,7 @@
     }
    ],
    "explanation": "The patient put her arms out to break the fall.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -502,6 +506,7 @@
     }
    ],
    "explanation": "The patient rates the pain as a nine.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -520,6 +525,7 @@
     }
    ],
    "explanation": "The patient reports the wrist became swollen.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -542,6 +548,7 @@
     }
    ],
    "explanation": "The patient denies prior injury to this arm.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -560,6 +567,7 @@
     }
    ],
    "explanation": "The patient reports icing the wrist.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -578,6 +586,7 @@
     }
    ],
    "explanation": "The patient reports using an ACE wrap at home.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -600,6 +609,7 @@
     }
    ],
    "explanation": "The patient says ibuprofen helps a little.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -622,6 +632,7 @@
     }
    ],
    "explanation": "The clinician dictates tenderness on palpation and the patient confirms pain when pressed.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -644,6 +655,7 @@
     }
    ],
    "explanation": "Pain on flexion is dictated and the patient has difficulty with extension.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -662,6 +674,7 @@
     }
    ],
    "explanation": "The clinician dictates obvious swelling and bruising.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -680,6 +693,7 @@
     }
    ],
    "explanation": "The clinician dictates bony crepitus.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -698,6 +712,7 @@
     }
    ],
    "explanation": "The clinician dictates intact metacarpals.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -716,6 +731,7 @@
     }
    ],
    "explanation": "The clinician reports the X-ray shows a Colles fracture.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -734,6 +750,7 @@
     }
    ],
    "explanation": "The dictated X-ray finding states the fracture is extra-articular.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -752,6 +769,7 @@
     }
    ],
    "explanation": "Dorsal angulation is dictated as present.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -770,6 +788,7 @@
     }
    ],
    "explanation": "The dictation states an ulnar styloid fracture is present.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -796,6 +815,7 @@
     }
    ],
    "explanation": "ORIF is not named, but surgery to straighten the wrist and fix it with screws as soon as possible is described.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -814,6 +834,7 @@
     }
    ],
    "explanation": "The clinician states an overnight stay.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -832,6 +853,7 @@
     }
    ],
    "explanation": "The clinician states about six weeks of bracing.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -850,6 +872,7 @@
     }
    ],
    "explanation": "Drug, dose and frequency match the transcript.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -872,6 +895,7 @@
     }
    ],
    "explanation": "Post-operative physical therapy about three times a week is planned, pending a PT assessment.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -890,6 +914,7 @@
     }
    ],
    "explanation": "The clinician schedules a checkup in a month.",
+   "correction": "",
    "receipt_failed": false
   }
  ],

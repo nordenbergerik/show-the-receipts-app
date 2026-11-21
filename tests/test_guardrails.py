@@ -26,6 +26,7 @@ def claim(status="supported", note_quote="chest pain 2d", evidence=None, text="C
         status=status,
         evidence=evidence if evidence is not None else [EvidenceLLM(line_id=2, quote="chest pain for two days")],
         explanation="",
+        correction="",
     )
 
 

@@ -22,9 +22,9 @@ class FakeLLM:
         if output_format is ClaimsLLM:
             return ClaimsLLM(claims=[
                 ClaimLLM(claim_id="1", note_quote="Fatigue x5 wks", text="Fatigue for five weeks.", status="supported",
-                         evidence=[EvidenceLLM(line_id=1, quote="hi , brian")], explanation="ok"),
+                         evidence=[EvidenceLLM(line_id=1, quote="hi , brian")], explanation="ok", correction=""),
                 ClaimLLM(claim_id="2", note_quote="Denies cough", text="Denies cough.", status="contradicted",
-                         evidence=[EvidenceLLM(line_id=2, quote="something never said")], explanation="x"),
+                         evidence=[EvidenceLLM(line_id=2, quote="something never said")], explanation="x", correction="Coughs sometimes."),
             ])
         return CoverageLLM(
             additions=[AdditionLLM(text="Good to see you.", why="x", priority="low",

@@ -64,15 +64,36 @@
         <label class="form-field" for="new-patient"><span>Patient</span><input id="new-patient" required maxlength="80" placeholder="First and last name"></label>
         <label class="form-field" for="new-reason"><span>Reason for visit</span><input id="new-reason" maxlength="120" placeholder="e.g. Right wrist injury"></label>
       </div>
-      <label class="form-field" for="new-transcript">
+      <div class="form-field">
         <span>Transcript of the visit</span>
-        <textarea id="new-transcript" required rows="10" placeholder="[doctor] what brings you in today?&#10;[patient] I've had chest pain for two days."></textarea>
-        <small>One speaker turn per line, starting with [doctor] or [patient].</small>
-      </label>
-      <label class="form-field" for="new-note">
+        <label class="dropzone" id="drop-transcript" for="file-transcript">
+          <input id="file-transcript" type="file" accept=".txt,.md,text/plain">
+          <span class="drop-icon" aria-hidden="true">↑</span>
+          <span class="drop-main">
+            <span class="drop-title">Upload transcript</span>
+            <span class="drop-hint" id="hint-transcript">A .txt file from speech-to-text. Drop it here or click to choose.</span>
+          </span>
+        </label>
+        <details class="paste">
+          <summary>Or paste the text</summary>
+          <textarea id="new-transcript" rows="8" aria-label="Transcript text" placeholder="Doctor: what brings you in today?&#10;Patient: I've had chest pain for two days."></textarea>
+        </details>
+      </div>
+      <div class="form-field">
         <span>Note</span>
-        <textarea id="new-note" rows="6" placeholder="Your note. Shorthand is fine."></textarea>
-      </label>
+        <label class="dropzone" id="drop-note" for="file-note">
+          <input id="file-note" type="file" accept=".txt,.md,text/plain">
+          <span class="drop-icon" aria-hidden="true">↑</span>
+          <span class="drop-main">
+            <span class="drop-title">Upload note</span>
+            <span class="drop-hint" id="hint-note">The clinician's note as a .txt file. Optional, you can also write it later.</span>
+          </span>
+        </label>
+        <details class="paste">
+          <summary>Or paste the text</summary>
+          <textarea id="new-note" rows="5" aria-label="Note text" placeholder="Your note. Shorthand is fine."></textarea>
+        </details>
+      </div>
       <p id="new-error" class="form-error" role="alert" hidden></p>
       <div class="actions">
         <button class="btn btn-primary" type="submit">Create visit</button>

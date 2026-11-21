@@ -430,6 +430,7 @@
     }
    ],
    "explanation": "The patient confirms she injured her right wrist.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -443,6 +444,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "The patient's age is never mentioned in the transcript.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -461,6 +463,7 @@
     }
    ],
    "explanation": "The patient states the injury happened yesterday morning.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -474,6 +477,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "No calendar date is mentioned in the transcript.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -496,6 +500,7 @@
     }
    ],
    "explanation": "The patient describes slipping on the stairs while doing laundry with her basket.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -514,6 +519,7 @@
     }
    ],
    "explanation": "The patient states she put her arms out to catch herself.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -532,6 +538,7 @@
     }
    ],
    "explanation": "The patient describes sudden pain and swelling after the fall.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -554,6 +561,7 @@
     }
    ],
    "explanation": "The patient denies prior injury to this arm.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -572,6 +580,7 @@
     }
    ],
    "explanation": "The patient rates the pain as a nine.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -590,6 +599,7 @@
     }
    ],
    "explanation": "The patient says the pain is very bad when she moves the wrist.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -608,6 +618,7 @@
     }
    ],
    "explanation": "The patient says she can still feel her fingers and describes only a little tingling, not numbness.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -626,6 +637,7 @@
     }
    ],
    "explanation": "The patient reports a little tingling.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -648,6 +660,7 @@
     }
    ],
    "explanation": "The patient describes using ice and an ACE wrap.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -666,6 +679,7 @@
     }
    ],
    "explanation": "The patient says ibuprofen helps a little.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -684,6 +698,7 @@
     }
    ],
    "explanation": "The patient says keeping the arm straight on a pillow makes her feel better.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -706,6 +721,7 @@
     }
    ],
    "explanation": "The patient states her vacation is in a month.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -724,6 +740,7 @@
     }
    ],
    "explanation": "The patient reports wrist pain and swelling.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -742,6 +759,7 @@
     }
    ],
    "explanation": "The patient says she can still feel her fingers; only mild tingling was reported.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -760,6 +778,7 @@
     }
    ],
    "explanation": "The patient reports a little tingling.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -782,6 +801,7 @@
     }
    ],
    "explanation": "The clinician reports a mildly elevated blood pressure of 140/70.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -800,6 +820,7 @@
     }
    ],
    "explanation": "The clinician reports a heart rate of about 80.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -818,6 +839,7 @@
     }
    ],
    "explanation": "The clinician reports a respiratory rate of 20.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -836,6 +858,7 @@
     }
    ],
    "explanation": "The clinician reports a temperature of 97.2.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -849,6 +872,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "The clinician looked at the head but did not state it was normocephalic.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -862,6 +886,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "Neck swelling is not mentioned; only adenopathy, thyromegaly and bruit were commented on.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -880,6 +905,7 @@
     }
    ],
    "explanation": "The clinician notes no lower extremity edema.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -898,6 +924,7 @@
     }
    ],
    "explanation": "The clinician notes no carotid bruit.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -916,6 +943,7 @@
     }
    ],
    "explanation": "The clinician reports no murmur, rub or gallop.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -934,6 +962,7 @@
     }
    ],
    "explanation": "The clinician reports palpable pulses in the lower legs.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -947,6 +976,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "Respiratory effort and distress were not commented on.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -965,6 +995,7 @@
     }
    ],
    "explanation": "The clinician states the lungs are clear bilaterally.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -978,6 +1009,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "No abdominal or genitourinary exam was performed or mentioned.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -991,6 +1023,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "No back exam is mentioned in the transcript.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1009,6 +1042,7 @@
     }
    ],
    "explanation": "The clinician reports no adenopathy and no thyromegaly.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1031,6 +1065,7 @@
     }
    ],
    "explanation": "Limited motion is inferred from pain and difficulty with all wrist movements; it was not stated as such.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1053,6 +1088,7 @@
     }
    ],
    "explanation": "The patient reports pain when the inside and outside of the wrist are pressed.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1075,6 +1111,7 @@
     }
    ],
    "explanation": "The clinician notes pain on flexion and the patient has difficulty with extension.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1101,6 +1138,7 @@
     }
    ],
    "explanation": "The patient confirms pain with radial and lateral deviation.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1119,6 +1157,7 @@
     }
    ],
    "explanation": "The clinician dictates pain with abduction and adduction.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1137,6 +1176,7 @@
     }
    ],
    "explanation": "The clinician dictates intact metacarpals.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1155,6 +1195,7 @@
     }
    ],
    "explanation": "The clinician dictates obvious swelling and bruising.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1173,6 +1214,7 @@
     }
    ],
    "explanation": "The clinician dictates diffuse tenderness on palpation.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1191,6 +1233,7 @@
     }
    ],
    "explanation": "The clinician dictates possible fracture with bony crepitus.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1209,6 +1252,7 @@
     }
    ],
    "explanation": "The clinician mentions the x-ray done before the visit.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1227,6 +1271,7 @@
     }
    ],
    "explanation": "The clinician dictates an extra-articular fracture proximal to the radioulnar joint.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1245,6 +1290,7 @@
     }
    ],
    "explanation": "The clinician dictates this finding.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1258,6 +1304,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "The dictation only says a dinner fork deformity occurs if angulation is severe; it never states the angulation is severe in this patient.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1276,6 +1323,7 @@
     }
    ],
    "explanation": "The clinician dictates an ulnar styloid fracture.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1294,6 +1342,7 @@
     }
    ],
    "explanation": "The clinician states the x-ray shows a Colles fracture.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1312,6 +1361,7 @@
     }
    ],
    "explanation": "The clinician explains the Colles fracture to the patient.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1334,6 +1384,7 @@
     }
    ],
    "explanation": "Surgery with screws is recommended, which corresponds to ORIF, though the term is not used.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1347,6 +1398,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "Options were mentioned in passing but risks and benefits of surgery were not discussed.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1369,6 +1421,7 @@
     }
    ],
    "explanation": "The clinician wants surgery quickly so the wrist does not heal malformed.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1387,6 +1440,7 @@
     }
    ],
    "explanation": "The clinician states she will stay overnight.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1405,6 +1459,7 @@
     }
    ],
    "explanation": "The clinician corrected himself: not a thumb spica, but an arm brace.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1418,6 +1473,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "No brace instructions are mentioned in the transcript.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1436,6 +1492,7 @@
     }
    ],
    "explanation": "Drug, dose and frequency match the transcript.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1454,6 +1511,7 @@
     }
    ],
    "explanation": "The clinician states about six weeks of bracing.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1472,6 +1530,7 @@
     }
    ],
    "explanation": "The clinician states physical therapy a few weeks after surgery.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1494,6 +1553,7 @@
     }
    ],
    "explanation": "The clinician expects three sessions per week to strengthen the wrist, pending PT assessment.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1516,6 +1576,7 @@
     }
    ],
    "explanation": "The patient describes a couple-week vacation in a month.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1538,6 +1599,7 @@
     }
    ],
    "explanation": "The clinician said postponement depends on physical therapy's view of independent exercises; the note frames it more definitively.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -1556,6 +1618,7 @@
     }
    ],
    "explanation": "A one-month checkup was agreed, but it was framed around assessing the vacation, not as a set interval after surgery.",
+   "correction": "",
    "receipt_failed": false
   }
  ],

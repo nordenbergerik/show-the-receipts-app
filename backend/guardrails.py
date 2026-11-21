@@ -99,11 +99,15 @@ def check_claims(claims_llm: ClaimsLLM, lines: list[Line], note_text: str) -> li
         evidence = validate_evidence(raw.evidence, lines_by_id)
         status = raw.status
         receipt_failed = False
+        correction = raw.correction.strip()
         if status == "unsupported":
             evidence = []
         elif not evidence:
             status = "unsupported"
             receipt_failed = True
+            correction = ""
+        if status in ("supported", "inferred"):
+            correction = ""
         span = find_span(note_text, raw.note_quote, cursor)
         if span is not None:
             cursor = span.end
@@ -116,6 +120,7 @@ def check_claims(claims_llm: ClaimsLLM, lines: list[Line], note_text: str) -> li
                 status=status,
                 evidence=evidence,
                 explanation=raw.explanation,
+                correction=correction,
                 receipt_failed=receipt_failed,
             )
         )

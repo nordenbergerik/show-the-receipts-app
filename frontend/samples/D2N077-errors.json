@@ -430,6 +430,7 @@
     }
    ],
    "explanation": "The patient confirms the right wrist and that it happened yesterday morning.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -448,6 +449,7 @@
     }
    ],
    "explanation": "Described by the patient.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -466,6 +468,7 @@
     }
    ],
    "explanation": "The patient put her arms out to catch herself.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -484,6 +487,7 @@
     }
    ],
    "explanation": "Pain rated as nine.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -502,6 +506,7 @@
     }
    ],
    "explanation": "Reported by the patient.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -524,6 +529,7 @@
     }
    ],
    "explanation": "The patient says she has never injured this arm before.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -542,6 +548,7 @@
     }
    ],
    "explanation": "The patient reports a little tingling in the fingers.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -568,6 +575,7 @@
     }
    ],
    "explanation": "All three are mentioned by the patient.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -586,6 +594,7 @@
     }
    ],
    "explanation": "Ibuprofen helps a little.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -599,6 +608,7 @@
    "status": "unsupported",
    "evidence": [],
    "explanation": "Smoking is never discussed in the visit.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -621,6 +631,7 @@
     }
    ],
    "explanation": "The injured and examined wrist is the right one, not the left.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -643,6 +654,7 @@
     }
    ],
    "explanation": "Found on exam.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -661,6 +673,7 @@
     }
    ],
    "explanation": "Dictated during the exam.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -679,6 +692,7 @@
     }
    ],
    "explanation": "Dictated during the exam.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -697,6 +711,7 @@
     }
    ],
    "explanation": "Dictated during the exam.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -715,6 +730,7 @@
     }
    ],
    "explanation": "Stated by the doctor after the x-ray.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -741,6 +757,7 @@
     }
    ],
    "explanation": "From the dictated x-ray findings.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -767,6 +784,7 @@
     }
    ],
    "explanation": "ORIF is the clinical term for the surgery described: straightening the wrist and fixing it with screws.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -785,6 +803,7 @@
     }
    ],
    "explanation": "Stated by the doctor.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -803,6 +822,7 @@
     }
    ],
    "explanation": "Stated by the doctor.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -821,6 +841,7 @@
     }
    ],
    "explanation": "The dose prescribed in the visit was 50 mg, not 100 mg.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -843,6 +864,7 @@
     }
    ],
    "explanation": "Stated by the doctor.",
+   "correction": "",
    "receipt_failed": false
   },
   {
@@ -861,6 +883,7 @@
     }
    ],
    "explanation": "Agreed at the end of the visit.",
+   "correction": "",
    "receipt_failed": false
   }
  ],

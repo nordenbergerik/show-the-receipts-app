@@ -1,7 +1,7 @@
 """Promptar. Ändra PROMPT_VERSION vid varje innehållsändring: den ingår i cache-nyckeln."""
 from __future__ import annotations
 
-PROMPT_VERSION = "2026-11-21.1"
+PROMPT_VERSION = "2026-11-21.2"
 
 _COMMON = """\
 You are a clinical documentation auditor. You check a clinician's note against the transcript of the \
@@ -34,6 +34,7 @@ number, dose, duration or timing, or attributed to the wrong person).
 from that line (a few words up to one sentence, never spanning two lines). For contradicted, cite the \
 lines that contradict the claim. For unsupported, leave evidence empty.
 - explanation: one short sentence on why.
+- correction: for contradicted and unsupported claims, the replacement text for note_quote that matches the transcript, written in the same style and length as the note (keep shorthand if the note uses it). Use an empty string when the statement should simply be removed because the visit never covered it. For supported and inferred claims, use an empty string.
 
 A short note is not an error. Shorthand and abbreviations (for example "2d", "ua", "neg", "hx") are \
 normal; interpret them. Be strict about details: numbers, laterality, negation, medication names and \
