@@ -146,7 +146,7 @@ sequenceDiagram
 2. **Citatet finns i raden:** `rapidfuzz.fuzz.partial_ratio(quote, line.text) ≥ 90`, efter normalisering (gemener, blanksteg, skiljetecken). Citat som inte klarar det tas bort.
 3. **Status kräver bevis:** `supported`, `inferred` och `contradicted` utan något giltigt bevis kvar blir `unsupported` med `receipt_failed: true`.
 4. **Position i anteckningen:** `note_quote` söks först exakt, därefter normaliserat och sist med fuzzy-matchning. Hittas den inte blir `note_span` `null`, och påståendet visas i listan utan markering.
-5. **Tillägg:** ett tillägg utan giltigt bevis tas bort. Ett tillägg vars bevisrader redan citeras av ett `supported`-påstående tas också bort, eftersom det då redan står i anteckningen.
+5. **Tillägg:** ett tillägg utan giltigt bevis tas bort. Ett tillägg vars text i princip upprepar ett påstående som redan finns i anteckningen tas också bort (`token_sort_ratio ≥ 90`). En rad kan innehålla flera fakta, så det räcker inte att bevisraden redan citeras för att ta bort ett tillägg.
 6. **Sammanfattning:** antal per status och en procentsats "andel med kvitto".
 
 ### Omgranskning efter "Lägg till"
