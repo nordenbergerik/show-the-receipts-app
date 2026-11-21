@@ -149,6 +149,8 @@ anteckning ─────► [2] påståenden ────┘                  
 
 ## 8. Repostruktur
 
+Den detaljerade strukturen, med komponenter, kontrakt och säkerhet, finns i [ARCHITECTURE.md](ARCHITECTURE.md). Översikt:
+
 ```
 show-the-receipts/
 ├── backend/
