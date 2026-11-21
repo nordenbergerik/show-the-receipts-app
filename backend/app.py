@@ -54,16 +54,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 app = FastAPI(title="Show the Receipts", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 
-@app.middleware("http")
-async def no_stale_frontend(request: Request, call_next):
-    """Webbläsaren ska alltid fråga efter en ny version av sidans filer
-    (ETag gör att oförändrade filer ändå bara ger ett snabbt 304-svar)."""
-    response = await call_next(request)
-    if not request.url.path.startswith("/api/"):
-        response.headers["Cache-Control"] = "no-cache"
-    return response
-
-
 # Utan inloggning nås bara inloggningssidan, dess stilmall och hälsokontrollen
 # (som Render använder).
 PUBLIC_PATHS = {"/login", "/api/login", "/api/health", "/style.css"}
@@ -77,6 +67,20 @@ async def require_login(request: Request, call_next):
             return JSONResponse({"detail": "Sign in to continue."}, status_code=401)
         return RedirectResponse(f"/login?next={quote(path)}", status_code=303)
     return await call_next(request)
+
+
+@app.middleware("http")
+async def no_stale_frontend(request: Request, call_next):
+    """Läggs till sist och ligger därför ytterst, så att även inloggningens svar
+    får rubrikerna. Webbläsaren frågar alltid efter en ny version av sidans filer
+    (ETag gör att oförändrade filer ändå bara ger ett snabbt 304-svar)."""
+    response = await call_next(request)
+    if request.url.path.startswith("/api/"):
+        # patientdata: sparas aldrig av webbläsaren eller någon proxy
+        response.headers["Cache-Control"] = "no-store"
+    else:
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 class LoginRequest(BaseModel):

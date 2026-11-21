@@ -133,4 +133,4 @@ def test_missing_api_key_gives_clear_error(tmp_path, monkeypatch):
 
 def test_frontend_files_are_revalidated(client):
     assert client.get("/app.js").headers["cache-control"] == "no-cache"
-    assert "cache-control" not in client.get("/api/health").headers
+    assert client.get("/api/health").headers["cache-control"] == "no-store"

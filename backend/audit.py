@@ -13,7 +13,6 @@ from backend.guardrails import check_claims, check_coverage, check_flags, summar
 from backend.llm import LLMError, StructuredLLM
 from backend.prompts import CLAIMS_SYSTEM, COVERAGE_SYSTEM, DECISIONS_SYSTEM, PROMPT_VERSION
 from backend.schemas import AuditMeta, AuditRequest, AuditResult, ClaimsLLM, CoverageLLM, DecisionsLLM
-from backend.transcript import render_for_prompt
 from backend.visit import VisitError, audit_content, resolve_visit
 
 log = logging.getLogger("receipts.audit")
@@ -61,7 +60,9 @@ async def run_audit(
         raise AuditError(str(exc), exc.status_code) from exc
     note_text = req.note_text
 
-    key = audit_key(settings.model_label, PROMPT_VERSION, render_for_prompt(lines), note_text)
+    content = audit_content(lines, chief_complaint, note_text)
+    efforts = {task: settings.effort_for(task) for task in ("ClaimsLLM", "CoverageLLM", "DecisionsLLM")}
+    key = audit_key(model=settings.model_label, efforts=efforts, prompt_version=PROMPT_VERSION, content=content)
     cached = cache.get(key)
     if cached is not None:
         cached.meta.cached = True
@@ -69,7 +70,6 @@ async def run_audit(
         return cached
     check_access(settings, allow_live)
 
-    content = audit_content(lines, chief_complaint, note_text)
     # Kvittokontrollen av anteckningen är kärnan och måste lyckas. Förslagen och
     # den andra blicken är ett plus: misslyckas de visas granskningen ändå, med
     # en varning, och resultatet cachas inte så att nästa försök blir komplett.

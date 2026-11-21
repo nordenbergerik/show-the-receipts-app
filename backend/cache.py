@@ -1,21 +1,29 @@
-"""Filbaserad cache för granskningar. Demosvaren committas så att demon fungerar offline."""
+"""Filbaserad cache för granskningar: samma journal mot samma besök ger samma
+svar direkt, utan nya API-anrop. Cachen ligger i cache/audits/ (gitignorerad)."""
 from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import tempfile
 from pathlib import Path
+from typing import Any
+
+import pydantic
 
 from backend.schemas import AuditResult
 
+log = logging.getLogger("receipts.cache")
 
-def audit_key(model: str, prompt_version: str, rendered_transcript: str, note_text: str) -> str:
-    h = hashlib.sha256()
-    for part in (model, prompt_version, rendered_transcript, note_text.strip()):
-        h.update(part.encode("utf-8"))
-        h.update(b"\x00")
-    return h.hexdigest()
+
+def audit_key(*, model: str, efforts: dict[str, str], prompt_version: str, content: list[dict[str, Any]]) -> str:
+    """Nyckeln bygger på exakt det som skickas till modellen (samtal, huvudbesvär
+    och journal), plus modell, effort per steg och promptversion. Ändras något
+    av dem blir det ett nytt svar i stället för ett gammalt ur cachen."""
+    payload = json.dumps({"model": model, "efforts": efforts, "prompt_version": prompt_version, "content": content},
+                         sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 class AuditCache:
@@ -29,7 +37,12 @@ class AuditCache:
         path = self._path(key)
         if not path.exists():
             return None
-        return AuditResult.model_validate_json(path.read_text(encoding="utf-8"))
+        try:
+            return AuditResult.model_validate_json(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, pydantic.ValidationError):
+            # trasig eller gammal fil: räkna som en miss och gör en ny granskning
+            log.warning("ignoring unreadable cache entry %s", path.name)
+            return None
 
     def put(self, key: str, result: AuditResult) -> None:
         self.directory.mkdir(parents=True, exist_ok=True)

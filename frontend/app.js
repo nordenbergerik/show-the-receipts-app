@@ -134,8 +134,17 @@ const store = {
       return fallback;
     }
   },
+  // false when the browser refused (storage full or switched off)
   write(key, value) {
-    try { localStorage.setItem(`receipts.${key}`, JSON.stringify(value)); } catch { /* storage unavailable */ }
+    try {
+      localStorage.setItem(`receipts.${key}`, JSON.stringify(value));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  remove(key) {
+    try { localStorage.removeItem(`receipts.${key}`); } catch { /* storage unavailable */ }
   },
 };
 const ownVisits = () => store.read("visits", []);
@@ -148,10 +157,13 @@ const reviews = () => store.read("reviews", {});
 // The transcript is stored once (lines), not inside every answer.
 const workKey = (id) => `work.${id}`;
 
+const pendingKey = (id) => `pending.${id}`;
+const visitExists = (id) => ownVisits().some((v) => v.id === id);
+
 function saveWork() {
-  if (!state.encounter) return;
+  if (!state.encounter || !visitExists(state.encounter.encounter_id)) return; // not for a visit just deleted
   const strip = (answer) => (answer ? { ...answer, transcript: undefined } : null);
-  store.write(workKey(state.encounter.encounter_id), {
+  const work = {
     lines: state.lines,
     visitCheck: strip(state.visitCheck),
     visitState: state.visitState,
@@ -161,18 +173,34 @@ function saveWork() {
     followState: state.followState,
     draftCost: state.draftCost || "",
     ask: state.ask.result && !state.ask.result.error ? state.ask.result : null,
-  });
+  };
+  const key = workKey(state.encounter.encounter_id);
+  // If the browser's storage is full, leave out the transcript lines: the page
+  // splits the transcript into the same lines as the server, so they can be rebuilt.
+  if (!store.write(key, work) && !store.write(key, { ...work, lines: null })) {
+    showBanner("This browser's storage is full, so the checks of this visit are not saved. Delete visits you no longer need.");
+  }
+  saveReviewSummary();
 }
 
 function removeWork(id) {
-  try { localStorage.removeItem(`receipts.${workKey(id)}`); } catch { /* storage unavailable */ }
+  store.remove(workKey(id));
+  store.remove(pendingKey(id));
 }
 
+// What the patient list shows for a visit, kept in step with the check itself.
 function saveReviewSummary() {
-  if (!state.audit) return;
+  if (!state.encounter) return;
+  const id = state.encounter.encounter_id;
   const all = reviews();
-  all[state.encounter.encounter_id] = { problems: issues().length, missing: state.audit.suggested_additions.length, at: Date.now() };
-  store.write("reviews", all);
+  const before = JSON.stringify(all[id] || null);
+  if (state.audit) {
+    all[id] = { problems: issues().length, missing: state.audit.suggested_additions.length,
+      stale: Boolean(state.audit.changed || state.audit.unchecked) };
+  } else {
+    delete all[id]; // a new draft or no check yet: nothing to summarise
+  }
+  if (JSON.stringify(all[id] || null) !== before) store.write("reviews", all);
 }
 
 // ------------------------------------------------------------------ banner
@@ -267,10 +295,12 @@ function patientRow(visit) {
   let status = el("span", { class: "p-status", text: visit.hasNote === false ? "No note yet" : "Not checked" });
   if (state.running[visit.id]) {
     status = el("span", { class: "p-status is-working" }, spinner(), WORK[state.running[visit.id].step].short);
-  } else if (state.pending[visit.id]) {
+  } else if (state.pending[visit.id] || store.read(pendingKey(visit.id), null)) {
     status = el("span", { class: "p-status is-good", text: "Result ready" });
   } else if (visit.signed) {
     status = el("span", { class: "p-status is-good", text: "Signed" });
+  } else if (review && review.stale) {
+    status = el("span", { class: "p-status", text: "Edited since check" });
   } else if (review) {
     status = review.problems
       ? el("span", { class: "p-status is-bad", text: `${review.problems} ${review.problems === 1 ? "problem" : "problems"}` })
@@ -307,6 +337,7 @@ function clearAll() {
     return;
   }
   for (const visit of ownVisits()) removeWork(visit.id);
+  state.pending = {};
   store.write("visits", []);
   store.write("reviews", {});
   renderPatients();
@@ -479,8 +510,9 @@ async function loadVisit(visitId) {
   $("patient-meta").textContent = [own.reason, `Recorded ${new Date(own.created || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`].filter(Boolean).join(" · ");
   $("delete-btn").dataset.confirm = "";
   $("delete-btn").textContent = "Delete visit";
-  const waiting = state.pending[own.id];
+  const waiting = state.pending[own.id] || store.read(pendingKey(own.id), null);
   delete state.pending[own.id];
+  store.remove(pendingKey(own.id));
   if (waiting) applyResult(waiting.step, waiting.result); // an answer that came while the visit was closed
   else render();
   loadSuggestions();
@@ -674,7 +706,8 @@ async function runStep(step, request) {
     return;
   }
   if (error) showBanner(`${WORK[step].title} failed for a visit you left: ${error.message}`);
-  else state.pending[id] = { step, result };
+  // kept in storage, so the answer also survives a reload; in memory if storage is full
+  else if (visitExists(id) && !store.write(pendingKey(id), { step, result })) state.pending[id] = { step, result };
   if (!$("view-patients").hidden) renderPatients();
 }
 
