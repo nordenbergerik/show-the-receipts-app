@@ -17,97 +17,62 @@
         <path d="M5 2.5h14v19l-2.33-1.5-2.34 1.5L12 20l-2.33 1.5L7.33 20 5 21.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
         <path d="M8.5 9.5l2.2 2.2 4.8-4.7M8.5 15.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <div>
-        <h1>Show the Receipts</h1>
-        <p class="tagline">A receipt for every line in the medical record</p>
-      </div>
+      <span class="brand-name">Show the Receipts</span>
     </div>
     <div class="controls">
-      <label class="field" for="encounter-select">
-        <span class="field-label">Visit</span>
-        <select id="encounter-select"></select>
-      </label>
-      <div class="field">
-        <span class="field-label" id="variant-label">Source</span>
-        <div id="variant-switch" class="segmented" role="radiogroup" aria-labelledby="variant-label"></div>
-      </div>
-      <span id="mode-badge" class="mode-badge" hidden></span>
+      <select id="encounter-select" aria-label="Visit"></select>
+      <select id="variant-select" aria-label="Transcript source"></select>
     </div>
   </header>
 
-  <div id="banner" class="banner" role="status" hidden>
+  <div id="banner" class="banner" role="alert" hidden>
     <p id="banner-text"></p>
-    <button id="banner-close" class="icon-btn" type="button" aria-label="Dismiss message">×</button>
+    <button id="banner-action" class="link-btn" type="button" hidden></button>
+    <button id="banner-close" class="icon-btn" type="button" aria-label="Dismiss">×</button>
   </div>
 
-  <main class="workspace">
-    <section class="panel panel-note" aria-labelledby="note-heading">
-      <div class="panel-head">
-        <h2 id="note-heading">Clinical note</h2>
-        <select id="note-select" aria-label="Choose a note"></select>
-      </div>
-      <p id="note-description" class="hint"></p>
+  <main id="page" class="page">
+    <div class="journal-col">
+      <section id="stats" class="stats" aria-label="Review summary" hidden></section>
 
-      <div id="note-edit" class="stack">
-        <textarea id="note-input" spellcheck="false" aria-label="Note text"
-                  placeholder="Type or paste the note here. Shorthand and abbreviations are fine."></textarea>
-        <label id="access-field" class="field" for="access-code" hidden>
-          <span class="field-label">Access code for live review</span>
-          <input id="access-code" type="password" autocomplete="off">
-        </label>
-        <div class="actions">
+      <article class="journal" aria-labelledby="patient-name">
+        <header class="journal-head">
+          <div>
+            <h1 id="patient-name"></h1>
+            <p id="patient-meta" class="journal-meta"></p>
+          </div>
+          <select id="note-select" aria-label="Note"></select>
+        </header>
+
+        <div id="journal-body" class="journal-body"></div>
+        <textarea id="note-input" class="note-input" spellcheck="false" aria-label="Note text" hidden
+                  placeholder="Type or paste a note. Shorthand is fine."></textarea>
+
+        <footer class="journal-actions">
           <button id="audit-btn" class="btn btn-primary" type="button">Check against the visit</button>
-          <button id="sample-btn" class="btn btn-ghost" type="button" hidden>Show example review</button>
-        </div>
-      </div>
+          <button id="edit-btn" class="btn btn-ghost" type="button">Edit</button>
+          <button id="sample-btn" class="btn btn-ghost" type="button" hidden>Show example</button>
+          <span id="status-text" class="status-text" role="status"></span>
+        </footer>
+      </article>
 
-      <div id="loading" class="loading" role="status" hidden>
-        <span class="spinner" aria-hidden="true"></span>
-        <span>Checking the note against the visit. This usually takes 10–40 seconds.</span>
-      </div>
+      <section id="additions-section" class="section" hidden>
+        <h2 class="section-title">Missing from the note</h2>
+        <ul id="additions" class="rows"></ul>
+      </section>
 
-      <div id="note-view" class="stack" hidden>
-        <div id="summary" class="summary"></div>
-        <div id="note-rendered" class="note-rendered"></div>
-        <div class="actions">
-          <button id="edit-btn" class="btn btn-ghost" type="button">Edit note</button>
-        </div>
-        <div>
-          <h3 class="subhead">Needs attention</h3>
-          <ul id="issues" class="issues"></ul>
-        </div>
-      </div>
-    </section>
+      <details id="followups-section" class="section followups" hidden>
+        <summary class="section-title" id="followups-title">Questions to follow up</summary>
+        <ul id="followups" class="rows"></ul>
+      </details>
+    </div>
 
-    <section class="panel panel-transcript" aria-labelledby="transcript-heading">
-      <div class="panel-head">
-        <h2 id="transcript-heading">Visit transcript</h2>
-        <span id="transcript-meta" class="meta"></span>
-      </div>
-      <div id="receipt" class="receipt" aria-live="polite" hidden></div>
-      <ol id="transcript" class="transcript"></ol>
-    </section>
-
-    <section class="panel panel-suggest" aria-labelledby="suggest-heading">
-      <div class="panel-head">
-        <h2 id="suggest-heading">Suggestions</h2>
-      </div>
-      <p id="suggest-empty" class="empty">Check the note to see what was said but not written down, and which questions to follow up on.</p>
-      <div id="suggest-content" class="stack" hidden>
-        <div>
-          <h3 class="subhead">Missing from the note</h3>
-          <ul id="additions" class="cards"></ul>
-        </div>
-        <div>
-          <h3 class="subhead">Follow up</h3>
-          <ul id="followups" class="cards"></ul>
-        </div>
-      </div>
-    </section>
+    <aside id="drawer" class="drawer" aria-label="Source in the visit" hidden>
+      <div id="drawer-content"></div>
+    </aside>
   </main>
+  <div id="backdrop" class="backdrop" hidden></div>
 
-  <footer class="footer">
-    Demo data: ACI-Bench (Yim et al., 2023, CC BY 4.0). Role-played visits, no real patients.
-  </footer>
+  <footer class="footer">Demo data: ACI-Bench (Yim et al., 2023, CC BY 4.0). Role-played visits, no real patients.</footer>
 </body>
 </html>
