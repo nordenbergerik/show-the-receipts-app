@@ -509,9 +509,85 @@ function markChanged(claim) {
   state.audit.changed = (state.audit.changed || 0) + 1;
 }
 
+// ------------------------------------------------------------------ working indicator
+
+// What each AI step is doing while it runs. The note check really runs its three
+// parts at the same time, so they are shown side by side and not as a sequence.
+const WORK = {
+  "visit-check": {
+    title: "Checking the visit",
+    tasks: () => ["Looking for questions that may have been missed", "Giving the decisions a second look"],
+    usual: "Usually 15–30 seconds.",
+  },
+  draft: {
+    title: "Writing the note",
+    tasks: () => [noteFormat() === "plain" ? "Writing a plain-text note from the whole visit" : "Writing a SOAP note from the whole visit"],
+    usual: "Usually 10–20 seconds.",
+    skeleton: true,
+  },
+  audit: {
+    title: "Checking the note against the visit",
+    tasks: () => ["Finding the source of every statement", "Looking for what is missing", "Giving the decisions a second look"],
+    usual: "Usually 15–40 seconds.",
+  },
+  ask: {
+    title: "Searching the record",
+    tasks: () => ["Reading the visit and the note for evidence"],
+    usual: "Usually 5–15 seconds.",
+    skeleton: true,
+  },
+};
+
+function spinner() {
+  return el("span", { class: "spinner", "aria-hidden": "true" });
+}
+
+function elapsedText(since) {
+  return `${Math.max(0, Math.floor((Date.now() - since) / 1000))} s`;
+}
+
+function workPanel(step, since) {
+  const work = WORK[step];
+  return el("div", { class: "work", role: "status", "aria-live": "polite", "aria-label": `${work.title}. ${work.usual}` },
+    el("div", { class: "work-head" },
+      spinner(),
+      el("strong", { class: "work-title", text: work.title }),
+      el("span", { class: "work-time", "data-since": String(since), "aria-hidden": "true", text: elapsedText(since) })),
+    el("div", { class: "work-bar", "aria-hidden": "true" }, el("span")),
+    el("ul", { class: "work-tasks", "aria-hidden": "true" },
+      work.tasks().map((task, i) => el("li", { style: `--i: ${i}` }, el("span", { class: "work-dot" }), el("span", { text: task })))),
+    work.skeleton ? el("div", { class: "skeleton", "aria-hidden": "true" }, [92, 78, 85, 60].map((w) => el("span", { style: `width: ${w}%` }))) : null,
+    el("p", { class: "work-note", text: work.usual }));
+}
+
+// One clock for every running panel, so the seconds keep counting during re-renders.
+setInterval(() => {
+  for (const node of document.querySelectorAll(".work-time[data-since]")) node.textContent = elapsedText(Number(node.dataset.since));
+}, 1000);
+
+// Shows the panel in the card the step belongs to. It is only rebuilt when the
+// step changes, so the animation does not restart on every render.
+function renderWork() {
+  const busy = state.busy;
+  const places = { "work-visit": busy === "visit-check" || busy === "draft", "work-note": busy === "audit" };
+  for (const [id, show] of Object.entries(places)) {
+    const box = $(id);
+    box.hidden = !show;
+    if (!show) {
+      box.replaceChildren();
+      box.dataset.step = "";
+    } else if (box.dataset.step !== busy) {
+      box.dataset.step = busy;
+      box.replaceChildren(workPanel(busy, state.busySince));
+    }
+  }
+  $("note-card").classList.toggle("is-working", busy === "audit");
+}
+
 // ------------------------------------------------------------------ AI steps
 
 function setBusy(step, text) {
+  state.busySince = Date.now();
   state.busy = step;
   $("status-text").textContent = text || "";
   render();
@@ -561,7 +637,7 @@ async function runAudit() {
   }
   saveOwnNote();
   hideBanner();
-  setBusy("audit", "Checking the note against the visit…");
+  setBusy("audit", "");
   try {
     showAudit(await post("/api/audit", { ...visitSource(), note_text: noteText }));
   } catch (error) {
@@ -598,6 +674,7 @@ async function runAsk(question) {
   if (question.length < 3 || state.ask.loading) return;
   $("ask-input").value = question;
   state.ask.loading = true;
+  state.ask.since = Date.now();
   state.ask.result = null;
   renderAsk();
   try {
@@ -630,18 +707,20 @@ function render() {
   $("edit-btn").textContent = state.editingText ? "Done" : "Edit as text";
   const signed = Boolean(state.signed);
   const needsCheck = !state.audit || state.audit.changed > 0;
-  $("audit-btn").textContent = state.audit ? "Check again" : "Check note";
+  fill($("audit-btn"), state.busy === "audit" ? [spinner(), "Checking…"] : state.audit ? "Check again" : "Check note");
   $("audit-btn").hidden = signed || !needsCheck;
   $("audit-btn").disabled = state.busy === "audit";
   $("sign-btn").hidden = signed || state.editingText;
   $("sign-btn").className = `btn ${needsCheck ? "btn-ghost" : "btn-primary"}`;
   $("edit-btn").hidden = signed;
   $("delete-btn").hidden = false;
+  for (const id of ["sign-btn", "edit-btn", "delete-btn"]) $(id).disabled = state.busy === "audit"; // not while the check runs
   $("note-card").classList.toggle("is-signed", signed);
   renderSigned();
 
   $("cost-text").textContent = !state.audit && state.draftCost && stage() === "note" ? `Draft: ${state.draftCost}` : "";
   renderJournal();
+  renderWork();
   renderStats();
   renderFlags();
   renderAdditions();
@@ -694,10 +773,13 @@ function renderVisitCard() {
   const busy = state.busy;
   const actions = [];
   if (!checked) {
-    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runVisitCheck, text: busy === "visit-check" ? "Checking the visit…" : "Check the visit" }));
-    actions.push(el("button", { type: "button", class: "btn btn-ghost", disabled: Boolean(busy), onclick: runDraft, text: busy === "draft" ? "Writing…" : "Skip and draft the note" }));
+    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runVisitCheck },
+      busy === "visit-check" ? [spinner(), "Checking the visit…"] : "Check the visit"));
+    actions.push(el("button", { type: "button", class: "btn btn-ghost", disabled: Boolean(busy), onclick: runDraft },
+      busy === "draft" ? [spinner(), "Writing…"] : "Skip and draft the note"));
   } else {
-    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runDraft, text: busy === "draft" ? "Writing the note…" : "Draft the note" }));
+    actions.push(el("button", { type: "button", class: "btn btn-primary", disabled: Boolean(busy), onclick: runDraft },
+      busy === "draft" ? [spinner(), "Writing the note…"] : "Draft the note"));
   }
   actions.push(el("button", { type: "button", class: "btn btn-quiet", disabled: Boolean(busy), onclick: writeOwnNote, text: "Write it myself" }));
   actions.push(el("button", { type: "button", class: "btn btn-quiet", onclick: () => select({ kind: "transcript", id: "all" }), text: "Show transcript" }));
@@ -1201,12 +1283,17 @@ function renderAsk() {
   section.hidden = !state.encounter;
   if (!state.encounter) return;
   $("ask-btn").disabled = state.ask.loading;
-  $("ask-btn").textContent = state.ask.loading ? "Searching…" : "Ask";
+  fill($("ask-btn"), state.ask.loading ? [spinner(), "Searching…"] : "Ask");
   $("ask-chips").replaceChildren(...state.ask.suggestions.map((q) =>
     el("button", { type: "button", class: "chip-btn", text: q, disabled: state.ask.loading, onclick: () => runAsk(q) })));
 
   const box = $("ask-answer");
   const result = state.ask.result;
+  if (state.ask.loading) {
+    box.hidden = false;
+    if (!box.querySelector(".work")) fill(box, workPanel("ask", state.ask.since));
+    return;
+  }
   box.hidden = !result;
   if (!result) return;
   if (result.error) {
