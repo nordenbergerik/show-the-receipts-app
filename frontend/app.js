@@ -1,6 +1,7 @@
 "use strict";
 
-// The note is the main view. The source in the visit is only shown in the
+// Show the Receipts: patient list, new visit and the review view.
+// The note is the main view; the source in the visit only appears in the
 // drawer when something is clicked. All text from transcripts, notes and the
 // model is untrusted input and is rendered with textContent, never innerHTML.
 
@@ -8,11 +9,13 @@ const STATUS = { supported: "Supported", inferred: "Inferred", contradicted: "Co
 const SPEAKER = { doctor: "Doctor", patient: "Patient", patient_guest: "Companion", unknown: "Unknown" };
 const VARIANT = { clean: "Transcript", asr: "Raw speech-to-text", asrcorr: "Corrected speech-to-text", humantrans: "Manual transcript" };
 const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const OWN_PREFIX = "own-";
 
 const state = {
   health: null,
+  user: null,
   encounters: [],
-  encounter: null,
+  encounter: null, // the open visit
   variant: "clean",
   noteId: null,
   noteText: "",
@@ -49,10 +52,37 @@ async function api(path, options = {}) {
   let body = null;
   try { body = await response.json(); } catch { /* empty body */ }
   if (!response.ok) {
-    const message = body && typeof body.detail === "string" ? body.detail : `Something went wrong (${response.status}).`;
+    let message = `Something went wrong (${response.status}).`;
+    if (body && typeof body.detail === "string") message = body.detail;
+    else if (response.status === 422) message = "The request is not valid. Check the transcript and note and try again.";
     throw Object.assign(new Error(message), { status: response.status });
   }
   return body;
+}
+
+// ------------------------------------------------------------------ browser storage (no login yet)
+
+const store = {
+  read(key, fallback) {
+    try {
+      const raw = localStorage.getItem(`receipts.${key}`);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  },
+  write(key, value) {
+    try { localStorage.setItem(`receipts.${key}`, JSON.stringify(value)); } catch { /* storage unavailable */ }
+  },
+};
+const ownVisits = () => store.read("visits", []);
+const reviews = () => store.read("reviews", {});
+
+function saveReviewSummary(visitId, audit) {
+  const all = reviews();
+  const problems = audit.claims.filter((c) => c.status === "contradicted" || c.status === "unsupported").length;
+  all[visitId] = { problems, missing: audit.suggested_additions.length, at: Date.now() };
+  store.write("reviews", all);
 }
 
 // ------------------------------------------------------------------ banner
@@ -69,59 +99,175 @@ function showBanner(message, action) {
 }
 function hideBanner() { $("banner").hidden = true; }
 
-// ------------------------------------------------------------------ start-up
+// ------------------------------------------------------------------ start-up and routing
 
 async function init() {
   $("banner-close").addEventListener("click", hideBanner);
-  $("encounter-select").addEventListener("change", (e) => loadEncounter(e.target.value, "clean"));
-  $("variant-select").addEventListener("change", (e) => loadEncounter(state.encounter.encounter_id, e.target.value));
+  $("patient-search").addEventListener("input", renderPatients);
+  $("new-form").addEventListener("submit", createVisit);
+  $("variant-select").addEventListener("change", (e) => loadVisit(state.encounter.encounter_id, e.target.value));
   $("note-select").addEventListener("change", (e) => selectNote(e.target.value));
   $("audit-btn").addEventListener("click", runAudit);
   $("edit-btn").addEventListener("click", toggleEdit);
   $("sample-btn").addEventListener("click", showSample);
+  $("delete-btn").addEventListener("click", deleteVisit);
   $("backdrop").addEventListener("click", () => select(null));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
+  window.addEventListener("hashchange", route);
 
   try {
-    [state.health, state.encounters] = await Promise.all([api("/api/health"), api("/api/encounters")]);
+    [state.health, state.encounters, state.user] = await Promise.all([api("/api/health"), api("/api/encounters"), api("/api/me")]);
   } catch (error) {
     showBanner(`Could not reach the server: ${error.message}`);
     return;
   }
-  renderEncounterSelect();
-  const first = state.encounters.find((e) => e.featured) || state.encounters[0];
-  await loadEncounter(first.encounter_id, "clean");
+  const initials = state.user.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  $("user-chip").replaceChildren(el("span", { class: "avatar", text: initials }), el("span", { class: "user-name", text: state.user.name }));
+  route();
 }
 
-function renderEncounterSelect() {
-  const label = (e) => `${e.patient || "Unknown patient"} · ${e.chief_complaint || e.dataset}`;
-  const option = (e) => el("option", { value: e.encounter_id, text: label(e) });
-  const featured = state.encounters.filter((e) => e.featured);
-  $("encounter-select").replaceChildren(
-    featured.length ? el("optgroup", { label: "Demo cases" }, featured.map(option)) : null,
-    el("optgroup", { label: `All visits (${state.encounters.length})` }, state.encounters.filter((e) => !e.featured).map(option)),
-  );
+function route() {
+  const [view, id] = location.hash.replace(/^#\/?/, "").split("/");
+  hideBanner();
+  if (view === "visit" && id) return openView("visit", () => loadVisit(decodeURIComponent(id), "clean"));
+  if (view === "new") return openView("new", () => { $("new-form").reset(); $("new-error").hidden = true; $("new-patient").focus(); });
+  return openView("patients", renderPatients);
 }
 
-async function loadEncounter(encounterId, variant) {
-  let encounter;
-  try {
-    encounter = await api(`/api/encounters/${encodeURIComponent(encounterId)}?variant=${variant}`);
-  } catch (error) {
-    showBanner(error.message);
+function openView(name, setup) {
+  for (const view of ["patients", "new", "visit"]) $(`view-${view}`).hidden = view !== name;
+  $("nav-patients").classList.toggle("is-active", name === "patients");
+  if (name !== "visit") {
+    state.selected = null;
+    $("backdrop").hidden = true;
+  }
+  window.scrollTo(0, 0);
+  setup();
+}
+
+// ------------------------------------------------------------------ patients
+
+function initials(name) {
+  return (name || "?").split(/\s+/).filter(Boolean).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function patientRow(visit) {
+  const review = reviews()[visit.id];
+  let status = el("span", { class: "p-status", text: "Not checked" });
+  if (review) {
+    status = review.problems
+      ? el("span", { class: "p-status is-bad", text: `${review.problems} ${review.problems === 1 ? "problem" : "problems"}` })
+      : el("span", { class: "p-status is-good", text: "All backed" });
+  }
+  return el("li", {},
+    el("a", { class: "patient-row", href: `#/visit/${encodeURIComponent(visit.id)}` },
+      el("span", { class: "avatar", text: initials(visit.patient) }),
+      el("span", { class: "p-main" },
+        el("span", { class: "p-name", text: visit.patient || "Unknown patient" }),
+        el("span", { class: "p-reason", text: visit.reason || "No reason given" })),
+      status,
+      el("span", { class: "p-chevron", "aria-hidden": "true", text: "›" })));
+}
+
+function renderPatients() {
+  const query = $("patient-search").value.trim().toLowerCase();
+  const matches = (v) => !query || [v.patient, v.reason, v.id].some((s) => (s || "").toLowerCase().includes(query));
+  const own = ownVisits().map((v) => ({ id: v.id, patient: v.patient, reason: v.reason })).filter(matches);
+  const fromData = state.encounters.map((e) => ({ id: e.encounter_id, patient: e.patient, reason: e.chief_complaint, featured: e.featured })).filter(matches);
+  const demo = fromData.filter((v) => v.featured);
+  const rest = fromData.filter((v) => !v.featured);
+
+  $("group-own").hidden = !own.length;
+  $("list-own").replaceChildren(...own.map(patientRow));
+  $("group-demo").hidden = !demo.length;
+  $("list-demo").replaceChildren(...demo.map(patientRow));
+  $("all-title").textContent = `All visits (${rest.length})`;
+  $("list-all").replaceChildren(...(rest.length ? rest.map(patientRow) : [el("li", { class: "empty-row", text: "No visits match your search." })]));
+}
+
+// ------------------------------------------------------------------ new visit
+
+function createVisit(event) {
+  event.preventDefault();
+  const patient = $("new-patient").value.trim();
+  const transcript = $("new-transcript").value.trim();
+  const error = !patient ? "Add the patient's name." : !transcript ? "Paste the transcript of the visit." : "";
+  if (error) {
+    $("new-error").textContent = error;
+    $("new-error").hidden = false;
     return;
   }
-  const sameEncounter = state.encounter && state.encounter.encounter_id === encounterId;
+  const visit = {
+    id: `${OWN_PREFIX}${Date.now().toString(36)}`,
+    patient,
+    reason: $("new-reason").value.trim(),
+    transcript,
+    note: $("new-note").value,
+    created: Date.now(),
+  };
+  store.write("visits", [visit, ...ownVisits()]);
+  location.hash = `#/visit/${visit.id}`;
+}
+
+function deleteVisit() {
+  if (!state.encounter || !state.encounter.own) return;
+  const button = $("delete-btn");
+  if (button.dataset.confirm !== "1") {
+    button.dataset.confirm = "1";
+    button.textContent = "Click again to delete";
+    return;
+  }
+  store.write("visits", ownVisits().filter((v) => v.id !== state.encounter.encounter_id));
+  const all = reviews();
+  delete all[state.encounter.encounter_id];
+  store.write("reviews", all);
+  location.hash = "#/patients";
+}
+
+// ------------------------------------------------------------------ open a visit
+
+async function loadVisit(visitId, variant) {
+  let encounter;
+  if (visitId.startsWith(OWN_PREFIX)) {
+    const own = ownVisits().find((v) => v.id === visitId);
+    if (!own) {
+      showBanner("This visit is not saved in this browser.");
+      location.hash = "#/patients";
+      return;
+    }
+    encounter = {
+      encounter_id: own.id,
+      own: true,
+      patient: own.patient,
+      chief_complaint: own.reason,
+      transcript_text: own.transcript,
+      variants: {},
+      notes: [{ id: "own", label: "Note", note_text: own.note || "" }],
+    };
+  } else {
+    try {
+      encounter = await api(`/api/encounters/${encodeURIComponent(visitId)}?variant=${variant}`);
+    } catch (error) {
+      showBanner(error.message);
+      return;
+    }
+  }
+  const sameVisit = state.encounter && state.encounter.encounter_id === visitId;
   state.encounter = encounter;
   state.variant = variant;
-  $("encounter-select").value = encounterId;
-  $("variant-select").replaceChildren(
-    ...Object.keys(encounter.variants).map((key) => el("option", { value: key, text: VARIANT[key] || key })),
-  );
-  $("variant-select").value = variant;
+
   $("patient-name").textContent = encounter.patient || "Unknown patient";
-  $("patient-meta").textContent = [encounter.chief_complaint, `Visit ${encounter.encounter_id}`].filter(Boolean).join(" · ");
-  if (sameEncounter) {
+  $("patient-meta").textContent = [encounter.chief_complaint, encounter.own ? "Your visit" : `Visit ${encounter.encounter_id}`].filter(Boolean).join(" · ");
+  const variants = Object.keys(encounter.variants);
+  $("variant-select").hidden = variants.length < 2;
+  $("variant-select").replaceChildren(...variants.map((key) => el("option", { value: key, text: VARIANT[key] || key })));
+  $("variant-select").value = variant;
+  $("note-select").hidden = encounter.notes.length < 2;
+  $("delete-btn").hidden = !encounter.own;
+  $("delete-btn").dataset.confirm = "";
+  $("delete-btn").textContent = "Delete visit";
+
+  if (sameVisit && state.noteId) {
     resetAudit();
   } else {
     $("note-select").replaceChildren(...encounter.notes.map((n) => el("option", { value: n.id, text: n.label })));
@@ -148,7 +294,6 @@ function resetAudit() {
   state.selected = null;
   state.additionState = {};
   state.issueCursor = -1;
-  hideBanner();
   render();
 }
 
@@ -156,6 +301,7 @@ function toggleEdit() {
   if (state.editing) {
     state.noteText = $("note-input").value;
     state.editing = false;
+    saveOwnNote();
   } else {
     state.editing = true;
     state.audit = null;
@@ -165,30 +311,36 @@ function toggleEdit() {
   if (state.editing) $("note-input").focus();
 }
 
+function saveOwnNote() {
+  if (!state.encounter.own) return;
+  store.write("visits", ownVisits().map((v) => (v.id === state.encounter.encounter_id ? { ...v, note: state.noteText } : v)));
+  state.encounter.notes[0].note_text = state.noteText;
+}
+
 // ------------------------------------------------------------------ review
 
 async function runAudit() {
   if (state.editing) state.noteText = $("note-input").value;
   const noteText = state.noteText.trim();
   if (!noteText) {
-    showBanner("Type or paste a note first.");
+    showBanner("Write or paste a note first.");
     return;
   }
+  saveOwnNote();
   hideBanner();
   state.editing = false;
   $("audit-btn").disabled = true;
   $("status-text").textContent = "Checking the note against the visit…";
   render();
+  const body = state.encounter.own
+    ? { transcript_text: state.encounter.transcript_text, note_text: noteText }
+    : { encounter_id: state.encounter.encounter_id, variant: state.variant, note_text: noteText };
   try {
-    const result = await api("/api/audit", {
-      method: "POST",
-      body: JSON.stringify({ encounter_id: state.encounter.encounter_id, variant: state.variant, note_text: noteText }),
-    });
-    showAudit(result, false);
+    showAudit(await api("/api/audit", { method: "POST", body: JSON.stringify(body) }), false);
   } catch (error) {
     const note = currentNote();
     const canShowSample = note && note.sample && noteText === note.note_text.trim();
-    showBanner(error.message, canShowSample ? { label: "Show example", run: showSample } : null);
+    showBanner(error.message, canShowSample ? { label: "Show simulated review", run: showSample } : null);
   } finally {
     $("audit-btn").disabled = false;
     $("status-text").textContent = "";
@@ -200,10 +352,9 @@ async function showSample() {
   if (!note || !note.sample) return;
   try {
     const sample = await api(`/samples/${encodeURIComponent(note.sample)}.json`);
-    if (state.variant !== (sample.variant || "clean")) await loadEncounter(state.encounter.encounter_id, sample.variant || "clean");
     showAudit(sample, true);
   } catch (error) {
-    showBanner(`Could not load the example: ${error.message}`);
+    showBanner(`Could not load the simulated review: ${error.message}`);
   }
 }
 
@@ -215,10 +366,11 @@ function showAudit(result, isSample) {
   state.selected = null;
   state.additionState = {};
   state.issueCursor = -1;
+  saveReviewSummary(state.encounter.encounter_id, state.audit);
   render();
 }
 
-// ------------------------------------------------------------------ rendering
+// ------------------------------------------------------------------ rendering the visit
 
 function render() {
   const audited = Boolean(state.audit);
@@ -244,9 +396,11 @@ function issues() {
     .sort((a, b) => (a.note_span ? a.note_span.start : 1e9) - (b.note_span ? b.note_span.start : 1e9));
 }
 
-function openAdditions() {
-  if (!state.audit) return [];
-  return state.audit.suggested_additions.filter((a) => !state.additionState[a.addition_id]);
+function sampleNote(model) {
+  if (model.startsWith("simulated")) {
+    return "Simulated review: a Claude agent answered the exact request the app sends to the API, and the result went through the same receipt checks.";
+  }
+  return "Example review, written by hand to show the interface. Not generated by Claude.";
 }
 
 function renderStats() {
@@ -260,7 +414,7 @@ function renderStats() {
   const contradicted = problems.filter((c) => c.status === "contradicted").length;
   const backed = claims.filter((c) => c.status === "supported" || c.status === "inferred").length;
   const pct = claims.length ? Math.round((100 * backed) / claims.length) : 0;
-  const missing = openAdditions().length;
+  const missing = state.audit.suggested_additions.filter((a) => !state.additionState[a.addition_id]).length;
 
   const stat = (value, label, cls, onclick, title) =>
     el("button", { type: "button", class: `stat ${cls}`, onclick, title },
@@ -274,7 +428,7 @@ function renderStats() {
     stat(missing, missing === 1 ? "thing missing" : "things missing", "", () =>
       $("additions-section").scrollIntoView({ behavior: REDUCED_MOTION ? "auto" : "smooth", block: "start" })),
     stat(`${pct}%`, "backed by the visit", "is-good", null, `${backed} of ${claims.length} statements have a receipt`),
-    state.isSample ? el("p", { class: "stats-note", text: "Example review, written by hand to show the interface. Not generated by Claude." }) : null,
+    state.isSample ? el("p", { class: "stats-note", text: sampleNote(state.audit.meta.model) }) : null,
   );
   box.hidden = false;
 }
@@ -283,8 +437,9 @@ function nextIssue() {
   const list = issues();
   if (!list.length) return;
   state.issueCursor = (state.issueCursor + 1) % list.length;
-  select({ kind: "claim", id: list[state.issueCursor].claim_id });
-  const node = document.querySelector(`.claim[data-claim="${list[state.issueCursor].claim_id}"]`);
+  const id = list[state.issueCursor].claim_id;
+  select({ kind: "claim", id });
+  const node = document.querySelector(`.claim[data-claim="${id}"]`);
   if (node) node.scrollIntoView({ block: "center", behavior: REDUCED_MOTION ? "auto" : "smooth" });
 }
 
@@ -335,7 +490,7 @@ function parseNote(text) {
     }
     sentenceRanges(text, contentStart, lineEnd).forEach(([s, e], i) => current.rows.push({ start: s, end: e, sublabel: i === 0 ? sublabel : null }));
   }
-  if (sections.length && sections[0].label === "Note" && sections.length > 1) sections[0].label = "History";
+  if (sections.length > 1 && sections[0].label === "Note") sections[0].label = "History";
   return sections;
 }
 
@@ -365,7 +520,7 @@ function renderJournal() {
   const claims = state.audit ? state.audit.claims.filter((c) => c.note_span).sort((a, b) => a.note_span.start - b.note_span.start) : [];
   const body = $("journal-body");
   if (!sections.length) {
-    body.replaceChildren(el("p", { class: "status-text", text: "This note is empty. Choose Edit to write one." }));
+    body.replaceChildren(el("p", { class: "status-text", text: "No note yet. Choose Edit to write one." }));
     return;
   }
   body.replaceChildren(
@@ -410,9 +565,8 @@ function appendWithClaims(parent, text, start, end, claims) {
 // ------------------------------------------------------------------ additions and follow-ups
 
 function renderAdditions() {
-  const section = $("additions-section");
   const additions = state.audit ? state.audit.suggested_additions : [];
-  section.hidden = !additions.length;
+  $("additions-section").hidden = !additions.length;
   $("additions").replaceChildren(
     ...additions.map((a) => {
       const status = state.additionState[a.addition_id];
@@ -454,9 +608,8 @@ function addAddition(addition) {
   const start = audit.note_text.length + separator.length + prefix.length;
   audit.note_text = `${audit.note_text}${separator}${prefix}${addition.text}`;
   state.noteText = audit.note_text;
-  const claimId = `T${addition.addition_id}`;
   audit.claims.push({
-    claim_id: claimId,
+    claim_id: `T${addition.addition_id}`,
     text: addition.text,
     note_quote: addition.text,
     note_span: { start, end: start + addition.text.length },
@@ -468,6 +621,7 @@ function addAddition(addition) {
   });
   state.additionState[addition.addition_id] = "added";
   state.selected = null;
+  saveOwnNote();
   render();
 }
 
@@ -486,14 +640,13 @@ function selectedItem() {
 function select(selection) {
   state.selected = selection;
   state.showFullTranscript = false;
-  render();
+  if (!$("view-visit").hidden) render();
 }
 
 function renderDrawer() {
   const item = selectedItem();
-  const drawer = $("drawer");
   const open = Boolean(item);
-  drawer.hidden = !open;
+  $("drawer").hidden = !open;
   $("page").classList.toggle("has-drawer", open);
   $("backdrop").hidden = !(open && window.matchMedia("(max-width: 1099px)").matches);
   if (!open) return;
@@ -516,7 +669,7 @@ function renderDrawer() {
   if (!isClaim && !state.additionState[item.addition_id]) {
     parts.push(el("div", { class: "drawer-actions" },
       el("button", { type: "button", class: "btn btn-primary btn-sm", text: "Add to note", onclick: () => addAddition(item) }),
-      el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Dismiss", onclick: () => { setAdditionState(item.addition_id, "dismissed"); select(null); } })));
+      el("button", { type: "button", class: "btn btn-ghost btn-sm", text: "Dismiss", onclick: () => { state.additionState[item.addition_id] = "dismissed"; select(null); } })));
   }
 
   parts.push(el("button", {
@@ -529,8 +682,9 @@ function renderDrawer() {
 
   $("drawer-content").replaceChildren(el("div", { class: "drawer-content" }, parts));
   if (state.showFullTranscript) {
-    const first = document.querySelector(".full-transcript .is-cited");
-    if (first) first.parentElement.parentElement.scrollTop = first.offsetTop - 40;
+    const box = document.querySelector(".full-transcript");
+    const first = box && box.querySelector(".is-cited");
+    if (first) box.scrollTop = first.offsetTop - 40;
   }
 }
 
@@ -555,7 +709,7 @@ function lineItem(line, quotes, status, width, compact = false) {
 
 // The cited lines with one line of context on each side.
 function renderExcerpt(evidence, status) {
-  const lines = state.encounter.transcript;
+  const lines = state.audit.transcript;
   const width = Math.max(2, String(lines.length).length);
   const quotes = quotesByLine(evidence);
   const show = new Set();
@@ -570,7 +724,7 @@ function renderExcerpt(evidence, status) {
 }
 
 function renderFullTranscript(evidence, status) {
-  const lines = state.encounter.transcript;
+  const lines = state.audit.transcript;
   const width = Math.max(2, String(lines.length).length);
   const quotes = quotesByLine(evidence);
   return el("div", { class: "full-transcript" },

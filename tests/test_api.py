@@ -107,3 +107,20 @@ def test_offline_mode_and_access_code(client):
 def test_frontend_is_served(client):
     r = client.get("/")
     assert r.status_code == 200 and "Show the Receipts" in r.text
+
+
+def test_missing_api_key_gives_clear_error(tmp_path, monkeypatch):
+    """Utan nyckel ska användaren få ett begripligt fel, inte en 500:a."""
+    from backend.llm import ClaudeLLM
+
+    for var in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_PROFILE"):
+        monkeypatch.delenv(var, raising=False)
+    app.dependency_overrides[get_llm] = lambda: ClaudeLLM(get_settings())
+    app.dependency_overrides[get_cache] = lambda: AuditCache(tmp_path)
+    try:
+        with TestClient(app) as c:
+            r = c.post("/api/audit", json={"encounter_id": ENCOUNTER, "note_text": NOTE})
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 503, r.text
+    assert "API key" in r.json()["detail"]

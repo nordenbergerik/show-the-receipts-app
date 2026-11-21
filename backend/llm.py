@@ -57,7 +57,12 @@ class ClaudeLLM:
         try:
             response = await self.client.beta.messages.parse(**kwargs)
         except anthropic.AuthenticationError as exc:
-            raise LLMError("The API key is missing or invalid. Check ANTHROPIC_API_KEY in .env.", 500) from exc
+            raise LLMError("The API key is invalid. Check ANTHROPIC_API_KEY in .env.", 500) from exc
+        except TypeError as exc:
+            # SDK:n kastar TypeError innan anropet skickas när ingen nyckel alls är satt.
+            if "authentication" not in str(exc).lower():
+                raise
+            raise LLMError("Live review is not set up yet: no API key has been added.", 503) from exc
         except anthropic.PermissionDeniedError as exc:
             raise LLMError("The API key does not have access to this model.", 500) from exc
         except anthropic.RateLimitError as exc:

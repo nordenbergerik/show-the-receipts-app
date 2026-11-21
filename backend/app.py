@@ -2,19 +2,19 @@
 from __future__ import annotations
 
 import hmac
-import json
 import logging
-from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 
 from backend.audit import AuditError, run_audit
+from backend.auth import User, get_current_user
 from backend.cache import AuditCache
-from backend.config import ROOT, Settings, get_settings
+from backend.config import Settings, get_settings
 from backend.data import VARIANTS, DataStore, get_store
 from backend.llm import ClaudeLLM, StructuredLLM
+from backend.notes import demo_notes, notes_for
 from backend.schemas import AuditRequest, AuditResult, Variant
 from backend.transcript import index_transcript
 
@@ -36,13 +36,6 @@ def get_cache(settings: Annotated[Settings, Depends(get_settings)]) -> AuditCach
     return AuditCache(settings.cache_dir)
 
 
-@lru_cache(maxsize=1)
-def demo_notes() -> dict[str, list[dict]]:
-    """Förberedda anteckningar per samtal (demo/notes.json)."""
-    path = ROOT / "demo" / "notes.json"
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-
-
 @app.get("/api/health")
 def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict:
     return {
@@ -51,6 +44,11 @@ def health(settings: Annotated[Settings, Depends(get_settings)]) -> dict:
         "offline": settings.demo_offline,
         "access_code_required": settings.access_code is not None,
     }
+
+
+@app.get("/api/me")
+def me(user: Annotated[User, Depends(get_current_user)]) -> User:
+    return user
 
 
 @app.get("/api/encounters")
@@ -89,16 +87,7 @@ def get_encounter(
         "variant": variant,
         "variants": {v: VARIANTS[v] for v in enc.variants},
         "transcript": [line.model_dump() for line in index_transcript(enc.variants[variant])],
-        "notes": [
-            *demo_notes().get(enc.encounter_id, []),
-            {
-                "id": "reference",
-                "label": "Expert note (ACI-Bench)",
-                "description": "The full reference note that ships with the dataset, written and reviewed by experts.",
-                "note_text": enc.reference_note,
-            },
-            {"id": "own", "label": "Your own note", "description": "Type or paste any note to check it against this visit.", "note_text": ""},
-        ],
+        "notes": notes_for(enc),
     }
 
 

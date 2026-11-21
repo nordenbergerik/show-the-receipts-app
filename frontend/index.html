@@ -4,74 +4,80 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Show the Receipts</title>
+  <meta name="description" content="Check every line of a medical note against the recorded visit.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="style.css">
-  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body>
+<body class="landing">
   <header class="topbar">
-    <div class="brand">
+    <a class="brand" href="/">
       <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M5 2.5h14v19l-2.33-1.5-2.34 1.5L12 20l-2.33 1.5L7.33 20 5 21.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
         <path d="M8.5 9.5l2.2 2.2 4.8-4.7M8.5 15.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span class="brand-name">Show the Receipts</span>
-    </div>
-    <div class="controls">
-      <select id="encounter-select" aria-label="Visit"></select>
-      <select id="variant-select" aria-label="Transcript source"></select>
-    </div>
+    </a>
+    <nav class="nav">
+      <a href="#how">How it works</a>
+      <a href="#plans">For clinics</a>
+      <a class="btn btn-ghost btn-sm" href="/app/">Sign in</a>
+    </nav>
   </header>
 
-  <div id="banner" class="banner" role="alert" hidden>
-    <p id="banner-text"></p>
-    <button id="banner-action" class="link-btn" type="button" hidden></button>
-    <button id="banner-close" class="icon-btn" type="button" aria-label="Dismiss">×</button>
-  </div>
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <h1>A receipt for every line in the medical record.</h1>
+        <p class="lead">Record the visit, write a few words. We check every line of the note against what was actually said, and flag what is wrong or missing.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="/app/#/visit/D2N077">Try the demo</a>
+          <a class="btn btn-ghost btn-lg" href="#how">How it works</a>
+        </div>
+      </div>
 
-  <main id="page" class="page">
-    <div class="journal-col">
-      <section id="stats" class="stats" aria-label="Review summary" hidden></section>
+      <div class="hero-demo" aria-label="Example of a checked note">
+        <div class="mini-journal">
+          <p class="mini-label">Exam</p>
+          <p><span class="ok">R wrist injury yesterday AM.</span></p>
+          <p><span class="bad">L wrist tender on palpation</span>, swelling and bruising.</p>
+          <p><span class="ok">Brace 6 weeks.</span> <span class="bad">Ultram 100 mg q6h.</span></p>
+        </div>
+        <div class="mini-receipt">
+          <span class="pill st-contradicted">Contradicted</span>
+          <p class="mini-quote"><span class="mini-who">Patient</span> “it's my <mark>right</mark> one of course”</p>
+        </div>
+      </div>
+    </section>
 
-      <article class="journal" aria-labelledby="patient-name">
-        <header class="journal-head">
-          <div>
-            <h1 id="patient-name"></h1>
-            <p id="patient-meta" class="journal-meta"></p>
-          </div>
-          <select id="note-select" aria-label="Note"></select>
-        </header>
+    <section id="how" class="band">
+      <h2 class="band-title">How it works</h2>
+      <ol class="steps">
+        <li><span class="step-n">1</span><h3>Record the visit</h3><p>A voice memo during the consultation, turned into text.</p></li>
+        <li><span class="step-n">2</span><h3>Write a short note</h3><p>Shorthand is enough. Or let any AI scribe draft it.</p></li>
+        <li><span class="step-n">3</span><h3>Get the receipts</h3><p>Every line links to where it was said. Errors and gaps are flagged.</p></li>
+      </ol>
+    </section>
 
-        <div id="journal-body" class="journal-body"></div>
-        <textarea id="note-input" class="note-input" spellcheck="false" aria-label="Note text" hidden
-                  placeholder="Type or paste a note. Shorthand is fine."></textarea>
+    <section class="band">
+      <h2 class="band-title">Less writing. More trust.</h2>
+      <div class="features">
+        <div class="feature"><h3>Receipts</h3><p>Click any line to see the exact moment in the visit it came from.</p></div>
+        <div class="feature"><h3>Nothing left out</h3><p>Important things that were said but not written down, ready to add in one click.</p></div>
+        <div class="feature"><h3>Questions to ask</h3><p>Red flags and follow-ups the visit did not cover.</p></div>
+      </div>
+    </section>
 
-        <footer class="journal-actions">
-          <button id="audit-btn" class="btn btn-primary" type="button">Check against the visit</button>
-          <button id="edit-btn" class="btn btn-ghost" type="button">Edit</button>
-          <button id="sample-btn" class="btn btn-ghost" type="button" hidden>Show example</button>
-          <span id="status-text" class="status-text" role="status"></span>
-        </footer>
-      </article>
-
-      <section id="additions-section" class="section" hidden>
-        <h2 class="section-title">Missing from the note</h2>
-        <ul id="additions" class="rows"></ul>
-      </section>
-
-      <details id="followups-section" class="section followups" hidden>
-        <summary class="section-title" id="followups-title">Questions to follow up</summary>
-        <ul id="followups" class="rows"></ul>
-      </details>
-    </div>
-
-    <aside id="drawer" class="drawer" aria-label="Source in the visit" hidden>
-      <div id="drawer-content"></div>
-    </aside>
+    <section id="plans" class="band">
+      <h2 class="band-title">Two ways to use it</h2>
+      <div class="features two">
+        <div class="feature"><h3>As an add-on</h3><p>Checks notes from your existing AI scribe or record system, whoever wrote them.</p></div>
+        <div class="feature"><h3>As a complete solution</h3><p>Recording, speech-to-text and review in one flow, with draft notes as an option.</p></div>
+      </div>
+      <div class="cta-row"><a class="btn btn-primary btn-lg" href="/app/">Open the app</a></div>
+    </section>
   </main>
-  <div id="backdrop" class="backdrop" hidden></div>
 
   <footer class="footer">Demo data: ACI-Bench (Yim et al., 2023, CC BY 4.0). Role-played visits, no real patients.</footer>
 </body>

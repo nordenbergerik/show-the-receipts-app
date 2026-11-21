@@ -18,11 +18,11 @@ Byggt för Hacking Healthcare Hackathon (Track 1). Planer: [PLAN.md](PLAN.md) ·
 
 | Del | Status |
 |---|---|
-| Datalager och radindexering (`backend/data.py`, `backend/transcript.py`) | Klart och testat |
-| LLM-granskning och kvittokontroll | Pågår |
-| API (`/api/audit`) | Planerat |
-| Frontend | Planerat |
-| Utvärdering och demosvar i cache | Planerat |
+| Datalager och radindexering | Klart och testat |
+| Granskning (LLM-anrop, kvittokontroll, cache, `/api/audit`) | Klart och testat med falsk LLM, inte kört mot Claude-API:t än (nyckel saknas) |
+| Landningssida (`/`), patientlista, ny besök och granskningsvy (`/app/`) | Klart |
+| Simulerade granskningar (Claude-agent i API:ts ställe) | Klart för tre anteckningar på D2N077 |
+| Inloggning | Platshållare (`backend/auth.py`), demoläkare tills vidare |
 | Driftsättning (Render) | Planerat |
 
 ## Kom igång
@@ -34,6 +34,18 @@ python -m venv .venv
 .venv/Scripts/python -m pip install -r backend/requirements.txt   # Windows
 # .venv/bin/python -m pip install -r backend/requirements.txt     # macOS/Linux
 cp .env.example .env    # fyll i ANTHROPIC_API_KEY
+```
+
+Starta appen och öppna http://localhost:8000:
+
+```bash
+.venv/Scripts/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+```
+
+Bygg om de simulerade granskningarna efter ändringar i `demo/llm/` eller i kvittokontrollen:
+
+```bash
+.venv/Scripts/python -m demo.make_samples
 ```
 
 Kör testerna:

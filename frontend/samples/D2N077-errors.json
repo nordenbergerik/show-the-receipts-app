@@ -965,8 +965,8 @@
   "with_receipt_pct": 78.3
  },
  "meta": {
-  "model": "exempel",
-  "prompt_version": "handskrivet",
+  "model": "example (hand-written)",
+  "prompt_version": "replay",
   "cached": false,
   "latency_ms": 0
  }

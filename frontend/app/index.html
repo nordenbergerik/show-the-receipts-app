@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Show the Receipts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand" href="/">
+        <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 2.5h14v19l-2.33-1.5-2.34 1.5L12 20l-2.33 1.5L7.33 20 5 21.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M8.5 9.5l2.2 2.2 4.8-4.7M8.5 15.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-name">Show the Receipts</span>
+      </a>
+      <nav class="nav app-nav">
+        <a id="nav-patients" href="#/patients">Patients</a>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <a class="btn btn-primary btn-sm" href="#/new">New visit</a>
+      <span id="user-chip" class="user-chip" title="Sign-in is not enabled in this demo"></span>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" role="alert" hidden>
+    <p id="banner-text"></p>
+    <button id="banner-action" class="link-btn" type="button" hidden></button>
+    <button id="banner-close" class="icon-btn" type="button" aria-label="Dismiss">×</button>
+  </div>
+
+  <!-- Patients -->
+  <main id="view-patients" class="view narrow" hidden>
+    <div class="view-head">
+      <h1>Patients</h1>
+      <input id="patient-search" class="search" type="search" placeholder="Search by name, reason or visit" aria-label="Search patients">
+    </div>
+    <section id="group-own" class="group" hidden>
+      <h2 class="section-title">Your visits</h2>
+      <ul id="list-own" class="rows patient-list"></ul>
+    </section>
+    <section id="group-demo" class="group">
+      <h2 class="section-title">Demo patients</h2>
+      <ul id="list-demo" class="rows patient-list"></ul>
+    </section>
+    <section class="group">
+      <h2 id="all-title" class="section-title">All visits</h2>
+      <ul id="list-all" class="rows patient-list"></ul>
+    </section>
+  </main>
+
+  <!-- New visit -->
+  <main id="view-new" class="view narrow" hidden>
+    <div class="view-head"><h1>New visit</h1></div>
+    <form id="new-form" class="form" novalidate>
+      <div class="form-row">
+        <label class="form-field" for="new-patient"><span>Patient</span><input id="new-patient" required maxlength="80" placeholder="First and last name"></label>
+        <label class="form-field" for="new-reason"><span>Reason for visit</span><input id="new-reason" maxlength="120" placeholder="e.g. Right wrist injury"></label>
+      </div>
+      <label class="form-field" for="new-transcript">
+        <span>Transcript of the visit</span>
+        <textarea id="new-transcript" required rows="10" placeholder="[doctor] what brings you in today?&#10;[patient] I've had chest pain for two days."></textarea>
+        <small>One speaker turn per line, starting with [doctor] or [patient].</small>
+      </label>
+      <label class="form-field" for="new-note">
+        <span>Note</span>
+        <textarea id="new-note" rows="6" placeholder="Your note. Shorthand is fine."></textarea>
+      </label>
+      <p id="new-error" class="form-error" role="alert" hidden></p>
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Create visit</button>
+        <a class="btn btn-ghost" href="#/patients">Cancel</a>
+      </div>
+      <p class="form-hint">Saved only in this browser.</p>
+    </form>
+  </main>
+
+  <!-- Visit -->
+  <main id="view-visit" class="view" hidden>
+    <div id="page" class="page">
+      <div class="journal-col">
+        <a class="back-link" href="#/patients">‹ Patients</a>
+        <section id="stats" class="stats" aria-label="Review summary" hidden></section>
+
+        <article class="journal" aria-labelledby="patient-name">
+          <header class="journal-head">
+            <div>
+              <h1 id="patient-name"></h1>
+              <p id="patient-meta" class="journal-meta"></p>
+            </div>
+            <div class="journal-controls">
+              <select id="note-select" aria-label="Note"></select>
+              <select id="variant-select" aria-label="Transcript source"></select>
+            </div>
+          </header>
+
+          <div id="journal-body" class="journal-body"></div>
+          <textarea id="note-input" class="note-input" spellcheck="false" aria-label="Note text" hidden
+                    placeholder="Type or paste a note. Shorthand is fine."></textarea>
+
+          <footer class="journal-actions">
+            <button id="audit-btn" class="btn btn-primary" type="button">Check against the visit</button>
+            <button id="edit-btn" class="btn btn-ghost" type="button">Edit</button>
+            <button id="sample-btn" class="btn btn-ghost" type="button" hidden>Show simulated review</button>
+            <button id="delete-btn" class="btn btn-quiet" type="button" hidden>Delete visit</button>
+            <span id="status-text" class="status-text" role="status"></span>
+          </footer>
+        </article>
+
+        <section id="additions-section" class="section" hidden>
+          <h2 class="section-title">Missing from the note</h2>
+          <ul id="additions" class="rows"></ul>
+        </section>
+
+        <details id="followups-section" class="section followups" hidden>
+          <summary class="section-title" id="followups-title">Questions to follow up</summary>
+          <ul id="followups" class="rows"></ul>
+        </details>
+      </div>
+
+      <aside id="drawer" class="drawer" aria-label="Source in the visit" hidden>
+        <div id="drawer-content"></div>
+      </aside>
+    </div>
+  </main>
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <footer class="footer">Demo data: ACI-Bench (Yim et al., 2023, CC BY 4.0). Role-played visits, no real patients.</footer>
+</body>
+</html>

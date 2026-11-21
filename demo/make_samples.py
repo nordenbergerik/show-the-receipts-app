@@ -1,8 +1,11 @@
-"""Bygger exempelgranskningar för frontenden från handskrivna LLM-svar.
+"""Bygger exempelgranskningar för frontenden från förinspelade LLM-svar.
 
-Svaren i demo/llm/*.json körs genom exakt samma pipeline och kvittokontroll
-som riktiga Claude-svar, men märks som exempel så att de aldrig kan förväxlas
-med en riktig granskning. Resultatet hamnar i frontend/samples/.
+demo/llm/*.json innehåller svar på exakt de förfrågningar appen skickar
+(demo/export_requests.py), antingen skrivna för hand ("_source": "hand") eller
+av en Claude-agent som fick stå i API:ts ställe ("_source": "agent"). Svaren
+körs genom samma pipeline och kvittokontroll som riktiga API-svar och märks
+så att de inte kan förväxlas med en riktig granskning. Resultatet hamnar i
+frontend/samples/<filnamn>.json.
 
 Kör: .venv/Scripts/python -m demo.make_samples
 """
@@ -18,10 +21,12 @@ from backend.audit import run_audit
 from backend.cache import AuditCache
 from backend.config import ROOT, get_settings
 from backend.data import get_store
+from backend.notes import notes_for
 from backend.schemas import AuditRequest, ClaimsLLM, CoverageLLM
 
 DEMO = ROOT / "demo"
 OUT = ROOT / "frontend" / "samples"
+SOURCE_LABEL = {"hand": "example (hand-written)", "agent": "simulated (Claude agent)"}
 
 
 class ReplayLLM:
@@ -32,9 +37,10 @@ class ReplayLLM:
         return self.claims if output_format is ClaimsLLM else self.coverage
 
 
-async def build(path: Path, notes: dict) -> bool:
+async def build(path: Path) -> bool:
     raw = json.loads(path.read_text(encoding="utf-8"))
-    note = next(n for n in notes[raw["encounter_id"]] if n["id"] == raw["note_id"])
+    enc = get_store().get(raw["encounter_id"])
+    note = next(n for n in notes_for(enc) if n["id"] == raw["note_id"])
     claims = ClaimsLLM.model_validate(raw["claims"])
     coverage = CoverageLLM.model_validate(raw["coverage"])
     with tempfile.TemporaryDirectory() as tmp:
@@ -45,30 +51,36 @@ async def build(path: Path, notes: dict) -> bool:
             cache=AuditCache(Path(tmp)),
             settings=get_settings(),
         )
-    result.meta.model = "exempel"
-    result.meta.prompt_version = "handskrivet"
+    source = raw.get("_source", "hand")
+    result.meta.model = SOURCE_LABEL.get(source, source)
+    result.meta.prompt_version = "replay"
     result.meta.latency_ms = 0
 
-    ok = True
-    for raw_claim, claim in zip(claims.claims, result.claims):
-        if len(claim.evidence) != len(raw_claim.evidence) or claim.receipt_failed or claim.note_span is None:
-            ok = False
-            print(f"  ! {claim.claim_id} '{claim.note_quote}': {len(raw_claim.evidence)}->{len(claim.evidence)} kvitton, span={claim.note_span}")
-    dropped = len(coverage.additions) - len(result.suggested_additions)
-    if dropped:
-        ok = False
-        print(f"  ! {dropped} tillägg föll bort i kvittokontrollen")
+    dropped_quotes = sum(len(r.evidence) - len(c.evidence) for r, c in zip(claims.claims, result.claims) if c.status != "unsupported" or c.receipt_failed)
+    failed = [c for c in result.claims if c.receipt_failed]
+    no_span = [c for c in result.claims if c.note_span is None]
+    dropped_additions = len(coverage.additions) - len(result.suggested_additions)
 
     OUT.mkdir(parents=True, exist_ok=True)
     out = OUT / f"{path.stem}.json"
     out.write_text(json.dumps(result.model_dump(mode="json"), ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"{'OK ' if ok else 'VARNING'} {out.relative_to(ROOT)}: {result.summary.model_dump()}")
-    return ok
+    s = result.summary
+    print(f"{out.relative_to(ROOT)} [{source}]: {s.total} påståenden "
+          f"({s.supported} stöds, {s.inferred} slutsats, {s.contradicted} motsägs, {s.unsupported} saknar grund), "
+          f"{len(result.suggested_additions)} tillägg, {len(result.follow_up_questions)} frågor")
+    for c in failed:
+        print(f"  kvitto underkänt: {c.claim_id} '{c.note_quote}'")
+    for c in no_span:
+        print(f"  hittades inte i anteckningen: {c.claim_id} '{c.note_quote}'")
+    if dropped_quotes:
+        print(f"  {dropped_quotes} citat underkändes av kvittokontrollen")
+    if dropped_additions:
+        print(f"  {dropped_additions} tillägg föll bort i kvittokontrollen")
+    return not (failed or no_span or dropped_additions)
 
 
 async def main() -> int:
-    notes = json.loads((DEMO / "notes.json").read_text(encoding="utf-8"))
-    results = [await build(p, notes) for p in sorted((DEMO / "llm").glob("*.json"))]
+    results = [await build(p) for p in sorted((DEMO / "llm").glob("*.json"))]
     return 0 if all(results) else 1
 
 
