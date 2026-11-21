@@ -28,6 +28,8 @@ Varje AI-punkt kan kvitteras (✓) eller avfärdas (×) med ett klick.
 
 ## Demo
 
+**Snabbast:** patientlistan har en inbyggd patient, **Kyle**, i varje steg (inspelat besök, kontrollerat besök, utkast, granskad anteckning och läkarens egen anteckning). AI-svaren är förberäknade mot Claude-API:t, så varje knapp svarar direkt, på alla datorer och även med API-nyckel. *Reset demo patients* återställer dem. Spela in ett fall på nytt med `python -m demo.record_live cough-kyle`.
+
 Logga in (se *Inloggning* nedan), välj **New visit** och ladda upp filerna i [demo/cases/chest-pain/](demo/cases/chest-pain/):
 
 - **Hela flödet:** ladda upp bara `transcript.txt` → *Check the visit* → *Draft the note* → *Check note* → *Sign and send*.

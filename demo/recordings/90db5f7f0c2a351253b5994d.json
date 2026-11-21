@@ -1,0 +1,45 @@
+{
+ "format": "CoverageLLM",
+ "source": "live",
+ "response": {
+  "additions": [
+   {
+    "text": "Smoking history: pack-years and duration of smoking were not quantified.",
+    "why": "Pack-years drive malignancy risk estimation for the nodule and eligibility for lung cancer screening.",
+    "priority": "low",
+    "evidence": [
+     {
+      "line_id": 18,
+      "quote": "i stopped smoking probably about seven years ago"
+     }
+    ]
+   }
+  ],
+  "follow_up_questions": [
+   {
+    "category": "Red flags",
+    "title": "Constitutional and cancer symptoms",
+    "question": "Have you had any coughing up of blood, unexplained weight loss, night sweats, fevers, or loss of appetite?",
+    "why": "These red flags raise the suspicion of malignancy or infection and were not asked about for a 2 cm nodule."
+   },
+   {
+    "category": "History",
+    "title": "Smoking pack-years and exposures",
+    "question": "How many cigarettes a day did you smoke and for how many years? Any occupational exposures such as asbestos, or travel and TB or fungal exposure?",
+    "why": "Pack-years and exposures help estimate malignancy risk and the differential diagnosis."
+   },
+   {
+    "category": "Medication",
+    "title": "Perioperative methotrexate and allergies",
+    "question": "Do you have any drug allergies, and do you take any other medicines or blood thinners? Should the methotrexate be held around the surgery, in coordination with your rheumatologist?",
+    "why": "Allergies were not discussed, and immunosuppression affects surgical risk and wound healing before VATS."
+   },
+   {
+    "category": "History",
+    "title": "Prior imaging and prior cancer",
+    "question": "Do you have any older chest imaging for comparison, and have you ever had cancer yourself?",
+    "why": "Nodule stability over time and prior malignancy change the risk assessment and the need for resection."
+   }
+  ]
+ }
+}

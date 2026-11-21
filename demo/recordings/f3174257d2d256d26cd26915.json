@@ -1,0 +1,67 @@
+{
+ "format": "DecisionsLLM",
+ "source": "live",
+ "response": {
+  "flags": [
+   {
+    "category": "Treatment",
+    "severity": "important",
+    "title": "Resect before PET-CT result and tissue diagnosis?",
+    "concern": "VATS resection of a 2 cm nodule is recommended and consent is being started on the same visit that PET-CT is ordered, so the surgical decision does not rest on the PET result. No biopsy or multidisciplinary review is mentioned. The nodule is smooth, and the patient has an RA/methotrexate history and a hay-loading exposure.",
+    "consider": "Consider finalizing the decision for surgery after the PET-CT result, and consider a tumor board review or a tissue diagnosis to guide the extent of resection.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "i'm also going to schedule a pet ct"
+     },
+     {
+      "line_id": 27,
+      "quote": "i'm going to go ahead and suggest that we do remove this"
+     },
+     {
+      "line_id": 27,
+      "quote": "before we get the paperwork signed to start the the treatment process"
+     }
+    ]
+   },
+   {
+    "category": "Medication",
+    "severity": "important",
+    "title": "Perioperative methotrexate plan for RA patient?",
+    "concern": "The patient takes methotrexate, which can affect wound healing and infection risk and can cause lung toxicity, and is going to general anesthesia and VATS. The plan is only to continue the medication, with no perioperative plan or coordination with rheumatology. Allergies were not discussed either.",
+    "consider": "Consider coordinating with the rheumatologist on perioperative methotrexate management, confirming the dose, and checking allergies before surgery.",
+    "evidence": [
+     {
+      "line_id": 16,
+      "quote": "i think it's seven and a half milligrams every week"
+     },
+     {
+      "line_id": 27,
+      "quote": "continue your medication therapy as has been previously outlined for you"
+     }
+    ]
+   },
+   {
+    "category": "Tests",
+    "severity": "consider",
+    "title": "Is nodule differential and work-up complete?",
+    "concern": "The nodule is in a patient with RA (rheumatoid nodule is possible) and the patient has a hay-loading exposure and a months-long cough. These alternatives were not discussed. Smoking history was not quantified in pack-years, even though it is the stated reason for resection. Baseline pre-op labs and the staging work-up are not mentioned.",
+    "consider": "Consider quantifying pack-years and including rheumatoid nodule and infectious or fungal causes in the differential. Consider adding the pre-operative evaluation and any needed staging if PET is positive.",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "i have horses and i i bought you know four hundred bills a day"
+     },
+     {
+      "line_id": 27,
+      "quote": "because your smoking history i really do think it's gon na be best"
+     },
+     {
+      "line_id": 18,
+      "quote": "i stopped smoking probably about seven years ago"
+     }
+    ]
+   }
+  ]
+ }
+}

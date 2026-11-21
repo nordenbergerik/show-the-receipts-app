@@ -1,0 +1,14 @@
+{
+  "title": "Cough and a lung nodule",
+  "patient": "Kyle",
+  "reason": "Cough, lung nodule",
+  "notes": [
+    "note-doctor.txt"
+  ],
+  "questions": [
+    "Is there anything that raises the risk that the nodule is cancer?",
+    "Could his rheumatoid arthritis or methotrexate matter for the surgery?",
+    "Does he still have the cough today?"
+  ],
+  "planted_errors": {}
+}

@@ -1,0 +1,87 @@
+{
+ "format": "AskLLM",
+ "source": "live",
+ "response": {
+  "verdict": "some_evidence",
+  "summary": "The record names a few features that could raise concern: a prior smoking history (the only one the clinician explicitly cites), a solid 2 cm size, and a nodule in the upper lobe. Other points lower concern, and the record gives no formal risk estimate, so the weighing is left to the clinician.",
+  "findings": [
+   {
+    "stance": "supports",
+    "text": "Former smoker, quit about 7 years ago. The clinician explicitly cites the smoking history as the reason to recommend removal.",
+    "evidence": [
+     {
+      "line_id": 18,
+      "quote": "i stopped smoking probably about seven years ago"
+     },
+     {
+      "line_id": 27,
+      "quote": "it could be a benign nodule but because your smoking history i really do think it's gon na be best that you have that removed"
+     }
+    ]
+   },
+   {
+    "stance": "supports",
+    "text": "The nodule is solitary, 2 cm, and in the right upper lobe. The record does not say whether size or location raises the risk, but these are the features described.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "solitary two centimeter nodule in the lateral aspect of the right upper lobe"
+     }
+    ]
+   },
+   {
+    "stance": "supports",
+    "text": "The PET CT is ordered to see whether the nodule is metabolically active, which can suggest cancer or inflammation. No result is available yet, so malignancy is neither confirmed nor excluded.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "if it lights up it it can suggest that it's cancer or inflammatory"
+     }
+    ]
+   },
+   {
+    "stance": "against",
+    "text": "The nodule has a smooth appearance on CT and there is no emphysematous disease. The clinician calls the absence of emphysema 'good'.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "it appears the nodule is smooth in appearance and no evidence of any type of emphysematous disease is present which is good"
+     }
+    ]
+   },
+   {
+    "stance": "against",
+    "text": "No family history of lung cancer. The mother's breast cancer is the only malignancy mentioned.",
+    "evidence": [
+     {
+      "line_id": 24,
+      "quote": "no lung cancer my mom did have breast cancer but she is doing well now"
+     }
+    ]
+   },
+   {
+    "stance": "against",
+    "text": "No pain or shortness of breath. The cough has resolved. Lungs are clear, the patient is afebrile, and SpO2 is 98%.",
+    "evidence": [
+     {
+      "line_id": 22,
+      "quote": "no not at all"
+     },
+     {
+      "line_id": 6,
+      "quote": "my cough has gone away"
+     },
+     {
+      "line_id": 27,
+      "quote": "your lungs are clear and equal bilateral"
+     }
+    ]
+   }
+  ],
+  "where_to_look": [
+   "PET CT result, and whether the nodule is metabolically active",
+   "Smoking pack-years, which were not quantified in this record",
+   "Prior imaging to check whether the nodule has grown, plus a radiology review of the CT for other features such as spiculation, calcification and density"
+  ]
+ }
+}

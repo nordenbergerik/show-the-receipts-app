@@ -1,0 +1,162 @@
+{
+ "format": "VisitCheckLLM",
+ "source": "live",
+ "response": {
+  "missed": [
+   {
+    "category": "History",
+    "title": "Smoking pack-year quantity",
+    "question": "How many packs per day and for how many years did you smoke (total pack-years)?",
+    "why": "Pack-years and time since quitting affect malignancy risk estimates and how aggressive the nodule workup should be.",
+    "evidence": [
+     {
+      "line_id": 17,
+      "quote": "you were a previous smoker"
+     },
+     {
+      "line_id": 18,
+      "quote": "i stopped smoking probably about seven years ago"
+     }
+    ]
+   },
+   {
+    "category": "Red flags",
+    "title": "Weight loss, hemoptysis, constitutional symptoms?",
+    "question": "Have you had any unintended weight loss, coughing up blood, night sweats, fevers or loss of appetite?",
+    "why": "These symptoms raise suspicion for malignancy or infection and were not asked, even though the cough lasted about three months.",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "off and on i've had it for about three months"
+     },
+     {
+      "line_id": 21,
+      "quote": "do you have any pain or any shortness of breath"
+     }
+    ]
+   },
+   {
+    "category": "Risk factors",
+    "title": "Exposures and travel history",
+    "question": "Any occupational or environmental exposures (asbestos, radon, dust, mold, hay or barn dust), and any travel or residence in areas with endemic fungi, or TB contact?",
+    "why": "Granulomatous disease and fungal infection can produce a nodule that mimics cancer, and he handles hay and horses.",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "i have horses"
+     },
+     {
+      "line_id": 6,
+      "quote": "when i spent a day loading it and then it's i just started coughing a lot more"
+     }
+    ]
+   },
+   {
+    "category": "Medication",
+    "title": "Immunosuppression and lung toxicity",
+    "question": "How long have you been on methotrexate, any other RA drugs or steroids, and any recent change in your dose or in breathing symptoms?",
+    "why": "Methotrexate and RA both bring lung effects (pneumonitis, ILD, opportunistic infection, nodules), which influence the differential and perioperative risk.",
+    "evidence": [
+     {
+      "line_id": 14,
+      "quote": "i take methotrexate"
+     },
+     {
+      "line_id": 16,
+      "quote": "seven and a half milligrams every week"
+     }
+    ]
+   },
+   {
+    "category": "Medication",
+    "title": "Anticoagulants and surgical risk review",
+    "question": "Are you taking any blood thinners, NSAIDs or supplements? Any prior anesthesia problems, bleeding problems, or cardiac history? Any allergies?",
+    "why": "Surgery under general anesthesia is proposed, and no allergy, anticoagulant, or anesthesia history was elicited.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "you're gon na be under general anesthesia"
+     }
+    ]
+   },
+   {
+    "category": "History",
+    "title": "Prior imaging for comparison",
+    "question": "Do you have any older chest imaging that we could compare the nodule against?",
+    "why": "Stability or growth over time significantly changes the likelihood that the nodule is malignant.",
+    "evidence": [
+     {
+      "line_id": 2,
+      "quote": "they did that chest x-ray to make sure i did n't have pneumonia and they found this lung nodule"
+     }
+    ]
+   }
+  ],
+  "decision_flags": [
+   {
+    "category": "Treatment",
+    "severity": "important",
+    "title": "Resection recommended before PET-CT result?",
+    "concern": "The clinician proposed VATS resection while the PET-CT is only being scheduled, and a tissue diagnosis, pretest malignancy risk estimate, and PFT results were not available. Methotrexate use and RA could also complicate the picture, since they raise infection and inflammatory nodule possibilities.",
+    "consider": "Consider deciding on resection after the PET-CT and PFTs, with a formal malignancy risk estimate, and discuss options such as biopsy or surveillance and a multidisciplinary review.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "i'm going to go ahead and suggest that we do remove this"
+     },
+     {
+      "line_id": 27,
+      "quote": "i'm also going to schedule a pet ct"
+     }
+    ]
+   },
+   {
+    "category": "Treatment",
+    "severity": "consider",
+    "title": "Is the stated smoking rationale adequate?",
+    "concern": "The decision to operate was based on the smoking history, but pack-years were never quantified and he quit seven years ago. The nodule is smooth with no emphysema, which is somewhat reassuring.",
+    "consider": "Consider quantifying pack-years and risk-stratifying (size, location, margins, age) before attributing the surgical recommendation to smoking history.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "because your smoking history i really do think it's gon na be best that you have that removed"
+     },
+     {
+      "line_id": 27,
+      "quote": "the nodule is smooth in appearance"
+     }
+    ]
+   },
+   {
+    "category": "Medication",
+    "severity": "consider",
+    "title": "Perioperative methotrexate plan not addressed",
+    "concern": "The clinician simply said to continue the RA therapy, with no plan for perioperative methotrexate management, wound healing or infection risk, or coordination with the rheumatologist ahead of surgery.",
+    "consider": "Consider discussing perioperative methotrexate handling with the rheumatologist and anesthesia if surgery proceeds.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "continue your medication therapy as has been previously outlined for you"
+     }
+    ]
+   },
+   {
+    "category": "Follow-up",
+    "severity": "consider",
+    "title": "Informed consent and patient's fear",
+    "concern": "The patient repeatedly said he was nervous and scared, yet the paperwork was started right after the surgical proposal. Risks, alternatives, and a decision time were not discussed.",
+    "consider": "Consider reviewing risks, alternatives, and next steps in more depth and allowing time before consent.",
+    "evidence": [
+     {
+      "line_id": 28,
+      "quote": "i think i'll be okay i'm scared"
+     },
+     {
+      "line_id": 27,
+      "quote": "before we get the paperwork signed to start the the treatment process"
+     }
+    ]
+   }
+  ]
+ }
+}

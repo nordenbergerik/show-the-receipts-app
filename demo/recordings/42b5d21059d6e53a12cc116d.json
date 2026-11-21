@@ -1,0 +1,57 @@
+{
+ "format": "AskLLM",
+ "source": "live",
+ "response": {
+  "verdict": "evidence_found",
+  "summary": "The patient says his cough has gone away, so he most likely does not have it today. This is his own report; the doctor did not ask about the cough again, and the lung exam was clear.",
+  "findings": [
+   {
+    "stance": "supports",
+    "text": "The patient states his cough has gone away.",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "i typically do n't get sick and my cough has gone away"
+     }
+    ]
+   },
+   {
+    "stance": "supports",
+    "text": "The note records the cough as resolved.",
+    "evidence": [
+     {
+      "line_id": 33,
+      "quote": "Cough has now resolved."
+     }
+    ]
+   },
+   {
+    "stance": "supports",
+    "text": "Lungs were clear on auscultation, with no fever and normal oxygen saturation, so no objective sign of ongoing respiratory illness was recorded.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "your lungs are clear and equal bilateral"
+     },
+     {
+      "line_id": 27,
+      "quote": "o2 sat on room air of ninety eight percent"
+     }
+    ]
+   },
+   {
+    "stance": "supports",
+    "text": "He denied pain or shortness of breath when asked about symptoms.",
+    "evidence": [
+     {
+      "line_id": 22,
+      "quote": "no not at all"
+     }
+    ]
+   }
+  ],
+  "where_to_look": [
+   "Confirm directly with the patient that there is no residual or intermittent cough, as the doctor did not ask about it specifically."
+  ]
+ }
+}

@@ -236,6 +236,7 @@ async function init() {
   $("copy-btn").addEventListener("click", copyNote);
   $("delete-btn").addEventListener("click", deleteVisit);
   $("clear-btn").addEventListener("click", clearAll);
+  $("reset-demo-btn").addEventListener("click", resetDemoVisits);
   $("logout-btn").addEventListener("click", async () => {
     try { await post("/api/logout", {}); } catch { /* signing out anyway */ }
     location.href = "/login";
@@ -262,7 +263,42 @@ async function init() {
   $("user-chip").replaceChildren(el("span", { class: "avatar", text: initialsOf }), el("span", { class: "user-name", text: state.user.name }));
   $("replay-badge").hidden = !state.health.replay;
   $("logout-btn").hidden = !state.user.authenticated;
+  await seedDemoVisits();
   route();
+}
+
+// Built-in demo visits: the same patient at different steps, with the AI answers
+// computed in advance (demo/record_live.py). They are added to this browser's
+// list once and then work like any other visit. "Reset demo patients" puts them
+// back the way they were.
+async function seedDemoVisits(reset = false) {
+  let seeds;
+  try {
+    seeds = await api("/api/demo-visits");
+  } catch {
+    return; // the app works without them
+  }
+  state.demoIds = seeds.map((s) => s.visit.id);
+  const visits = ownVisits();
+  const have = new Set(visits.map((v) => v.id));
+  const added = seeds.filter((s) => reset || !have.has(s.visit.id));
+  if (!added.length) return;
+  const all = reviews();
+  for (const seed of added) {
+    removeWork(seed.visit.id);
+    delete state.pending[seed.visit.id];
+    if (seed.work) store.write(workKey(seed.visit.id), seed.work);
+    if (seed.review) all[seed.visit.id] = seed.review;
+    else delete all[seed.visit.id];
+  }
+  const ids = new Set(added.map((s) => s.visit.id));
+  store.write("visits", [...added.map((s) => s.visit), ...visits.filter((v) => !ids.has(v.id))]);
+  store.write("reviews", all);
+}
+
+async function resetDemoVisits() {
+  await seedDemoVisits(true);
+  renderPatients();
 }
 
 // After a new deploy an open tab would keep running the old code, since moving
@@ -337,6 +373,7 @@ function renderPatients() {
   const all = ownVisits().map((v) => ({ id: v.id, patient: v.patient, reason: v.reason, hasNote: Boolean((v.note || "").trim()), signed: Boolean(v.signed) }));
   const shown = all.filter(matches);
   $("clear-btn").hidden = !all.length;
+  $("reset-demo-btn").hidden = !(state.demoIds || []).length;
   $("clear-btn").dataset.confirm = "";
   $("clear-btn").textContent = "Clear all";
   $("list-own").replaceChildren(...(shown.length

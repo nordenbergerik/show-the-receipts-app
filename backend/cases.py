@@ -47,3 +47,59 @@ def _questions_by_transcript() -> dict[str, list[str]]:
 
 def suggested_questions(lines: list[Line]) -> list[str]:
     return _questions_by_transcript().get(transcript_fingerprint(lines), [])
+
+
+# ------------------------------------------------------------------ inbyggda demobesök
+
+DEMO_DATE_MS = 1_795_219_200_000  # 21 november 2026, så att listan inte visar dagens datum
+
+
+def _without_transcript(answer: dict | None) -> dict | None:
+    return {k: v for k, v in answer.items() if k != "transcript"} if answer else None
+
+
+def _review(audit: dict) -> dict:
+    """Det patientlistan visar, räknat som i webbläsaren (issues() i app.js)."""
+    problems = sum(1 for c in audit["claims"] if c["status"] in ("contradicted", "unsupported"))
+    return {"problems": problems, "missing": len(audit["suggested_additions"]), "stale": False}
+
+
+@lru_cache(maxsize=1)
+def demo_visits() -> list[dict]:
+    """Inbyggda besök för fall med förberäknade steg (demo/cases/<fall>/stages.json,
+    skapad med demo/record_live.py). Samma patient i flera steg, så att demon kan
+    hoppa mellan stegen utan att vänta på AI:n. Webbläsaren lägger in dem i sin egen
+    lista; därefter fungerar de som vanliga besök."""
+    out: list[dict] = []
+    for stages_path in sorted(CASES_DIR.glob("*/stages.json")):
+        folder = stages_path.parent
+        config = json.loads((folder / "case.json").read_text(encoding="utf-8"))
+        stages = json.loads(stages_path.read_text(encoding="utf-8"))
+        transcript = _normalize(_read(folder / "transcript.txt"))
+        lines = stages["visit_check"]["transcript"]
+        visit_check = _without_transcript(stages["visit_check"])
+        draft = stages["draft"]["note_text"]
+        ask = stages["asks"][0] if stages.get("asks") else None
+        reason = config.get("reason", "")
+        prefix = f"demo-{folder.name}"
+
+        def visit(n: int, label: str, note: str, work: dict | None, review: dict | None = None) -> dict:
+            return {
+                "visit": {"id": f"{prefix}-{n}", "patient": config.get("patient", "Patient"), "reason": f"{reason} · {label}",
+                          "transcript": transcript, "note": note, "created": DEMO_DATE_MS, "demo": True},
+                "work": work,
+                "review": review,
+            }
+
+        base = {"lines": lines, "visitState": {}, "additionState": {}, "flagState": {}, "followState": {}, "draftCost": ""}
+        out += [
+            visit(1, "Step 1: visit recorded", "", None),
+            visit(2, "Step 2: visit checked", "", {**base, "visitCheck": visit_check, "audit": None, "ask": None}),
+            visit(3, "Step 3: note drafted", draft, {**base, "visitCheck": visit_check, "audit": None, "ask": None}),
+            visit(4, "Step 4: note checked", draft,
+                  {**base, "visitCheck": visit_check, "audit": _without_transcript(stages["audit_draft"]), "ask": ask},
+                  _review(stages["audit_draft"])),
+        ]
+        for i, name in enumerate(config.get("notes", []), start=5):
+            out.append(visit(i, "The doctor's own note", _read(folder / name), None))
+    return out

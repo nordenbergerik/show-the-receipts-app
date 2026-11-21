@@ -31,11 +31,11 @@ from backend.auth import (
     too_many_attempts,
 )
 from backend.cache import AuditCache
-from backend.cases import suggested_questions
+from backend.cases import demo_visits, suggested_questions
 from backend.config import Settings, get_settings
 from backend.data import VARIANTS, DataStore, get_store
 from backend import usage
-from backend.llm import ClaudeLLM, LiveWithFallback, StructuredLLM
+from backend.llm import ClaudeLLM, LiveWithFallback, RecordedFirst, StructuredLLM
 from backend.replay import ReplayLLM
 from backend.schemas import (
     AskRequest,
@@ -126,7 +126,11 @@ def get_llm() -> StructuredLLM:
     if _llm is None:
         settings = get_settings()
         recorded = ReplayLLM(settings.recordings_dir)
-        _llm = recorded if settings.replay else LiveWithFallback(ClaudeLLM(settings), recorded)
+        if settings.replay:
+            _llm = recorded
+        else:
+            live = LiveWithFallback(ClaudeLLM(settings), recorded)
+            _llm = RecordedFirst(live, recorded) if settings.prefer_recordings else live
     return _llm
 
 
@@ -253,6 +257,12 @@ async def draft_note(req: DraftNoteRequest, store: Store, llm: LLM, settings: Se
         return result
     except AuditError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
+
+
+@app.get("/api/demo-visits")
+def get_demo_visits() -> list[dict]:
+    """Inbyggda demobesök i olika steg, med förberäknade AI-svar."""
+    return demo_visits()
 
 
 @app.post("/api/ask/suggestions")

@@ -159,3 +159,22 @@ class LiveWithFallback:
             result = self.recorded.load(content, output_format)
             usage.record(usage.CallUsage(task=output_format.__name__, model="recorded", seconds=0, source="recorded-fallback"))
             return result
+
+
+class RecordedFirst:
+    """Inspelade svar först, riktiga anrop för allt annat.
+
+    De inbyggda demobesöken (demo/cases/) har förberäknade svar. Med den här
+    ordningen svarar de direkt även när en API-nyckel finns, så demon inte väntar
+    på eller riskerar ett live-anrop. En förfrågan som inte är inspelad (en ändrad
+    anteckning, en egen fråga) går till API:t som vanligt. Svaren märks "recorded"
+    i kostnadsredovisningen.
+    """
+
+    def __init__(self, inner: Any, recorded: Any) -> None:
+        self.inner, self.recorded = inner, recorded
+
+    async def parse(self, *, system: str, content: list[dict[str, Any]], output_format: type[T]) -> T:
+        if self.recorded.path_for(output_format.__name__, content).exists():
+            return await self.recorded.parse(system=system, content=content, output_format=output_format)
+        return await self.inner.parse(system=system, content=content, output_format=output_format)

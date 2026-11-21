@@ -1,0 +1,105 @@
+{
+ "format": "CoverageLLM",
+ "source": "live",
+ "response": {
+  "additions": [
+   {
+    "text": "Cough has been present off and on for about 3 months, began after a day of loading hay (about 400 bales), was diagnosed as bronchitis by his PCP, and has since resolved; the nodule was found on chest x-ray done to rule out pneumonia and confirmed on CT.",
+    "why": "The note's ROS says he denies cough, which conflicts with the chief complaint, and the HPI documenting the cough and how the nodule was found is missing.",
+    "priority": "high",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "off and on i've had it for about three months"
+     },
+     {
+      "line_id": 6,
+      "quote": "my cough has gone away"
+     },
+     {
+      "line_id": 2,
+      "quote": "they found this lung nodule i went for a cat scan that confirmed it"
+     }
+    ]
+   },
+   {
+    "text": "Patient was referred by his PCP after the incidental finding of a lung nodule on chest x-ray, confirmed by CT.",
+    "why": "Referral source and the pathway to diagnosis give context for the consultation.",
+    "priority": "low",
+    "evidence": [
+     {
+      "line_id": 2,
+      "quote": "they referred me here to you"
+     }
+    ]
+   },
+   {
+    "text": "Patient is anxious and scared about the nodule and planned surgery; reassurance and support were provided.",
+    "why": "Documents the patient's emotional state and counseling, which is relevant to shared decision-making.",
+    "priority": "medium",
+    "evidence": [
+     {
+      "line_id": 2,
+      "quote": "i'm really nervous"
+     },
+     {
+      "line_id": 28,
+      "quote": "i'm scared"
+     }
+    ]
+   },
+   {
+    "text": "Patient denies chest pain; he denies shortness of breath.",
+    "why": "The pertinent negatives are partially documented, and 'pain' was also denied.",
+    "priority": "low",
+    "evidence": [
+     {
+      "line_id": 22,
+      "quote": "no not at all"
+     }
+    ]
+   },
+   {
+    "text": "Rheumatoid arthritis is stable with no recent flares; symptoms mostly affect the hands, and joints feel okay while he stays active.",
+    "why": "Supports the 'stable' assessment and gives the disease history relevant to immunosuppression and surgical planning.",
+    "priority": "medium",
+    "evidence": [
+     {
+      "line_id": 16,
+      "quote": "i have n't had any recent flares so i'm okay right now"
+     },
+     {
+      "line_id": 16,
+      "quote": "it's mostly with my hands"
+     }
+    ]
+   }
+  ],
+  "follow_up_questions": [
+   {
+    "category": "Red flags",
+    "title": "Hemoptysis and constitutional symptoms",
+    "question": "Have you coughed up any blood, or had unexplained weight loss, night sweats, fevers or loss of appetite?",
+    "why": "These are red flags for malignancy or infection in a patient with a 2 cm lung nodule and were not asked."
+   },
+   {
+    "category": "History",
+    "title": "Smoking pack-year quantification",
+    "question": "How many packs per day did you smoke, and for how many years in total?",
+    "why": "Pack-years are needed to estimate malignancy risk and guide nodule management, and the amount was not asked."
+   },
+   {
+    "category": "Medication",
+    "title": "Perioperative methotrexate management",
+    "question": "Have you been told whether to hold methotrexate before surgery, and are you taking any other immunosuppressants, steroids or blood thinners?",
+    "why": "Immunosuppression affects wound healing and infection risk and needs a perioperative plan."
+   },
+   {
+    "category": "History",
+    "title": "Exposure and travel history",
+    "question": "Have you had any exposure to TB, fungal infections, asbestos, or other occupational or environmental exposures (including hay or mold) or recent travel?",
+    "why": "Exposures and prior imaging help determine whether the nodule is infectious, which matters especially on methotrexate."
+   }
+  ]
+ }
+}

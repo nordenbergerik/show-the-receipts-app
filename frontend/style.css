@@ -913,3 +913,5 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2
 .ask-answer:has(> .work) { padding: 0; border: 0; background: none; box-shadow: none; }
 .p-status.is-working { display: inline-flex; align-items: center; gap: 6px; color: var(--green); }
 .p-status.is-working .spinner { width: 12px; height: 12px; }
+
+.footer-actions { display: flex; gap: 4px; }

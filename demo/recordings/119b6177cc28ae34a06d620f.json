@@ -1,0 +1,88 @@
+{
+ "format": "DecisionsLLM",
+ "source": "live",
+ "response": {
+  "flags": [
+   {
+    "category": "Treatment",
+    "severity": "important",
+    "title": "Resection planned before tissue diagnosis or PET?",
+    "concern": "VATS resection of a 2 cm solitary nodule is recommended while the PET CT is only being scheduled, and no biopsy is discussed. The surgical recommendation rests on smoking history alone, and the plan does not say whether PET results will change it.",
+    "consider": "Consider sequencing the PET CT first, and weighing a nodule risk estimate and the need for tissue diagnosis (e.g., biopsy or intraoperative frozen section) before committing to resection.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "i'm also going to schedule a pet ct"
+     },
+     {
+      "line_id": 27,
+      "quote": "i'm going to go ahead and suggest that we do remove this"
+     },
+     {
+      "line_id": 27,
+      "quote": "because your smoking history i really do think it's gon na be best that you have that removed"
+     }
+    ]
+   },
+   {
+    "category": "Medication",
+    "severity": "important",
+    "title": "Perioperative methotrexate plan not addressed",
+    "concern": "The patient takes weekly methotrexate for RA, and surgery under general anesthesia is planned. The plan only says to continue medication as outlined. It does not address perioperative immunosuppression, wound healing, infection risk or methotrexate lung toxicity.",
+    "consider": "Consider coordinating with rheumatology on whether to hold or continue methotrexate around surgery, and noting RA-related lung disease or methotrexate pneumonitis in the differential for the nodule and cough.",
+    "evidence": [
+     {
+      "line_id": 14,
+      "quote": "i take methotrexate"
+     },
+     {
+      "line_id": 16,
+      "quote": "seven and a half milligrams every week"
+     },
+     {
+      "line_id": 27,
+      "quote": "continue your medication therapy as has been previously outlined for you"
+     }
+    ]
+   },
+   {
+    "category": "Diagnosis",
+    "severity": "consider",
+    "title": "Were non-malignant causes of the nodule considered?",
+    "concern": "The patient has RA on methotrexate and a recent cough, and works with horses and hay. A rheumatoid nodule, infectious or granulomatous process, or drug-related lesion could fit, but only malignancy from smoking history is discussed. Smoking cessation was 7 years ago, and pack-years were not quantified.",
+    "consider": "Consider documenting pack-years and the differential (rheumatoid nodule, fungal or mycobacterial infection, hypersensitivity), and whether serology or infectious work-up is warranted.",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "i have horses"
+     },
+     {
+      "line_id": 18,
+      "quote": "i stopped smoking probably about seven years ago"
+     },
+     {
+      "line_id": 27,
+      "quote": "it appears the nodule is smooth in appearance"
+     }
+    ]
+   },
+   {
+    "category": "Follow-up",
+    "severity": "consider",
+    "title": "Follow-up and staging steps not defined",
+    "concern": "The visit ends with paperwork, with no date for surgery or return visit and no plan for reviewing PFT and PET results beforehand. Preoperative evaluation beyond PFTs is not mentioned.",
+    "consider": "Consider scheduling a results-review visit after PET CT and PFTs, with preoperative clearance and a clear surgical timeline.",
+    "evidence": [
+     {
+      "line_id": 31,
+      "quote": "i'll see you again in a few minutes"
+     },
+     {
+      "line_id": 27,
+      "quote": "before we get the paperwork signed to start the the treatment process"
+     }
+    ]
+   }
+  ]
+ }
+}

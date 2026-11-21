@@ -1,0 +1,507 @@
+{
+ "format": "ClaimsLLM",
+ "source": "live",
+ "response": {
+  "claims": [
+   {
+    "claim_id": "c1",
+    "note_quote": "Kyle, referred by PCP for incidental RUL lung nodule.",
+    "text": "Patient Kyle was referred by his primary care physician for an incidentally found right upper lobe lung nodule.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 2,
+      "quote": "they referred me here to you"
+     },
+     {
+      "line_id": 27,
+      "quote": "incidentally found right upper lobe lung nodule"
+     }
+    ],
+    "explanation": "Patient reports referral after the nodule was found; doctor describes it as incidental RUL nodule.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c2",
+    "note_quote": "Cough off and on x ~3 months",
+    "text": "Cough has been present off and on for about three months.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "off and on i've had it for about three months"
+     }
+    ],
+    "explanation": "Patient states this directly.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c3",
+    "note_quote": "worse after a day loading hay (~400 bales/day)",
+    "text": "Cough worsened after a day loading hay, about 400 bales per day.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "i just started coughing a lot more i think around that time"
+     },
+     {
+      "line_id": 6,
+      "quote": "four hundred bills a day"
+     }
+    ],
+    "explanation": "Patient links worse cough to loading hay at about 400 bales a day.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c4",
+    "note_quote": "then had a cold and saw PCP, diagnosed bronchitis",
+    "text": "He then got a cold and saw his PCP, who diagnosed bronchitis.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "after that i i i just got a cold so that's what sent me to my pcp"
+     },
+     {
+      "line_id": 2,
+      "quote": "which they diagnosed as bronchitis"
+     }
+    ],
+    "explanation": "Both lines support this sequence.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c5",
+    "note_quote": "CXR done to rule out pneumonia showed a lung nodule, confirmed on CT.",
+    "text": "Chest X-ray done to rule out pneumonia showed a lung nodule, confirmed on CT.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 2,
+      "quote": "they did that chest x-ray to make sure i did n't have pneumonia and they found this lung nodule"
+     },
+     {
+      "line_id": 2,
+      "quote": "i went for a cat scan that confirmed it"
+     }
+    ],
+    "explanation": "Stated by patient.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c6",
+    "note_quote": "Cough has now resolved.",
+    "text": "The cough has now resolved.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "my cough has gone away"
+     }
+    ],
+    "explanation": "Patient says the cough has gone away.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c7",
+    "note_quote": "Denies pain or SOB.",
+    "text": "Patient denies pain and shortness of breath.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 21,
+      "quote": "do you have any pain or any shortness of breath"
+     },
+     {
+      "line_id": 22,
+      "quote": "no not at all"
+     }
+    ],
+    "explanation": "Patient denied both.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c8",
+    "note_quote": "Patient is very nervous/scared about the finding.",
+    "text": "Patient is very nervous and scared about the finding.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 2,
+      "quote": "i'm really nervous"
+     },
+     {
+      "line_id": 28,
+      "quote": "i'm scared"
+     }
+    ],
+    "explanation": "Patient expresses nervousness and fear.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c9",
+    "note_quote": "PMH: RA, fairly controlled, mostly hands, no recent flares, on methotrexate 7.5 mg weekly (per patient).",
+    "text": "History of rheumatoid arthritis, fairly controlled, mostly affecting hands, no recent flares, on methotrexate 7.5 mg weekly per patient.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 14,
+      "quote": "it's fair you know arthritis never really goes away but i take methotrexate"
+     },
+     {
+      "line_id": 16,
+      "quote": "i think it's seven and a half milligrams every week"
+     },
+     {
+      "line_id": 16,
+      "quote": "i have n't had any recent flares"
+     }
+    ],
+    "explanation": "Patient describes all of these.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c10",
+    "note_quote": "Former smoker, quit ~7 years ago.",
+    "text": "Former smoker who quit about seven years ago.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 18,
+      "quote": "i stopped smoking probably about seven years ago"
+     }
+    ],
+    "explanation": "Stated by patient.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c11",
+    "note_quote": "Very active, bikes a lot.",
+    "text": "Patient is very active and bikes a lot.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 6,
+      "quote": "i do a lot of biking"
+     },
+     {
+      "line_id": 16,
+      "quote": "as long as i'm keeping active"
+     }
+    ],
+    "explanation": "Patient reports exercise and frequent biking.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c12",
+    "note_quote": "FHx: mother breast cancer (doing well); no family history of lung cancer.",
+    "text": "Mother had breast cancer and is doing well; no family history of lung cancer.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 24,
+      "quote": "no lung cancer my mom did have breast cancer but she is doing well now"
+     }
+    ],
+    "explanation": "Directly stated.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c13",
+    "note_quote": "No known prior lung infections or pneumonia.",
+    "text": "No known prior lung infections or pneumonia.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 26,
+      "quote": "no no not not anything that i'm aware of"
+     }
+    ],
+    "explanation": "Patient denies.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c14",
+    "note_quote": "Allergies not discussed.",
+    "text": "Allergies were not discussed.",
+    "status": "supported",
+    "evidence": [],
+    "explanation": "No mention of allergies anywhere in the transcript.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c15",
+    "note_quote": "Vitals: BP 124/76, HR 70, RR 16, SpO2 98% RA, afebrile.",
+    "text": "Vitals: BP 124/76, HR 70, RR 16, SpO2 98% on room air, afebrile.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "blood pressure of one twenty four over seventy six heart rate of seventy respiration rate of sixteen o2 sat on room air of ninety eight percent and you are afebrile"
+     }
+    ],
+    "explanation": "Matches dictated vitals.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c16",
+    "note_quote": "Lungs clear and equal bilaterally.",
+    "text": "Lungs are clear and equal bilaterally.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "your lungs are clear and equal bilateral"
+     }
+    ],
+    "explanation": "Dictated exam.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c17",
+    "note_quote": "Heart RRR, no clicks, rubs, murmurs or extra beats.",
+    "text": "Heart has regular rate and rhythm with no clicks, rubs, murmurs or extra beats.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "regular rate and rhythm no clicks rubs or murmurs and i do n't appreciate any extra beats"
+     }
+    ],
+    "explanation": "Dictated exam.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c18",
+    "note_quote": "Extremities: skin pink, warm, dry; no LE edema;",
+    "text": "Extremity skin is pink, warm and dry with no lower extremity edema.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "your skin is pink warm and dry i do n't appreciate any edema to your lower extremities"
+     }
+    ],
+    "explanation": "Dictated exam.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c19",
+    "note_quote": "mild swelling of 3rd digit knuckles bilaterally, consistent with RA;",
+    "text": "Mild swelling of the knuckles of the third digit on both hands, consistent with RA.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "a little bit of swelling to to your knuckles there on your third digit on each hand which can be normal for somebody who has ra"
+     }
+    ],
+    "explanation": "Dictated exam.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c20",
+    "note_quote": "pulses intact in all extremities, cap refill brisk.",
+    "text": "Pulses are intact in all extremities and capillary refill is brisk.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "pulses are intact in all extremities and capillary refill is brisk"
+     }
+    ],
+    "explanation": "Dictated exam.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c21",
+    "note_quote": "Chest CT: solitary 2 cm nodule in lateral right upper lobe, smooth appearance, no emphysematous disease.",
+    "text": "Chest CT shows a solitary 2 cm nodule in the lateral right upper lobe, smooth, with no emphysematous disease.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "a solitary two centimeter nodule in the lateral aspect of the right upper lobe"
+     },
+     {
+      "line_id": 27,
+      "quote": "the nodule is smooth in appearance and no evidence of any type of emphysematous disease is present"
+     }
+    ],
+    "explanation": "Matches dictated results.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c22",
+    "note_quote": "Incidentally found RUL lung nodule, 2 cm, smooth; former smoker.",
+    "text": "Incidentally found 2 cm smooth right upper lobe nodule in a former smoker.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "you do have an incidentally found right upper lobe lung nodule"
+     }
+    ],
+    "explanation": "Consistent with assessment and history.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c23",
+    "note_quote": "Could be benign but resection advised given smoking history.",
+    "text": "The nodule could be benign but resection is advised given smoking history.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "it could be a benign nodule but because your smoking history i really do think it's gon na be best that you have that removed"
+     }
+    ],
+    "explanation": "Stated by doctor.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c24",
+    "note_quote": "2. Rheumatoid arthritis, stable.",
+    "text": "Rheumatoid arthritis is stable.",
+    "status": "inferred",
+    "evidence": [
+     {
+      "line_id": 16,
+      "quote": "i have n't had any recent flares so i'm okay right now"
+     }
+    ],
+    "explanation": "No recent flares and doing okay supports stable.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c25",
+    "note_quote": "Order PFTs for baseline lung function.",
+    "text": "Order pulmonary function tests for baseline lung function.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "i'm going to order some pft which is pulmonary function test i just wan na get a check and and a baseline for your lung function"
+     }
+    ],
+    "explanation": "Stated by doctor.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c26",
+    "note_quote": "Schedule PET CT to assess whether nodule is metabolically active (cancer vs inflammatory).",
+    "text": "Schedule PET CT to assess whether the nodule is metabolically active, suggesting cancer or inflammation.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "i'm also going to schedule a pet ct this is gon na help to determine if that nodule is metabolically active"
+     }
+    ],
+    "explanation": "Stated by doctor.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c27",
+    "note_quote": "Recommend VATS resection of nodule with small portion of lung, 3 small incisions right chest, general anesthesia, ~1.5 h.",
+    "text": "Recommend video-assisted thoracoscopic resection of the nodule with a small portion of lung via three small incisions in the right chest, under general anesthesia, about 1.5 hours.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "three small incisions made on the side of your right chest"
+     },
+     {
+      "line_id": 27,
+      "quote": "you're gon na be under general anesthesia and it'll take about an hour and a half or so"
+     }
+    ],
+    "explanation": "Matches the doctor's description.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c28",
+    "note_quote": "Admit post-procedure, chest tube removed at bedside next day, expected 1 night in hospital.",
+    "text": "Admit after the procedure; chest tube removed at bedside the next day; expected one night in hospital.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "you're gon na be admitted and you will have a chest tube in until the following day and i'm gon na go ahead and take that out then at bedside"
+     },
+     {
+      "line_id": 27,
+      "quote": "you're gon na be in the hospital for one night"
+     }
+    ],
+    "explanation": "Stated by doctor.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c29",
+    "note_quote": "RA: continue methotrexate as prescribed and follow up with rheumatologist.",
+    "text": "Continue methotrexate as prescribed and follow up with rheumatologist.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "continue to follow up with your rheumatologist and continue your medication therapy as has been previously outlined for you"
+     }
+    ],
+    "explanation": "Doctor advises continuing current therapy; methotrexate is the patient's RA medication.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c30",
+    "note_quote": "Reassurance and support given.",
+    "text": "Reassurance and support were given.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 3,
+      "quote": "i'm gon na be right by your side the whole time"
+     },
+     {
+      "line_id": 29,
+      "quote": "we'll be right here with you the whole way"
+     }
+    ],
+    "explanation": "Doctor reassured the patient.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c31",
+    "note_quote": "Patient had no questions; consent paperwork to be signed.",
+    "text": "Patient had no questions; paperwork to be signed.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 28,
+      "quote": "no i do n't think so i think i'll be okay"
+     },
+     {
+      "line_id": 27,
+      "quote": "before we get the paperwork signed to start the the treatment process"
+     }
+    ],
+    "explanation": "Patient declined questions; paperwork is planned.",
+    "correction": ""
+   },
+   {
+    "claim_id": "c32",
+    "note_quote": "Clinician will see patient again shortly.",
+    "text": "Clinician will see the patient again shortly.",
+    "status": "supported",
+    "evidence": [
+     {
+      "line_id": 31,
+      "quote": "i'll see you again in a few minutes"
+     }
+    ],
+    "explanation": "Stated by doctor.",
+    "correction": ""
+   }
+  ]
+ }
+}

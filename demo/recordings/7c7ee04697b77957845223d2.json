@@ -1,0 +1,85 @@
+{
+ "format": "AskLLM",
+ "source": "live",
+ "response": {
+  "verdict": "some_evidence",
+  "summary": "The record documents RA on methotrexate 7.5 mg weekly with a plan for VATS under general anesthesia, but it never addresses perioperative handling of methotrexate, RA-related lung disease, or anesthesia/airway concerns. Whether RA or methotrexate matters for surgery is not answered here; the record only gives the relevant background.",
+  "findings": [
+   {
+    "stance": "supports",
+    "text": "Patient has RA treated with methotrexate 7.5 mg weekly (dose from patient recall), which is relevant background for planning surgery.",
+    "evidence": [
+     {
+      "line_id": 14,
+      "quote": "i take methotrexate"
+     },
+     {
+      "line_id": 16,
+      "quote": "i think it's seven and a half milligrams every week"
+     }
+    ]
+   },
+   {
+    "stance": "supports",
+    "text": "Surgery is planned as VATS under general anesthesia with chest tube and a hospital stay, so perioperative medication and RA considerations could apply.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "you're gon na be under general anesthesia and it'll take about an hour and a half or so"
+     }
+    ]
+   },
+   {
+    "stance": "supports",
+    "text": "Exam showed mild swelling of the knuckles of the third digits on both hands, attributed to RA. RA is described as fairly controlled with no recent flares.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "it looks like you do have a little bit of swelling to to your knuckles there on your third digit on each hand"
+     },
+     {
+      "line_id": 16,
+      "quote": "i have n't had any recent flares so i'm okay right now"
+     }
+    ]
+   },
+   {
+    "stance": "against",
+    "text": "The plan simply says to continue methotrexate and follow up with rheumatology. No discussion of holding or adjusting methotrexate around surgery, or of infection or wound-healing risk, is recorded.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "continue your medication therapy as has been previously outlined for you"
+     },
+     {
+      "line_id": 36,
+      "quote": "RA: continue methotrexate as prescribed and follow up with rheumatologist."
+     }
+    ]
+   },
+   {
+    "stance": "against",
+    "text": "Lung findings are reassuring and no RA-related lung disease is mentioned. Lungs are clear, SpO2 is 98%, there is no emphysema on CT, and PFTs are planned as a baseline. Interstitial lung disease and methotrexate lung toxicity are not specifically addressed.",
+    "evidence": [
+     {
+      "line_id": 27,
+      "quote": "o2 sat on room air of ninety eight percent"
+     },
+     {
+      "line_id": 27,
+      "quote": "no evidence of any type of emphysematous disease is present"
+     },
+     {
+      "line_id": 27,
+      "quote": "i just wan na get a check and and a baseline for your lung function"
+     }
+    ]
+   }
+  ],
+  "where_to_look": [
+   "Discuss perioperative methotrexate management with the patient's rheumatologist and the surgical/anesthesia team, and confirm the actual dose.",
+   "Review the full chest CT for interstitial changes, and review the PFTs when done, given RA and methotrexate.",
+   "Ask about cervical spine involvement and other RA-related anesthesia/airway concerns, and any other immunosuppressive drugs or steroids."
+  ]
+ }
+}

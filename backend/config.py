@@ -29,6 +29,7 @@ class Settings:
     cache_dir: Path
     frontend_dir: Path
     replay: bool
+    prefer_recordings: bool
     recordings_dir: Path
     effort_overrides: dict[str, str]
 
@@ -54,6 +55,7 @@ def get_settings() -> Settings:
         cache_dir=ROOT / "cache",
         frontend_dir=ROOT / "frontend",
         replay=_replay_mode(),
+        prefer_recordings=_flag("PREFER_RECORDINGS", "1"),
         recordings_dir=ROOT / "demo" / "recordings",
         effort_overrides=_effort_overrides(),
     )
